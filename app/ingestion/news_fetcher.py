@@ -4,10 +4,13 @@ from datetime import datetime
 import time
 from app.utils.logger import logger
 
-URL = "https://www.moneycontrol.com/news/business/"
+URL = "https://www.moneycontrol.com/news/business/stocks/"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0"
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml",
+    "Connection": "keep-alive"
 }
 
 
@@ -68,3 +71,20 @@ class MoneyControlFetcher:
             time.sleep(delay)
 
         return []
+    
+
+
+    def fetch_full_article(self , url):
+        try:
+            res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+            soup = BeautifulSoup(res.text, "html.parser")
+
+            # Moneycontrol article paragraphs
+            paragraphs = soup.find_all("p")
+
+            text = " ".join([p.get_text(strip=True) for p in paragraphs])
+
+            return text
+
+        except Exception as e:
+            return ""

@@ -28,7 +28,7 @@ def get_best_match(company_name):
     )
 
     # Use a score threshold (70-80 is usually good for official names)
-    if score > 90:
+    if score > 79:
         return match, company_to_ticker[match]
 
     return None, None
