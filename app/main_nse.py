@@ -33,7 +33,7 @@ def process_article(article):
         # --- FINAL SIGNAL ---
         if signal == "HOLD":
             print(company, "=> ",label," => ",score)
-            print("news => "text)
+            print("news => ",text)
             return
 
         
