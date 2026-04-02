@@ -1,0 +1,21 @@
+# Environments
+.env
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files
+*.csv
+*.xlsx
+signals.json
+
+# Streamlit
+.streamlit/

@@ -1,3 +1,8 @@
-API_KEY = "12e0310f69e7418b860894acf67838ee"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv("API_KEY")
 MAX_ARTICLES = 5
 SENTIMENT_THRESHOLD = 0.7
