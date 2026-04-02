@@ -33,6 +33,7 @@ def process_article(article):
         # --- FINAL SIGNAL ---
         if signal == "HOLD":
             print(company, "=> HOLD => ",score)
+            print("news => ":text)
             return
 
         
@@ -95,20 +96,19 @@ def run():
 
             if new_articles:
                 logger.info(f"🆕 {len(new_articles)} new announcements")
-                i=0
+                
 
             # Process oldest first
             for article in reversed(new_articles):
                 process_article(article)
 
             time.sleep(10)  # ⚡ real-time but safe
-            i=i+1
-            print(i)
+            
 
         except Exception as e:
             logger.error(f"Main loop error: {e}")
             time.sleep(10)
-            print("=" * 60)
+            
 
 
 if __name__ == "__main__":
