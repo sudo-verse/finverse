@@ -1,6 +1,8 @@
 import streamlit as st
 import json
 import pandas as pd
+from app.main_nse import run
+run()
 
 st.title("📊 Market Intelligence Dashboard")
 
