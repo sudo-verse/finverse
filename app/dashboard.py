@@ -42,5 +42,5 @@ if not df.empty:
 
     for i, row in df.tail(5).iterrows():
         st.write(f"**{row['company']}** → {row['signal']}")
-        st.write(row.get("event", "No event"))
+        st.write(row.get("news", "No event"))
         st.write("---")

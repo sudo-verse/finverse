@@ -32,7 +32,7 @@ def process_article(article):
 
         # --- FINAL SIGNAL ---
         if signal == "HOLD":
-            print(company, "HOLD")
+            print(company, "=> HOLD => ",score)
             return
 
         
@@ -43,7 +43,7 @@ def process_article(article):
             return
 
         # --- EXPLANATION ---
-        explanation = explain_decision(company, event, label, signal)
+        explanation = explain_decision(company, text, label, signal)
 
         # --- SAVE ---
         save_signal({
@@ -79,9 +79,9 @@ def run():
     while True:
         try:
             articles = fetch_nse_announcements()
-
             if not articles:
-                time.sleep(5)
+                time.sleep(10)
+                print("No articles found")
                 continue
 
             new_articles = []
@@ -95,16 +95,20 @@ def run():
 
             if new_articles:
                 logger.info(f"🆕 {len(new_articles)} new announcements")
+                i=0
 
             # Process oldest first
             for article in reversed(new_articles):
                 process_article(article)
 
-            time.sleep(5)  # ⚡ real-time but safe
+            time.sleep(10)  # ⚡ real-time but safe
+            i=i+1
+            print(i)
 
         except Exception as e:
             logger.error(f"Main loop error: {e}")
-            time.sleep(5)
+            time.sleep(10)
+            print("=" * 60)
 
 
 if __name__ == "__main__":
