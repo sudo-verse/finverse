@@ -8,7 +8,11 @@ from app.utils.logger import logger
 from app.utils.storage import save_signal
 import time
 
-
+COLORS = {
+    "positive": "\033[92m",
+    "negative": "\033[91m",
+    "neutral": "\033[0m"
+}
 def process_article(article):
     try:
         # --- SAFE TEXT ---
@@ -31,10 +35,7 @@ def process_article(article):
         signal = generate_signal(label, score, event)
 
         # --- FINAL SIGNAL ---
-        if signal == "HOLD":
-            print(company, "=> ",label," => ",score)
-            print("news => ",text)
-            return
+       
 
         
 
@@ -52,10 +53,12 @@ def process_article(article):
             "company": company,
             "ticker": ticker,
             "signal": signal,
+            "label":label,
             "event": event,
             "score": score,
             "time": timestamp
         })
+        color = COLORS.get(label, "\033[0m")
 
         # --- LOG ---
         logger.info("=" * 60)
@@ -63,7 +66,7 @@ def process_article(article):
         logger.info(f"Ticker: {ticker}")
         logger.info(f"Signal: {signal}")
         logger.info(f"Event: {event}")
-        logger.info(f"Sentiment: {label} ({score:.2f})")
+        logger.info(f"{color}Sentiment: {label} ({score:.2f})\033[0m")
         logger.info(f"Time: {timestamp}")
         logger.info(f"Price: {price}")
         logger.info(f"Explanation: {explanation}")
