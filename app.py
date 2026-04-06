@@ -2,7 +2,6 @@ import streamlit as st
 import json
 import pandas as pd
 from app.main_nse import run
-run()
 
 st.title("📊 Market Intelligence Dashboard")
 
@@ -46,3 +45,13 @@ if not df.empty:
         st.write(f"**{row['company']}** → {row['signal']}")
         st.write(row.get("news", "No event"))
         st.write("---")
+
+import threading
+
+def start_engine():
+    run()
+
+if "engine_started" not in st.session_state:
+    thread = threading.Thread(target=start_engine, daemon=True)
+    thread.start()
+    st.session_state.engine_started = True
