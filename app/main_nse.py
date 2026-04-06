@@ -16,11 +16,6 @@ COLORS = {
     "neutral": "\033[0m"
 }
 
-COLORS = {
-    "positive": "\033[92m",
-    "negative": "\033[91m",
-    "neutral": "\033[0m"
-}
 def process_article(article):
     try:
         # --- SAFE TEXT ---
@@ -44,9 +39,7 @@ def process_article(article):
         signal = generate_signal(label, score, event)
 
         # --- FINAL SIGNAL ---
-        if signal == "HOLD":
-            print(company, "=> HOLD => ",score)
-            return
+       
 
         
         
@@ -71,6 +64,12 @@ def process_article(article):
             "score": score,
             "time": timestamp
         })
+        # Only send strong signals (avoid spam)
+        if signal in ["BUY"]:
+
+            msg = format_signal_msg(company, ticker, signal, price,timestamp, event, score,text,link)
+
+            send_telegram(msg)
 
         # --- LOG ---
         logger.info("=" * 60)
@@ -78,7 +77,6 @@ def process_article(article):
         logger.info(f"Ticker: {ticker}")
         logger.info(f"Signal: {signal}")
         logger.info(f"Event: {event}")
-        logger.info(f"{color}Sentiment: {label} ({score:.2f})\033[0m")
         logger.info(f"Time: {timestamp}")
         logger.info(f"Price: {price}")
         logger.info(f"Explanation: {explanation}")
