@@ -27,11 +27,11 @@ CATEGORY_PATTERNS = [
     ]),
 
     ("order_win", [
-        r"\bbag(g|ged)\b.*\b(order|contract|project|work order)\b",
-        r"\bsecure(d)?\b.*\b(order|contract|project|work order)\b",
-        r"\bwon\b.*\b(order|contract|project|work order)\b",
-        r"\breceiv(ed|e)\b.*\b(order|contract|work order)\b",
-        r"\b(work order|purchase order|letter of award|loa)\b",
+        r"\bbag(g|ged)?.*\b(order|contract|project|work order)s?\b",
+        r"\bsecure(d)?.*\b(order|contract|project|work order)s?\b",
+        r"\bwon\b.*\b(order|contract|project|work order)s?\b",
+        r"\breceiv(ed|e)\b.*\b(order|contract|work order)s?\b",
+        r"\b(work order|purchase order|letter of award|loa)s?\b",
     ]),
 
     ("securities_issuance", [
