@@ -1,0 +1,211 @@
+import { apiClient } from "./client";
+import type {
+  AIReport,
+  Announcement,
+  AnnualReportFile,
+  BrsrFile,
+  ChatMessage,
+  Company,
+  CompanyProfile,
+  CompetitorAnalysis,
+  CorpAction,
+  CorpEvent,
+  DashboardData,
+  HoldingCreate,
+  IndexQuote,
+  IntradaySeries,
+  LiveQuote,
+  CagrRow,
+  MarketMovers,
+  MarketOverview,
+  MarqueeItem,
+  NsePeer,
+  TurnoverRow,
+  Paginated,
+  PerformanceRow,
+  PortfolioData,
+  PricePoint,
+  ProsCons,
+  RatioPoint,
+  SentimentData,
+  SentimentHistoryPoint,
+  StatementRow,
+  QuarterlyResult,
+  QuarterOption,
+  ShareholdingPeriod,
+  Signal,
+  SignalFacets,
+  SignalFilters,
+  StockDetail,
+} from "@/types";
+
+export async function getDashboard(): Promise<DashboardData> {
+  return (await apiClient.get<DashboardData>("/dashboard")).data;
+}
+
+export async function getSignals(filters: SignalFilters): Promise<Paginated<Signal>> {
+  const { search, signal, source, sentiment, page = 1, pageSize = 12 } = filters;
+  const params = {
+    page,
+    pageSize,
+    search: search?.trim() || undefined,
+    signal: signal && signal !== "ALL" ? signal : undefined,
+    source: source && source !== "ALL" ? source : undefined,
+    sentiment: sentiment && sentiment !== "ALL" ? sentiment : undefined,
+  };
+  return (await apiClient.get<Paginated<Signal>>("/signals", { params })).data;
+}
+
+export async function getSignalFacets(): Promise<SignalFacets> {
+  return (await apiClient.get<SignalFacets>("/signals/facets")).data;
+}
+
+export async function getStocks(search?: string): Promise<Company[]> {
+  return (await apiClient.get<Company[]>("/stocks", { params: { search } })).data;
+}
+
+export async function getStock(symbol: string): Promise<StockDetail> {
+  return (await apiClient.get<StockDetail>(`/stocks/${symbol}`)).data;
+}
+
+export async function getCompetitors(symbol: string): Promise<CompetitorAnalysis> {
+  return (await apiClient.get<CompetitorAnalysis>(`/competitors/${symbol}`)).data;
+}
+
+export async function getPortfolio(): Promise<PortfolioData> {
+  return (await apiClient.get<PortfolioData>("/portfolio")).data;
+}
+
+export async function addHolding(payload: HoldingCreate): Promise<void> {
+  await apiClient.post("/portfolio/holdings", payload);
+}
+
+export async function clearHoldings(): Promise<void> {
+  await apiClient.delete("/portfolio/holdings");
+}
+
+/* ------------------------------ Live NSE data ------------------------------ */
+
+export async function getLiveQuote(symbol: string): Promise<LiveQuote> {
+  return (await apiClient.get<LiveQuote>(`/stocks/${symbol}/live`)).data;
+}
+
+export async function getAnnouncements(symbol: string, limit = 10): Promise<Announcement[]> {
+  return (await apiClient.get<Announcement[]>(`/stocks/${symbol}/announcements`, { params: { limit } })).data;
+}
+
+export async function getCorporateActions(symbol: string, limit = 10): Promise<CorpAction[]> {
+  return (await apiClient.get<CorpAction[]>(`/stocks/${symbol}/corporate-actions`, { params: { limit } })).data;
+}
+
+export async function getAnnualReports(symbol: string, limit = 10): Promise<AnnualReportFile[]> {
+  return (await apiClient.get<AnnualReportFile[]>(`/stocks/${symbol}/annual-reports`, { params: { limit } })).data;
+}
+
+export async function getEvents(symbol: string, limit = 5): Promise<CorpEvent[]> {
+  return (await apiClient.get<CorpEvent[]>(`/stocks/${symbol}/events`, { params: { limit } })).data;
+}
+
+export async function getBoardMeetings(symbol: string, limit = 10): Promise<CorpEvent[]> {
+  return (await apiClient.get<CorpEvent[]>(`/stocks/${symbol}/board-meetings`, { params: { limit } })).data;
+}
+
+export async function getQuarterlyResults(symbol: string): Promise<QuarterlyResult[]> {
+  return (await apiClient.get<QuarterlyResult[]>(`/stocks/${symbol}/results`)).data;
+}
+
+export async function getLivePeers(symbol: string, quarter = ""): Promise<NsePeer[]> {
+  return (await apiClient.get<NsePeer[]>(`/competitors/${symbol}/live`, { params: { quarter } })).data;
+}
+
+export async function getPeerQuarters(symbol: string): Promise<QuarterOption[]> {
+  return (await apiClient.get<QuarterOption[]>(`/competitors/${symbol}/quarters`)).data;
+}
+
+export async function getMarketOverview(): Promise<MarketOverview> {
+  return (await apiClient.get<MarketOverview>("/market/overview")).data;
+}
+
+export async function getMarketMovers(): Promise<MarketMovers> {
+  return (await apiClient.get<MarketMovers>("/market/movers")).data;
+}
+
+export async function getAllIndices(): Promise<IndexQuote[]> {
+  return (await apiClient.get<IndexQuote[]>("/market/indices")).data;
+}
+
+export async function getIndexChart(index: string, flag = "1D"): Promise<IntradaySeries> {
+  return (await apiClient.get<IntradaySeries>("/market/index-chart", { params: { index, flag } })).data;
+}
+
+export async function getMarquee(): Promise<MarqueeItem[]> {
+  return (await apiClient.get<MarqueeItem[]>("/market/marquee")).data;
+}
+
+export async function getTurnover(): Promise<TurnoverRow[]> {
+  return (await apiClient.get<TurnoverRow[]>("/market/turnover")).data;
+}
+
+export async function getIntraday(symbol: string, days = "1D"): Promise<IntradaySeries> {
+  return (await apiClient.get<IntradaySeries>(`/stocks/${symbol}/intraday`, { params: { days } })).data;
+}
+
+export async function getShareholding(symbol: string): Promise<ShareholdingPeriod[]> {
+  return (await apiClient.get<ShareholdingPeriod[]>(`/stocks/${symbol}/shareholding`)).data;
+}
+
+export async function getPerformance(symbol: string): Promise<PerformanceRow[]> {
+  return (await apiClient.get<PerformanceRow[]>(`/stocks/${symbol}/performance`)).data;
+}
+
+export async function getProfile(symbol: string): Promise<CompanyProfile> {
+  return (await apiClient.get<CompanyProfile>(`/stocks/${symbol}/profile`)).data;
+}
+
+export async function getBrsr(symbol: string): Promise<BrsrFile[]> {
+  return (await apiClient.get<BrsrFile[]>(`/stocks/${symbol}/brsr`)).data;
+}
+
+export async function generateReport(symbol: string, useCache = true): Promise<AIReport> {
+  return (await apiClient.post<AIReport>("/report", { symbol, useCache })).data;
+}
+
+export async function sendChatMessage(message: string, symbol?: string): Promise<ChatMessage> {
+  return (await apiClient.post<ChatMessage>("/chat", { message, symbol: symbol ?? null })).data;
+}
+
+/* --------------------------- Company terminal --------------------------- */
+
+export async function getStockHistory(symbol: string, range: string): Promise<PricePoint[]> {
+  return (await apiClient.get<PricePoint[]>(`/stocks/${symbol}/history`, { params: { range } })).data;
+}
+
+export async function getStatements(symbol: string): Promise<StatementRow[]> {
+  return (await apiClient.get<StatementRow[]>(`/stocks/${symbol}/statements`)).data;
+}
+
+export async function getRatios(symbol: string): Promise<RatioPoint[]> {
+  return (await apiClient.get<RatioPoint[]>(`/stocks/${symbol}/ratios`)).data;
+}
+
+export async function getCagr(symbol: string): Promise<CagrRow[]> {
+  return (await apiClient.get<CagrRow[]>(`/stocks/${symbol}/cagr`)).data;
+}
+
+export async function getProsCons(symbol: string, refresh = false): Promise<ProsCons> {
+  return (await apiClient.get<ProsCons>(`/stocks/${symbol}/pros-cons`, { params: { refresh } })).data;
+}
+
+/* ------------------------ Sentiment Intelligence ------------------------ */
+
+export async function getSentiment(symbol: string): Promise<SentimentData> {
+  return (await apiClient.get<SentimentData>(`/sentiment/${symbol}`)).data;
+}
+
+export async function getSentimentHistory(symbol: string): Promise<SentimentHistoryPoint[]> {
+  return (await apiClient.get<SentimentHistoryPoint[]>(`/sentiment/history/${symbol}`)).data;
+}
+
+export async function recomputeSentiment(symbol: string): Promise<SentimentData> {
+  return (await apiClient.post<SentimentData>(`/sentiment/recompute/${symbol}`)).data;
+}
