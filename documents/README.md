@@ -29,5 +29,12 @@ python -m app.etl.ingest_documents --news       # index Finverse news signals
 ```
 
 Re-runs are incremental: `.ingested.json` tracks content hashes, so only new
-or changed files are embedded. Files in this directory are also served at
+or changed files are embedded.
+
+> **Gemini free-tier quota:** embedding is limited to 100 requests/min and
+> 1,000/day. Page-by-page PDF ingestion uses ~1 request per page, so a large
+> annual report can exhaust the daily budget — the pipeline retries through
+> the per-minute cap automatically, but a daily-cap failure means re-running
+> the next day (upserts make that safe). `python -m app.etl.fetch_filings
+> SYMBOL` downloads + indexes the latest annual report in one step. Files in this directory are also served at
 `/docfiles/...` so source citations can open the original filing.
