@@ -1,0 +1,11 @@
+# Full stack for the real-time engine (FinBERT sentiment, spaCy NER) and the
+# complete ETL (NSE/Moneycontrol scraping). Installs the dashboard deps too.
+#
+# After installing, download the spaCy model:
+#   python -m spacy download en_core_web_sm
+-r requirements.txt
+beautifulsoup4>=4.11.0
+spacy>=3.5.0
+transformers>=4.26.0
+torch
+nsepython>=0.8.0

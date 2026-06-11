@@ -1,14 +1,16 @@
 import requests
-import time
-BOT_TOKEN = "8685652065:AAEYp-PFLNATwKciLDKhYrZJH3PyZrULccU"
-CHAT_ID = "1873512150"
+from app.config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 
 def send_telegram(msg):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("Telegram not configured: set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env")
+        return
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
     payload = {
-        "chat_id": CHAT_ID,
+        "chat_id": TELEGRAM_CHAT_ID,
         "text": msg,
         "parse_mode": "Markdown"
     }

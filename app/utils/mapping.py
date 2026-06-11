@@ -32,3 +32,21 @@ def get_best_match(company_name):
         return match, company_to_ticker[match]
 
     return None, None
+
+
+def resolve_ticker(text):
+    """Extract company names from free text and resolve to a plain NSE symbol.
+
+    Used by news sources (Google News, Moneycontrol, ET) which — unlike NSE
+    announcements — don't provide a ticker. Returns (company_name, symbol)
+    with the ".NS" suffix stripped so it matches NSE's plain symbols, or
+    (None, None) if nothing resolves confidently.
+    """
+    from app.nlp.ner import extract_companies
+
+    for company in extract_companies(text):
+        name, ticker = get_best_match(company)
+        if ticker:
+            return name, ticker.replace(".NS", "")
+
+    return None, None

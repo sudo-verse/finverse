@@ -1,5 +1,4 @@
-from app.ingestion.nse_fetcher import fetch_nse_announcements
-from app.trading.paper_trading import execute_paper_trade, update_portfolio
+from app.ingestion.unified_fetcher import UnifiedFetcher
 from app.nlp.sentiment import get_sentiment
 from app.engine.signal import generate_signal
 from app.engine.event import detect_event
@@ -8,71 +7,85 @@ from app.market.stock_data import get_stock_price
 from app.utils.logger import logger
 from app.utils.storage import save_signal
 from app.utils.telegram import send_telegram, format_signal_msg
+import json
+import os
 import time
 
-COLORS = {
-    "positive": "\033[92m",
-    "negative": "\033[91m",
-    "neutral": "\033[0m"
-}
+STATE_FILE = "engine_state.json"
+# Cap the persisted dedup set so it can't grow unbounded across runs
+MAX_SEEN = 2000
+
+
+def load_seen_uids():
+    try:
+        with open(STATE_FILE, "r") as f:
+            return list(json.load(f).get("seen_uids", []))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def save_seen_uids(seen_uids):
+    tmp = STATE_FILE + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump({"seen_uids": seen_uids[-MAX_SEEN:]}, f)
+    os.replace(tmp, STATE_FILE)
+
 
 def process_article(article):
     try:
-        # --- SAFE TEXT ---
-        text = article.get("attchmntText") or article.get("desc") or ""
-        text = text[:512]
-
+        text = (article.get("text") or article.get("title") or "")[:512]
         if not text:
             return
 
-        # --- BASIC INFO ---
-        company = article["sm_name"]
-        ticker = article["symbol"]
-        timestamp = article["sort_date"]
-        link=article["attchmntFile"]
+        company = article.get("company") or article.get("ticker")
+        ticker = article.get("ticker")
+        timestamp = article.get("timestamp")
+        link = article.get("url", "")
+        source = article.get("source", "?")
+
+        if not ticker:
+            return
 
         # --- SENTIMENT ---
         label, score = get_sentiment(text)
 
-        ## --- EVENT ---
-        event = detect_event(article.get("desc"), text)
+        # --- EVENT + SIGNAL ---
+        event = detect_event(text)
         signal = generate_signal(label, score, event)
 
-        # --- FINAL SIGNAL ---
-       
-
-        
-        
-        # --- PRICE ---
+        # --- PRICE (may be unavailable for illiquid stocks; keep signal anyway) ---
         price = get_stock_price(ticker)
-        if price is None:
-            return
 
         # --- EXPLANATION ---
-        explanation = explain_decision(company, text, label, signal)
+        explanation = explain_decision(company, event, label, signal)
 
         # --- SAVE ---
-        save_signal({
+        is_new = save_signal({
             "news": text,
             "company": company,
-            "price":price,
+            "price": price,
             "ticker": ticker,
             "signal": signal,
-            "label":label,
+            "label": label,
             "event": event,
-            "label":label,
             "score": score,
-            "time": timestamp
+            "source": source,
+            "time": timestamp,
+            "uid": article.get("uid"),
         })
-        # Only send strong signals (avoid spam)
-        if signal in ["BUY"]:
+        if not is_new:
+            return  # already stored (e.g. re-seen after a restart) — don't re-notify
 
-            msg = format_signal_msg(company, ticker, signal, price,timestamp, event, score,text,link)
-
+        # Only send BUY signals (avoid spam)
+        if signal == "BUY":
+            msg = format_signal_msg(
+                company, ticker, signal, price, timestamp, event, score, text, link
+            )
             send_telegram(msg)
 
         # --- LOG ---
         logger.info("=" * 60)
+        logger.info(f"Source: {source}")
         logger.info(f"Company: {company}")
         logger.info(f"Ticker: {ticker}")
         logger.info(f"Signal: {signal}")
@@ -85,44 +98,52 @@ def process_article(article):
         logger.error(f"Processing error: {e}")
 
 
-def run():
-    logger.info("🚀 Starting NSE Real-Time Engine")
+def run_cycle(fetcher, seen_uids, seen_set) -> int:
+    """One ingestion sweep: fetch all sources, process unseen articles,
+    persist the dedup state. Returns the number of new articles processed.
 
-    last_seq_id = None
+    Shared by the standalone engine loop below and the API's embedded
+    background worker (backend.core.engine).
+    """
+    articles = fetcher.fetch_all()
+    if not articles:
+        logger.info("No articles found")
+        return 0
+
+    new_articles = [a for a in articles if a["uid"] not in seen_set]
+    if not new_articles:
+        return 0
+
+    logger.info(f"🆕 {len(new_articles)} new articles across all sources")
+    for article in new_articles:
+        process_article(article)
+        seen_set.add(article["uid"])
+        seen_uids.append(article["uid"])
+
+    save_seen_uids(seen_uids)
+    # Keep the in-memory structures bounded too
+    if len(seen_uids) > MAX_SEEN:
+        del seen_uids[:-MAX_SEEN]
+        seen_set.clear()
+        seen_set.update(seen_uids)
+    return len(new_articles)
+
+
+def run():
+    logger.info("🚀 Starting Multi-Source Real-Time Engine")
+
+    fetcher = UnifiedFetcher()
+    seen_uids = load_seen_uids()
+    seen_set = set(seen_uids)
 
     while True:
         try:
-            articles = fetch_nse_announcements()
-            if not articles:
-                time.sleep(5)
-                print("No articles found")
-                continue
-
-            new_articles = []
-
-            for article in articles:
-                if last_seq_id is None or article["seq_id"] > last_seq_id:
-                    new_articles.append(article)
-
-            # Update latest seen
-            last_seq_id = articles[0]["seq_id"]
-
-            if new_articles:
-                logger.info(f"🆕 {len(new_articles)} new announcements")
-                i=0
-
-            # Process oldest first
-            for article in reversed(new_articles):
-                process_article(article)
-
+            run_cycle(fetcher, seen_uids, seen_set)
             time.sleep(10)  # ⚡ real-time but safe
-            i=i+1
-            print(i)
 
         except Exception as e:
             logger.error(f"Main loop error: {e}")
             time.sleep(10)
-            
 
 
 if __name__ == "__main__":

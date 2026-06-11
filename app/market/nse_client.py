@@ -3,6 +3,10 @@ import time
 
 
 class NSEClient:
+    NEXT_API_URL = "https://www.nseindia.com/api/NextApi/apiClient"
+    QUOTE_API_URL = NEXT_API_URL + "/GetQuoteApi"
+    HOME_API_URL = NEXT_API_URL + "/homeApi"
+
     def __init__(self):
         self.session = requests.Session()
 
@@ -43,14 +47,74 @@ class NSEClient:
         return None
 
     def get_price(self, symbol):
+        # Fast path: symbol is in the cached NIFTY 500 index data
         data = self.get_data()
 
-        if not data:
-            return None
+        if data:
+            for stock in data:
+                if stock["symbol"] == symbol:
+                    return float(stock["lastPrice"])
 
-        for stock in data:
-            if stock["symbol"] == symbol:
-                return float(stock["lastPrice"])
+        # Fallback: Yahoo Finance covers all listed equities, not just
+        # NIFTY 500 constituents (NSE symbols map to "<symbol>.NS")
+        return self.get_yahoo_price(symbol)
+
+    def quote_api(self, function_name, **params):
+        """NextApi GetQuoteApi — symbol-scoped data (quote, filings, peers…)."""
+        return self._next_api_get(self.QUOTE_API_URL, function_name, params)
+
+    def next_api(self, function_name, **params):
+        """NextApi apiClient — market-wide data (index data, GIFT Nifty…)."""
+        return self._next_api_get(self.NEXT_API_URL, function_name, params)
+
+    def home_api(self, function_name, **params):
+        """NextApi homeApi — homepage widgets (curated indices set…)."""
+        return self._next_api_get(self.HOME_API_URL, function_name, params)
+
+    def _next_api_get(self, url, function_name, params):
+        """GET a NextApi endpoint with the session cookies.
+
+        Returns the parsed JSON, or None on failure. Retries once after
+        re-doing the homepage handshake (NSE cookies expire).
+        """
+        query = {"functionName": function_name, **params}
+        for attempt in (1, 2):
+            try:
+                res = self.session.get(url, params=query, headers=self.headers, timeout=10)
+                if res.status_code == 200:
+                    return res.json()
+                # 401/403 → cookies stale; refresh and retry once
+                if attempt == 1:
+                    self.session.get(self.base_url, headers=self.headers, timeout=10)
+            except Exception as e:
+                print(f"NSE NextApi error ({function_name}, try {attempt}):", e)
+                if attempt == 1:
+                    try:
+                        self.session.get(self.base_url, headers=self.headers, timeout=10)
+                    except Exception:
+                        pass
+        return None
+
+    def get_yahoo_price(self, symbol):
+        try:
+            import yfinance as yf
+
+            ticker = yf.Ticker(f"{symbol}.NS")
+
+            # fast_info.last_price is the cheapest path; fall back to the
+            # latest daily close if it isn't populated
+            price = ticker.fast_info.last_price
+
+            if price is None:
+                hist = ticker.history(period="1d")
+                if not hist.empty:
+                    price = hist["Close"].iloc[-1]
+
+            if price is not None:
+                return float(price)
+
+        except Exception as e:
+            print(f"Yahoo price error for {symbol}:", e)
 
         return None
 

@@ -1,10 +1,16 @@
+# Dashboard / deployment requirements (Streamlit Cloud, Render).
+# Slim by design: the Streamlit app reads from the DB and calls Gemini — it does
+# NOT need torch/transformers/spaCy. Those belong to the ingestion engine and
+# full ETL; see requirements-engine.txt.
 streamlit>=1.20.0
 pandas>=1.5.0
+numpy>=1.23.0
 requests>=2.28.0
-beautifulsoup4>=4.11.0
 yfinance>=0.2.0
-spacy>=3.5.0
-transformers>=4.26.0
-nsepython>=0.8.0
+SQLAlchemy>=2.0.0
+PyMySQL>=1.1.0
 python-dotenv>=1.0.0
-torch
+rapidfuzz>=3.0.0
+google-genai>=2.0.0
+chromadb>=1.0.0
+pypdf>=4.0.0

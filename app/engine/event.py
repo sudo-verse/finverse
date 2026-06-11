@@ -118,7 +118,7 @@ def classify_event(text: str) -> str:
                 return category
 
     return "other"
-def detect_event(desc, attchmntxt):
+def detect_event(desc, attchmntxt=""):
     parts = []
 
     if isinstance(desc, str):
