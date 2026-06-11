@@ -16,6 +16,19 @@ __pycache__/
 *.csv
 *.xlsx
 signals.json
+engine_state.json
 
-# Streamlit
-.streamlit/
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# RAG vector store
+chroma_db/
+
+# Research document corpus — keep the README, not the (large) filings
+documents/*
+!documents/README.md
+
+# Streamlit — keep config.toml + the secrets template, ignore real secrets
+.streamlit/secrets.toml
