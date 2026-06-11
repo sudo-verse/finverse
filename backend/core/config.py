@@ -32,6 +32,8 @@ class Settings(BaseSettings):
 
     # Daily data refresh (prices top-up after market close; financials +
     # company master weekly on Sundays). Disable with BACKEND_ETL_ENABLED=false.
+    alerts_interval: int = 300  # seconds between alert-rule evaluations
+
     etl_enabled: bool = True
     etl_hour_ist: int = 18    # run at 18:30 IST daily
     etl_minute_ist: int = 30

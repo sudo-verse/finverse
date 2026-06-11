@@ -13,6 +13,8 @@ const AssistantPage = lazy(() => import("@/pages/assistant"));
 const ResearchPage = lazy(() => import("@/pages/research"));
 const DocumentsPage = lazy(() => import("@/pages/documents"));
 const SentimentPage = lazy(() => import("@/pages/sentiment"));
+const WatchlistPage = lazy(() => import("@/pages/watchlist"));
+const ScreenerPage = lazy(() => import("@/pages/screener"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
 
 function PageFallback() {
@@ -55,6 +57,8 @@ export default function App() {
             ["/documents/:symbol", DocumentsPage],
             ["/sentiment", SentimentPage],
             ["/sentiment/:symbol", SentimentPage],
+            ["/watchlist", WatchlistPage],
+            ["/screener", ScreenerPage],
             ["/assistant", AssistantPage],
             ["/settings", SettingsPage],
           ] as const

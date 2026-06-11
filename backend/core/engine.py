@@ -161,12 +161,33 @@ class EtlWorker:
         prices_etl.run(period="1mo")
         if weekly:
             financials_etl.run()
+        self._snapshot_sentiment()
         self.status.update(
             runs=self.status["runs"] + 1,
             last_run_at=datetime.now(timezone.utc).isoformat(),
             last_error=None,
         )
         logger.info("etl: daily refresh complete (weekly=%s)", weekly)
+
+    @staticmethod
+    def _snapshot_sentiment() -> None:
+        """Daily sentiment snapshot for tracked symbols (watchlist + holdings)
+        so the history chart builds without anyone visiting the page."""
+        from app.db.database import get_session
+        from app.db.models import PortfolioHolding, WatchlistItem
+        from backend.services.sentiment_service import sentiment_service
+
+        with get_session() as s:
+            symbols = {r.symbol for r in s.query(WatchlistItem.symbol).all()}
+            symbols |= {r.symbol for r in s.query(PortfolioHolding.symbol).all()}
+        for symbol in sorted(symbols):
+            try:
+                with get_session() as s:
+                    sentiment_service.compute(s, symbol, force=True)  # persists snapshot
+            except Exception as e:
+                logger.warning("etl: sentiment snapshot failed for %s: %s", symbol, e)
+        if symbols:
+            logger.info("etl: sentiment snapshots saved for %d tracked symbols", len(symbols))
 
     def _loop(self) -> None:
         from datetime import datetime, timedelta, timezone
@@ -210,3 +231,58 @@ def start_etl(hour_ist: int, minute_ist: int) -> EtlWorker:
 def stop_etl() -> None:
     if etl_worker is not None:
         etl_worker.stop()
+
+
+class AlertWorker:
+    """Evaluates alert rules every few minutes (separate from the news sweep
+    so a slow NSE call can't starve ingestion)."""
+
+    def __init__(self, interval_seconds: int):
+        self.interval = interval_seconds
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+        self.status: dict = {"running": False, "checks": 0, "fired_total": 0, "last_error": None}
+
+    def start(self) -> None:
+        if self._thread and self._thread.is_alive():
+            return
+        self._stop.clear()
+        self._thread = threading.Thread(target=self._loop, name="finverse-alerts", daemon=True)
+        self._thread.start()
+        self.status["running"] = True
+        logger.info("alerts: evaluator started (every %ss)", self.interval)
+
+    def stop(self) -> None:
+        self._stop.set()
+        self.status["running"] = False
+
+    def _loop(self) -> None:
+        from backend.services.watchlist_service import watchlist_service
+
+        while not self._stop.is_set():
+            if self._stop.wait(self.interval):
+                return
+            try:
+                fired = watchlist_service.evaluate_all()
+                self.status.update(checks=self.status["checks"] + 1,
+                                   fired_total=self.status["fired_total"] + fired,
+                                   last_error=None)
+            except Exception as e:
+                self.status["last_error"] = str(e)
+                logger.exception("alerts: evaluation cycle failed")
+
+
+alert_worker: AlertWorker | None = None
+
+
+def start_alerts(interval_seconds: int) -> AlertWorker:
+    global alert_worker
+    if alert_worker is None:
+        alert_worker = AlertWorker(interval_seconds)
+    alert_worker.start()
+    return alert_worker
+
+
+def stop_alerts() -> None:
+    if alert_worker is not None:
+        alert_worker.stop()

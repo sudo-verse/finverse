@@ -54,6 +54,10 @@ needed. Watch it at `GET /api/engine/status`. To run the standalone engine
 | `GET /api/research/companies` | `companies` table + ChromaDB chunk counts |
 | `GET /api/research/sources/{symbol}` | `app.genai.research.source_summary` + DB availability checks |
 | `GET /api/research/history` | `research_chats` table (`app.db.repository`) |
+| `GET /api/sentiment/*` | `backend.services.sentiment_service` (5-pillar explainable scoring) + `app.analytics.technicals` |
+| `GET /api/screener` | set-based SQL over `financial_statements` / `price_history` / `sentiment_scores` |
+| `GET/POST/DELETE /api/watchlist`, `/api/alerts*` | `backend.services.watchlist_service` (+ AlertWorker evaluator → Telegram) |
+| `GET /api/signals/performance` | `backend.services.backtest_service` (forward returns from `price_history`) |
 
 All responses are camelCase (Pydantic alias generator) to match the frontend's
 TypeScript interfaces.

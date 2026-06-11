@@ -646,3 +646,89 @@ export interface SentimentHistoryPoint {
   recommendation: string | null;
   reason: string | null;
 }
+
+/* ----------------------------- Watchlist ----------------------------- */
+
+export interface WatchlistItem {
+  symbol: string;
+  name: string | null;
+  industry: string | null;
+  note: string | null;
+  addedAt: string;
+  price: number | null;
+  changePct: number | null;
+  sentiment: number | null;
+  recommendation: string | null;
+  alertCount: number;
+}
+
+export type AlertKind =
+  | "price_above"
+  | "price_below"
+  | "sentiment_above"
+  | "sentiment_below"
+  | "promoter_change"
+  | "buy_signal";
+
+export interface AlertRule {
+  id: number;
+  symbol: string;
+  kind: AlertKind;
+  threshold: number | null;
+  active: boolean;
+  createdAt: string;
+  lastTriggeredAt: string | null;
+}
+
+export interface AlertEvent {
+  id: number;
+  symbol: string | null;
+  message: string | null;
+  seen: boolean;
+  createdAt: string;
+}
+
+/* ------------------------------ Screener ------------------------------ */
+
+export interface ScreenerRow {
+  symbol: string;
+  name: string;
+  industry: string | null;
+  price: number | null;
+  marketCap: number | null;
+  pe: number | null;
+  pb: number | null;
+  roe: number | null;
+  roce: number | null;
+  npm: number | null;
+  debtToEquity: number | null;
+  revenueGrowth: number | null;
+  profitGrowth: number | null;
+  sentiment: number | null;
+  recommendation: string | null;
+}
+
+/* ------------------------- Signal backtesting ------------------------- */
+
+export interface SignalPerfRow {
+  signal: string;
+  count: number;
+  hitRate: number | null;
+  avgReturn7D: number | null;
+  avgReturn30D: number | null;
+}
+
+export interface SignalExample {
+  symbol: string | null;
+  signal: string;
+  date: string;
+  returnPct: number | null;
+  headline: string;
+}
+
+export interface SignalPerformance {
+  evaluated: number;
+  rows: SignalPerfRow[];
+  best: SignalExample[];
+  worst: SignalExample[];
+}

@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { Bell, Menu, Search, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
+import { Bell, BellOff, Menu, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMarketOverview } from "@/hooks/queries";
-import { formatNumber, formatPercent } from "@/lib/format";
+import { useAlertEvents, useMarkAlertsSeen, useMarketOverview } from "@/hooks/queries";
+import { formatNumber, formatPercent, timeAgo } from "@/lib/format";
 import { NAV_ITEMS } from "./sidebar";
 import { cn } from "@/lib/utils";
 
@@ -26,9 +26,76 @@ function Tick({ name, value, changePct }: { name: string; value: number | null; 
   );
 }
 
+function AlertsBell() {
+  const [open, setOpen] = useState(false);
+  const { data: events } = useAlertEvents();
+  const markSeen = useMarkAlertsSeen();
+  const blurTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const unseen = events?.filter((e) => !e.seen).length ?? 0;
+
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    if (next && unseen > 0) markSeen.mutate();
+  };
+
+  return (
+    <div
+      className="relative"
+      onBlur={() => {
+        blurTimer.current = setTimeout(() => setOpen(false), 150);
+      }}
+      onFocus={() => clearTimeout(blurTimer.current)}
+    >
+      <Button variant="ghost" size="icon" className="relative" aria-label="Alerts" onClick={toggle}>
+        <Bell />
+        {unseen > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-bear px-1 font-mono text-[9px] font-bold text-white">
+            {unseen}
+          </span>
+        )}
+      </Button>
+      {open && (
+        <div className="absolute right-0 top-11 z-40 w-80 overflow-hidden rounded-xl border border-border bg-popover shadow-2xl">
+          <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Alerts</span>
+            <Link to="/watchlist" className="text-[11px] text-primary hover:underline" onClick={() => setOpen(false)}>
+              Manage →
+            </Link>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {!events || events.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-center">
+                <BellOff className="h-6 w-6 text-muted-foreground/40" />
+                <p className="px-6 text-xs text-muted-foreground">
+                  No alerts fired yet. Create rules from your watchlist.
+                </p>
+              </div>
+            ) : (
+              events.map((e) => (
+                <Link
+                  key={e.id}
+                  to={`/stocks/${e.symbol}`}
+                  onClick={() => setOpen(false)}
+                  className="block border-b border-border/40 px-3 py-2.5 transition-colors last:border-0 hover:bg-accent/40"
+                >
+                  <span className="flex items-baseline gap-2">
+                    <span className="font-mono text-xs font-semibold text-primary">{e.symbol}</span>
+                    <span className="text-[10px] text-muted-foreground">{timeAgo(e.createdAt)}</span>
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-snug text-foreground/85">{e.message}</span>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Topbar({ onOpenPalette }: TopbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navigate = useNavigate();
   const { data: market } = useMarketOverview();
 
   return (
@@ -73,10 +140,7 @@ export function Topbar({ onOpenPalette }: TopbarProps) {
           </kbd>
         </button>
 
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications" onClick={() => navigate("/signals")}>
-          <Bell />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-bear" />
-        </Button>
+        <AlertsBell />
 
         <div className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-xs font-bold text-white shadow-md">
           SK

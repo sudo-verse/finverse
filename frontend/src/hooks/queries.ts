@@ -349,3 +349,58 @@ export function useRecomputeSentiment() {
     },
   });
 }
+
+/* ----------------------------- Watchlist ----------------------------- */
+
+export function useWatchlist() {
+  return useQuery({
+    queryKey: ["watchlist"],
+    queryFn: services.getWatchlist,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+}
+
+export function useWatchMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["watchlist"] });
+  const add = useMutation({ mutationFn: ({ symbol, note }: { symbol: string; note?: string }) => services.addWatch(symbol, note), onSuccess: invalidate });
+  const remove = useMutation({ mutationFn: (symbol: string) => services.removeWatch(symbol), onSuccess: invalidate });
+  return { add, remove };
+}
+
+export function useAlertRules(symbol?: string) {
+  return useQuery({
+    queryKey: ["alert-rules", symbol ?? ""],
+    queryFn: () => services.getAlertRules(symbol),
+    staleTime: 30_000,
+  });
+}
+
+export function useAlertRuleMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["alert-rules"] });
+    qc.invalidateQueries({ queryKey: ["watchlist"] });
+  };
+  const create = useMutation({ mutationFn: services.createAlertRule, onSuccess: invalidate });
+  const remove = useMutation({ mutationFn: (id: number) => services.deleteAlertRule(id), onSuccess: invalidate });
+  return { create, remove };
+}
+
+export function useAlertEvents() {
+  return useQuery({
+    queryKey: ["alert-events"],
+    queryFn: services.getAlertEvents,
+    staleTime: 30_000,
+    refetchInterval: 60_000, // keeps the bell badge fresh
+  });
+}
+
+export function useMarkAlertsSeen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: services.markAlertEventsSeen,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["alert-events"] }),
+  });
+}

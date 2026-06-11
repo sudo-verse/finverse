@@ -1,6 +1,9 @@
 import { apiClient } from "./client";
 import type {
   AIReport,
+  AlertEvent,
+  AlertKind,
+  AlertRule,
   Announcement,
   AnnualReportFile,
   BrsrFile,
@@ -37,6 +40,7 @@ import type {
   SignalFacets,
   SignalFilters,
   StockDetail,
+  WatchlistItem,
 } from "@/types";
 
 export async function getDashboard(): Promise<DashboardData> {
@@ -208,4 +212,38 @@ export async function getSentimentHistory(symbol: string): Promise<SentimentHist
 
 export async function recomputeSentiment(symbol: string): Promise<SentimentData> {
   return (await apiClient.post<SentimentData>(`/sentiment/recompute/${symbol}`)).data;
+}
+
+/* ----------------------------- Watchlist ----------------------------- */
+
+export async function getWatchlist(): Promise<WatchlistItem[]> {
+  return (await apiClient.get<WatchlistItem[]>("/watchlist")).data;
+}
+
+export async function addWatch(symbol: string, note?: string): Promise<void> {
+  await apiClient.post("/watchlist", { symbol, note });
+}
+
+export async function removeWatch(symbol: string): Promise<void> {
+  await apiClient.delete(`/watchlist/${symbol}`);
+}
+
+export async function getAlertRules(symbol?: string): Promise<AlertRule[]> {
+  return (await apiClient.get<AlertRule[]>("/alerts", { params: { symbol } })).data;
+}
+
+export async function createAlertRule(payload: { symbol: string; kind: AlertKind; threshold?: number | null }): Promise<AlertRule> {
+  return (await apiClient.post<AlertRule>("/alerts", payload)).data;
+}
+
+export async function deleteAlertRule(id: number): Promise<void> {
+  await apiClient.delete(`/alerts/${id}`);
+}
+
+export async function getAlertEvents(): Promise<AlertEvent[]> {
+  return (await apiClient.get<AlertEvent[]>("/alerts/events")).data;
+}
+
+export async function markAlertEventsSeen(): Promise<void> {
+  await apiClient.post("/alerts/events/seen");
 }

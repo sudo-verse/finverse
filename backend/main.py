@@ -27,9 +27,11 @@ from backend.api import (
     portfolio,
     reports,
     research,
+    screener,
     sentiment,
     signals,
     stocks,
+    watchlist,
 )
 from backend.core.config import settings
 from backend.core.exceptions import NoDataError, NotFoundError, ServiceUnavailableError
@@ -52,13 +54,22 @@ async def lifespan(_: FastAPI):
 
     # Embedded real-time news engine — keeps signals fresh without a
     # separate `python -m app.main_nse` process.
-    from backend.core.engine import start_engine, start_etl, stop_engine, stop_etl
+    from backend.core.engine import (
+        start_alerts,
+        start_engine,
+        start_etl,
+        stop_alerts,
+        stop_engine,
+        stop_etl,
+    )
 
     if settings.engine_enabled:
         start_engine(settings.engine_interval)
     if settings.etl_enabled:
         start_etl(settings.etl_hour_ist, settings.etl_minute_ist)
+    start_alerts(settings.alerts_interval)
     yield
+    stop_alerts()
     stop_etl()
     stop_engine()
     logger.info("Finverse API shutting down")
@@ -158,6 +169,8 @@ for router in (
     reports.router,
     chat.router,
     research.router,
+    screener.router,
     sentiment.router,
+    watchlist.router,
 ):
     app.include_router(router, prefix=settings.api_prefix)

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, SearchX, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
+import { PerformanceCard } from "@/components/signals/performance-card";
 import { SentimentDot, SignalBadge } from "@/components/shared/signal-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,8 @@ export default function SignalsPage() {
       />
 
       {/* Filters */}
+      <PerformanceCard />
+
       <Card className="mb-5 p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="relative">

@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     Column,
     Date,
     DateTime,
@@ -114,6 +115,48 @@ class AIReport(Base):
     content = Column(Text)
     model = Column(String(64))
     generated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class WatchlistItem(Base):
+    """A stock the user is tracking."""
+
+    __tablename__ = "watchlist"
+
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(32), unique=True, nullable=False, index=True)
+    note = Column(String(255))
+    added_at = Column(DateTime, default=datetime.utcnow)
+
+
+class AlertRule(Base):
+    """User-defined alert condition, evaluated by the background worker.
+
+    kinds: price_above | price_below | sentiment_above | sentiment_below |
+           promoter_change | buy_signal
+    """
+
+    __tablename__ = "alert_rules"
+
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(32), nullable=False, index=True)
+    kind = Column(String(32), nullable=False)
+    threshold = Column(Float)              # price level, score, or pp delta
+    active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_triggered_at = Column(DateTime)   # 24h cooldown anchor
+
+
+class AlertEvent(Base):
+    """A fired alert (also pushed to Telegram). Powers the in-app bell."""
+
+    __tablename__ = "alert_events"
+
+    id = Column(Integer, primary_key=True)
+    rule_id = Column(Integer, ForeignKey("alert_rules.id"), index=True)
+    symbol = Column(String(32), index=True)
+    message = Column(String(512))
+    seen = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class SentimentScore(Base):

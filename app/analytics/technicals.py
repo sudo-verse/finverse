@@ -33,11 +33,15 @@ def macd(prices: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> 
     macd_line = prices.ewm(span=fast, adjust=False).mean() - prices.ewm(span=slow, adjust=False).mean()
     signal_line = macd_line.ewm(span=signal, adjust=False).mean()
     hist = macd_line - signal_line
+    # A crossover only counts when the histogram clears a noise floor —
+    # in a steady trend it converges to ~0 and random wiggles would
+    # otherwise register as endless fake crossovers.
+    threshold = abs(float(prices.iloc[-1])) * 0.0005
     crossover = None
     recent = hist.tail(5)
-    if (recent > 0).iloc[-1] and (recent <= 0).any():
+    if hist.iloc[-1] > threshold and (recent <= 0).any():
         crossover = "bullish"
-    elif (recent < 0).iloc[-1] and (recent >= 0).any():
+    elif hist.iloc[-1] < -threshold and (recent >= 0).any():
         crossover = "bearish"
     return {
         "macd": float(macd_line.iloc[-1]),

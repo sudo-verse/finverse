@@ -77,8 +77,16 @@ def generate_stream(prompt: str, system_instruction: str = None, model: str = No
             yield text
 
 
-def embed(texts, model: str = None):
-    """Embed a list of texts. Returns a list of vectors (list[list[float]])."""
+def embed(texts, model: str = None, max_retries: int = 4):
+    """Embed a list of texts. Returns a list of vectors (list[list[float]]).
+
+    Retries with a backoff on 429 RESOURCE_EXHAUSTED — the free tier allows
+    100 embed requests/minute, which page-by-page PDF ingestion can exceed.
+    """
+    import time
+
+    from google.genai import errors as genai_errors
+
     from app.config import GEMINI_EMBED_MODEL
 
     client = _get_client()
@@ -88,6 +96,15 @@ def embed(texts, model: str = None):
     # batch to stay within request limits
     for i in range(0, len(texts), 100):
         batch = texts[i:i + 100]
-        resp = client.models.embed_content(model=model, contents=batch)
-        vectors.extend([e.values for e in resp.embeddings])
+        for attempt in range(max_retries + 1):
+            try:
+                resp = client.models.embed_content(model=model, contents=batch)
+                vectors.extend([e.values for e in resp.embeddings])
+                break
+            except genai_errors.ClientError as e:
+                if getattr(e, "code", None) != 429 or attempt == max_retries:
+                    raise
+                wait = 35 * (attempt + 1)
+                logger.warning(f"embed: rate-limited (429), retrying in {wait}s")
+                time.sleep(wait)
     return vectors

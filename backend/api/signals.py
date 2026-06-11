@@ -37,3 +37,16 @@ def signal_facets(db: Session = Depends(get_db)) -> SignalFacets:
     """Distinct signal types, sources and sentiments present in the data —
     drives the filter dropdowns so the UI never hardcodes them."""
     return signal_service.facets(db)
+
+
+from backend.schemas.signal_perf import SignalPerformance  # noqa: E402
+from backend.services.backtest_service import compute_performance  # noqa: E402
+
+
+@router.get("/signals/performance", response_model=SignalPerformance,
+            summary="Backtest: do engine signals work?")
+def signal_performance(db: Session = Depends(get_db)) -> SignalPerformance:
+    """Forward 7d/30d returns after each BUY/SELL signal (close-to-close from
+    price_history), hit rates per direction, and best/worst calls. Signals
+    younger than 7 days are excluded. Cached 10 minutes."""
+    return compute_performance(db)

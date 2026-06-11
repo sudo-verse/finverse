@@ -10,6 +10,8 @@ import {
   LineChart,
   Microscope,
   Settings,
+  SlidersHorizontal,
+  Star,
   Swords,
   TrendingUp,
   Wallet,
@@ -27,6 +29,8 @@ const MARKET_STATUS: Record<string, { label: string; live: boolean }> = {
 
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/watchlist", label: "Watchlist", icon: Star },
+  { to: "/screener", label: "Screener", icon: SlidersHorizontal },
   { to: "/signals", label: "Signals", icon: Activity },
   { to: "/sentiment", label: "Sentiment", icon: Gauge },
   { to: "/stocks", label: "Stock Analysis", icon: LineChart },
