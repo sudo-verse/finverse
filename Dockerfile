@@ -19,9 +19,9 @@ COPY requirements.txt requirements-api.txt ./
 RUN pip install -r requirements-api.txt
 
 COPY . .
+RUN chmod +x entrypoint.sh
 
 EXPOSE 8000
 
-# Default command runs the API. On release, run migrations first:
-#   alembic upgrade head && uvicorn backend.main:app ...
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command runs the API via the entrypoint script
+CMD ["/app/entrypoint.sh"]
