@@ -10,3 +10,16 @@
 {"id": "tcs-ai-strategy", "question": "What is TCS's strategy around AI adoption?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["AI", "artificial intelligence", "enterprise"]}
 {"id": "tcs-risks", "question": "What macro-economic and geopolitical risks does TCS highlight?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["macro-economic", "geo-political", "geopolitical"]}
 {"id": "tcs-tax", "question": "What was TCS's total tax expense?", "symbol": "TCS", "answer_contains": ["16,033"], "evidence_terms": ["TOTAL TAX EXPENSE", "16,033"]}
+{"id": "tcs-esg", "question": "How does TCS approach environmental sustainability and ESG?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["ESG", "Sustainability", "Environment"]}
+{"id": "tcs-cfo", "question": "Who is the Chief Financial Officer of TCS?", "symbol": "TCS", "answer_contains": ["Samir Seksaria"], "evidence_terms": ["Samir Seksaria"]}
+{"id": "tcs-chro", "question": "Who became TCS Chief Human Resources Officer in October 2025?", "symbol": "TCS", "answer_contains": ["Sudeep Kunnumal"], "evidence_terms": ["Sudeep Kunnumal"]}
+{"id": "tcs-segments", "question": "How does TCS report revenue across industry verticals and geographies?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["Segmental", "Industry Vertical", "Geography"]}
+{"id": "tcs-patents", "question": "What does TCS say about innovation, patents and intellectual property?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["patents", "innovation", "intellectual property"]}
+{"id": "tcs-dividend-detail", "question": "What dividends did TCS declare during the year?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["interim dividend", "special dividend"]}
+{"id": "tcs-cyber-cloud", "question": "What capabilities is TCS building in cybersecurity and cloud?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["cybersecurity", "cloud"]}
+{"id": "tcs-ai-partners", "question": "Which technology companies has TCS partnered with on AI?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["OpenAI", "AMD", "Honeywell", "NVIDIA"]}
+{"id": "tcs-genai", "question": "What is TCS doing with generative AI for enterprises?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["generative", "Gen AI", "Centers of Excellence"]}
+{"id": "tcs-tcv", "question": "What is Total Contract Value (TCV) in TCS results?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["TCV", "Total Contract Value"]}
+{"id": "tcs-infra-intel", "question": "What is TCS's Infrastructure to Intelligence strategy?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["Infrastructure to Intelligence"]}
+{"id": "tcs-talent-risk", "question": "How does TCS address talent risk and campus hiring?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["talent risk", "campus", "STEM"]}
+{"id": "tcs-news-recent", "question": "What recent news has there been about TCS stock?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["TCS"]}

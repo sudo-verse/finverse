@@ -17,7 +17,7 @@ from eval.run_eval import _is_relevant, _load, _ndcg, GOLDEN
 
 K = 6
 MIN_RECALL = 0.80   # ≥80% of questions must surface a relevant chunk in top-k
-MIN_NDCG = 0.55     # rank quality floor
+MIN_NDCG = 0.65     # rank quality floor (measured ~0.80 on the 25-q set)
 
 
 @pytest.fixture(scope="module")
