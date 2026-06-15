@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.api import (
+    auth,
     chat,
     competitors,
     dashboard,
@@ -34,7 +35,13 @@ from backend.api import (
     watchlist,
 )
 from backend.core.config import settings
-from backend.core.exceptions import NoDataError, NotFoundError, ServiceUnavailableError
+from backend.core.exceptions import (
+    ConflictError,
+    NoDataError,
+    NotFoundError,
+    ServiceUnavailableError,
+    UnauthorizedError,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -124,6 +131,17 @@ async def unavailable_handler(_: Request, exc: ServiceUnavailableError) -> JSONR
     return JSONResponse(status_code=503, content={"detail": str(exc)})
 
 
+@app.exception_handler(ConflictError)
+async def conflict_handler(_: Request, exc: ConflictError) -> JSONResponse:
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+@app.exception_handler(UnauthorizedError)
+async def unauthorized_handler(_: Request, exc: UnauthorizedError) -> JSONResponse:
+    return JSONResponse(status_code=401, content={"detail": str(exc)},
+                        headers={"WWW-Authenticate": "Bearer"})
+
+
 @app.exception_handler(Exception)
 async def unhandled_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.exception("Unhandled error on %s %s", request.method, request.url.path)
@@ -160,6 +178,7 @@ if os.path.isdir("documents"):
 
 
 for router in (
+    auth.router,
     dashboard.router,
     signals.router,
     stocks.router,

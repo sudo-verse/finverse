@@ -18,6 +18,21 @@ from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 
+class User(Base):
+    """A SaaS account. Per-user data (watchlist, holdings, alerts, …) is scoped
+    by user_id; auth is email + bcrypt-hashed password (see backend.core.security)."""
+
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(128))
+    plan = Column(String(32), nullable=False, default="free")  # free | pro | …
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Company(Base):
     """Company master — one row per listed NSE stock."""
 

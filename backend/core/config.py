@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     default_page_size: int = 12
     max_page_size: int = 100
 
+    # Auth (JWT). MUST set BACKEND_JWT_SECRET in production — the dev default is
+    # not safe to ship. Tokens are HS256, expiring after jwt_expire_minutes.
+    jwt_secret: str = "dev-insecure-change-me-set-BACKEND_JWT_SECRET-in-prod"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60 * 24 * 7  # 7 days
+
     # Embedded news-ingestion engine (set BACKEND_ENGINE_ENABLED=false when
     # running `python -m app.main_nse` as a separate process instead).
     engine_enabled: bool = True

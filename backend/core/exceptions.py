@@ -12,3 +12,11 @@ class NoDataError(Exception):
 
 class ServiceUnavailableError(Exception):
     """A required external dependency is not configured/reachable (→ 503)."""
+
+
+class ConflictError(Exception):
+    """Request conflicts with current state, e.g. email already registered (→ 409)."""
+
+
+class UnauthorizedError(Exception):
+    """Authentication missing or invalid (→ 401)."""
