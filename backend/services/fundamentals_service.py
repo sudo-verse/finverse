@@ -264,6 +264,11 @@ class FundamentalsService:
                     pros=[ProsConsItem(**p) for p in data.get("pros", [])],
                     cons=[ProsConsItem(**c) for c in data.get("cons", [])],
                 )
+            # No cache and not an explicit refresh — return empty instead of
+            # auto-generating, so merely viewing the page never spends an AI
+            # call. Generation happens only on the user's Generate click
+            # (refresh=true).
+            return ProsConsOut(symbol=symbol, cached=False, pros=[], cons=[])
 
         if not gemini_client.is_configured():
             raise ServiceUnavailableError("GEMINI_API_KEY is not configured.")

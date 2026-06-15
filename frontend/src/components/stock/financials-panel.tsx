@@ -83,6 +83,9 @@ export function FinancialsPanel({ symbol }: { symbol: string }) {
   const { data: cagr } = useCagr(symbol);
   const { data: prosCons, isLoading: pcLoading } = useProsCons(symbol);
   const refreshPc = useRefreshProsCons();
+  // The GET returns empty (no AI call) until the user generates; treat empty
+  // as "not generated yet".
+  const hasProsCons = Boolean(prosCons && (prosCons.pros.length > 0 || prosCons.cons.length > 0));
 
   const ratioData = useMemo(
     () => (ratios ?? []).map((r) => ({ ...r, period: r.period.replace("FY", "") })),
@@ -267,7 +270,7 @@ export function FinancialsPanel({ symbol }: { symbol: string }) {
               }
             >
               <RefreshCw className={cn("h-3.5 w-3.5", refreshPc.isPending && "animate-spin")} />
-              {prosCons ? "Regenerate" : "Generate"}
+              {hasProsCons ? "Regenerate" : "Generate"}
             </Button>
           </CardHeader>
           <CardContent>
@@ -276,14 +279,14 @@ export function FinancialsPanel({ symbol }: { symbol: string }) {
                 <Skeleton className="h-32 w-full" />
                 <Skeleton className="h-32 w-full" />
               </div>
-            ) : !prosCons ? (
+            ) : !hasProsCons ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
                 Click <span className="font-medium text-foreground">Generate</span> to build an AI pros/cons assessment.
               </p>
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <ProsConsList items={prosCons.pros} positive />
-                <ProsConsList items={prosCons.cons} positive={false} />
+                <ProsConsList items={prosCons!.pros} positive />
+                <ProsConsList items={prosCons!.cons} positive={false} />
               </div>
             )}
           </CardContent>

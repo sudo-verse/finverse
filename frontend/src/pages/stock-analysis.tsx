@@ -354,7 +354,10 @@ export default function StockAnalysisPage() {
                       <CartesianGrid {...gridStyle} />
                       <XAxis dataKey="date" {...axisStyle} minTickGap={40} tickFormatter={(d: string) => d.slice(5)} />
                       <YAxis {...axisStyle} domain={["auto", "auto"]} width={56} tickFormatter={(v: number) => formatCompact(v)} />
-                      <Tooltip {...tooltipStyle} />
+                      <Tooltip
+                        {...tooltipStyle}
+                        formatter={(v, name) => [v == null ? "—" : formatINR(Number(v)), name]}
+                      />
                       <Area type="monotone" dataKey="close" name="Close" stroke={CHART_COLORS.blue} strokeWidth={2} fill="url(#gPrice)" />
                       <Line type="monotone" dataKey="sma20" name="SMA 20" stroke={CHART_COLORS.cyan} strokeWidth={1.3} dot={false} />
                       <Line type="monotone" dataKey="sma50" name="SMA 50" stroke={CHART_COLORS.amber} strokeWidth={1.3} dot={false} />
