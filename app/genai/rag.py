@@ -143,7 +143,7 @@ def answer_question(question: str, symbol: str = None, k: int = 4) -> dict:
     if collection.count() == 0:
         return {"answer": "No documents have been ingested yet.", "sources": []}
 
-    q_vec = gemini_client.embed([question])[0]
+    q_vec = gemini_client.embed([question], task_type="RETRIEVAL_QUERY")[0]
     where = {"symbol": symbol} if symbol else None
     result = collection.query(query_embeddings=[q_vec], n_results=k, where=where)
 

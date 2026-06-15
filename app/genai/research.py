@@ -16,7 +16,6 @@ points are generators so the API layer can stream tokens.
 """
 
 import json
-import math
 import re
 
 from app.genai import gemini_client
@@ -83,7 +82,18 @@ def _where(symbol: str = None, doc_type: str = None, year: int = None):
 
 def _semantic_candidates(question: str, where) -> list[dict]:
     collection = get_collection()
-    q_vec = gemini_client.embed([question])[0]
+    try:
+        # Fail fast on the query path — don't inherit ingestion's long 429
+        # backoff; degrade to keyword retrieval instead of stalling the user.
+        q_vec = gemini_client.embed(
+            [question], task_type="RETRIEVAL_QUERY", max_retries=0
+        )[0]
+    except Exception as e:
+        # Embedding provider unavailable (e.g. quota/429). Degrade to the BM25
+        # (keyword) arm rather than failing the whole query — the lexical arm
+        # needs no embeddings, so retrieval stays useful.
+        logger.warning(f"research: semantic arm unavailable ({e}); keyword-only")
+        return []
     res = collection.query(
         query_embeddings=[q_vec], n_results=SEMANTIC_CANDIDATES, where=where
     )
@@ -97,33 +107,18 @@ def _semantic_candidates(question: str, where) -> list[dict]:
 
 
 def _keyword_candidates(question: str, where) -> list[dict]:
-    """Exact-term matches the embedding may miss (tickers, figures, names)."""
-    terms = _terms(question)[:4]
-    if not terms:
-        return []
-    contains = [{"$contains": t} for t in terms]
-    where_doc = contains[0] if len(contains) == 1 else {"$or": contains}
+    """Exact-term matches the embedding may miss (tickers, figures, names).
+
+    Uses a correct, case-insensitive BM25 index (app.genai.lexical) rather than
+    Chroma's case-sensitive `$contains`, which silently failed on real
+    original-case filing text."""
     try:
-        res = get_collection().get(
-            where=where, where_document=where_doc, limit=KEYWORD_CANDIDATES * 3
-        )
-    except Exception as e:  # pragma: no cover — older chroma without $or
+        from app.genai.lexical import get_index
+
+        return get_index().search(question, KEYWORD_CANDIDATES, where=where)
+    except Exception as e:
         logger.warning(f"research: keyword search failed ({e}); semantic only")
         return []
-
-    docs = res.get("documents") or []
-    metas = res.get("metadatas") or []
-    ids = res.get("ids") or []
-
-    # Lexical score: term hits weighted by term length (rarer terms are longer).
-    scored = []
-    for i, d, m in zip(ids, docs, metas):
-        low = d.lower()
-        score = sum(math.log1p(len(t)) * low.count(t) for t in terms)
-        if score > 0:
-            scored.append((score, {"id": i, "text": d, "meta": m or {}}))
-    scored.sort(key=lambda x: -x[0])
-    return [c for _, c in scored[:KEYWORD_CANDIDATES]]
 
 
 def _fuse(semantic: list[dict], keyword: list[dict]) -> list[dict]:

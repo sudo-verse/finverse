@@ -77,8 +77,14 @@ def generate_stream(prompt: str, system_instruction: str = None, model: str = No
             yield text
 
 
-def embed(texts, model: str = None, max_retries: int = 4):
+def embed(texts, model: str = None, max_retries: int = 4,
+          task_type: str = "RETRIEVAL_DOCUMENT"):
     """Embed a list of texts. Returns a list of vectors (list[list[float]]).
+
+    `task_type` tunes the embedding for its role — `RETRIEVAL_DOCUMENT` when
+    indexing corpus chunks (the default), `RETRIEVAL_QUERY` when embedding a
+    search query. Matching query↔document task types is an easy, free retrieval
+    quality win; mixing them (or leaving both default) costs mAP/NDCG.
 
     Retries with a backoff on 429 RESOURCE_EXHAUSTED — the free tier allows
     100 embed requests/minute, which page-by-page PDF ingestion can exceed.
@@ -86,11 +92,13 @@ def embed(texts, model: str = None, max_retries: int = 4):
     import time
 
     from google.genai import errors as genai_errors
+    from google.genai import types
 
     from app.config import GEMINI_EMBED_MODEL
 
     client = _get_client()
     model = model or GEMINI_EMBED_MODEL
+    config = types.EmbedContentConfig(task_type=task_type) if task_type else None
 
     vectors = []
     # batch to stay within request limits
@@ -98,7 +106,8 @@ def embed(texts, model: str = None, max_retries: int = 4):
         batch = texts[i:i + 100]
         for attempt in range(max_retries + 1):
             try:
-                resp = client.models.embed_content(model=model, contents=batch)
+                resp = client.models.embed_content(model=model, contents=batch,
+                                                    config=config)
                 vectors.extend([e.values for e in resp.embeddings])
                 break
             except genai_errors.ClientError as e:

@@ -1,0 +1,16 @@
+{"id": "tcs-rev-fy26", "question": "What was TCS consolidated revenue in fiscal 2026?", "symbol": "TCS", "answer_contains": ["267,021"], "evidence_terms": ["267,021"]}
+{"id": "tcs-rev-growth", "question": "How much did TCS revenue grow in FY2026 over the previous year?", "symbol": "TCS", "answer_contains": ["4.6"], "evidence_terms": ["4.6%", "growth of 4.6"]}
+{"id": "tcs-op-margin", "question": "What was the operating margin reported by TCS?", "symbol": "TCS", "answer_contains": ["25.0", "25"], "evidence_terms": ["Operating Margin of 25.0", "25.0%"]}
+{"id": "tcs-op-income", "question": "What was TCS operating income?", "symbol": "TCS", "answer_contains": ["66,838"], "evidence_terms": ["66,838"]}
+{"id": "tcs-net-income", "question": "What was the net income of TCS in fiscal 2026?", "symbol": "TCS", "answer_contains": ["52,820"], "evidence_terms": ["52,820"]}
+{"id": "tcs-dividend", "question": "What is TCS's policy on returning cash to shareholders?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["dividend", "shareholders", "free cash flow"]}
+{"id": "tcs-employees", "question": "How many employees does TCS have?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["584,519", "Employees"]}
+{"id": "tcs-eps", "question": "What was TCS earnings per share?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["EPS", "Earnings per share", "145.99"]}
+{"id": "tcs-attrition", "question": "What does TCS say about attrition and talent retention?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["attrition", "retention", "culture", "talent"]}
+{"id": "tcs-ai-strategy", "question": "What is TCS's strategy around AI adoption?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["AI", "artificial intelligence", "enterprise"]}
+{"id": "tcs-risks", "question": "What macro-economic and geopolitical risks does TCS highlight?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["macro-economic", "geo-political", "geopolitical"]}
+{"id": "tcs-tax", "question": "What was TCS's total tax expense?", "symbol": "TCS", "answer_contains": ["16,033"], "evidence_terms": ["TOTAL TAX EXPENSE", "16,033"]}
+{"id": "acme-rev-fy25", "question": "What was Acme Industries revenue in FY2025?", "symbol": "ACME", "answer_contains": ["12,450"], "evidence_terms": ["12,450"]}
+{"id": "acme-growth", "question": "How fast did Acme Industries revenue grow in FY2025?", "symbol": "ACME", "answer_contains": ["18"], "evidence_terms": ["18 percent", "grew 18"]}
+{"id": "acme-net-profit", "question": "What was Acme Industries net profit and net margin?", "symbol": "ACME", "answer_contains": ["1,820", "14.6"], "evidence_terms": ["1,820", "14.6"]}
+{"id": "acme-segment", "question": "Which segment drove Acme Industries' demand in FY2025?", "symbol": "ACME", "answer_contains": ["infrastructure"], "evidence_terms": ["infrastructure"]}

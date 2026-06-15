@@ -11,8 +11,7 @@ import uuid
 from datetime import datetime, timezone
 
 from app.db.database import get_session
-from app.genai import gemini_client
-from app.genai.rag import answer_question
+from app.genai import gemini_client, research
 from app.genai.report_generator import generate_report
 from backend.core.exceptions import NotFoundError, ServiceUnavailableError
 from backend.schemas.report import ChatOut, ChatRequest, ChatSource, ReportOut, ReportRequest
@@ -95,19 +94,25 @@ class ReportService:
             return self._leaderboard_chat(payload.message)
 
         _require_gemini()
-        result = answer_question(
-            payload.message,
-            symbol=payload.symbol.upper() if payload.symbol else None,
-            k=payload.k,
+        symbol = payload.symbol.upper() if payload.symbol else None
+        # Route through the advanced retrieval pipeline (hybrid search + RRF +
+        # rerank + compression) rather than the naive single-vector top-k path.
+        sources, token_gen = research.research_answer(
+            payload.message, symbol=symbol, k=payload.k,
         )
+        answer = "".join(token_gen)
         logger.info(
-            "chat: answered with %d sources (symbol=%s)",
-            len(result["sources"]), payload.symbol,
+            "chat: answered via research pipeline with %d sources (symbol=%s)",
+            len(sources), symbol,
         )
         return ChatOut(
             id=f"msg-{uuid.uuid4().hex[:12]}",
-            content=result["answer"],
-            sources=[ChatSource(**s) for s in result["sources"]],
+            content=answer,
+            sources=[
+                ChatSource(source=research.citation_label(s),
+                           snippet=(s.get("text") or "")[:240])
+                for s in sources
+            ],
             timestamp=datetime.now(timezone.utc),
         )
 
