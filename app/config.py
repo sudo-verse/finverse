@@ -30,5 +30,14 @@ GEMINI_API_KEYS = list(dict.fromkeys(
 # RAG vector store (ChromaDB persistent directory)
 CHROMA_DIR = os.getenv("CHROMA_DIR", "chroma_db")
 
+# Cross-encoder reranker (self-hosted via transformers — no extra API). When
+# enabled it RRF-blends with the lexical/semantic fusion order. Default OFF:
+# on our figure-heavy golden set the plain fused order measured best (MRR 0.77
+# vs 0.70 blended), and reranking demoted exact-figure matches. Enable for query
+# mixes with more ambiguous/semantic questions, where a cross-encoder earns its
+# keep. bge-reranker-base is fast on CPU; BAAI/bge-reranker-v2-m3 is stronger.
+RERANKER_ENABLED = os.getenv("RERANKER_ENABLED", "false").lower() == "true"
+RERANKER_MODEL = os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-base")
+
 MAX_ARTICLES = 5
 SENTIMENT_THRESHOLD = 0.7

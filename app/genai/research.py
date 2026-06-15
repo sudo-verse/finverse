@@ -22,10 +22,11 @@ from app.genai import gemini_client
 from app.genai.rag import get_collection
 from app.utils.logger import logger
 
-# How wide to cast the net before reranking narrows it down.
-SEMANTIC_CANDIDATES = 18
-KEYWORD_CANDIDATES = 12
-RERANK_INPUT_MAX = 20
+# How wide to cast the net before the cross-encoder narrows it down. A bigger
+# pool gives the reranker more to work with (retrieve ~30 → rerank → top k).
+SEMANTIC_CANDIDATES = 24
+KEYWORD_CANDIDATES = 15
+RERANK_INPUT_MAX = 30
 DEFAULT_TOP_K = 6
 # Token budget guards (chars ~ 4x tokens). The per-chunk budget is generous
 # because parent expansion hands back page-level sections we don't want to
@@ -138,42 +139,37 @@ def _fuse(semantic: list[dict], keyword: list[dict]) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# 3. Gemini reranking
+# 3. Reranking
 # ---------------------------------------------------------------------------
-
-RERANK_SYSTEM = (
-    "You are a search reranker for equity research. Given a question and "
-    "numbered document excerpts, return a JSON array of the excerpt numbers "
-    "ordered from most to least relevant, keeping only genuinely relevant "
-    "ones. Return ONLY the JSON array, e.g. [3, 1, 7]."
-)
+# Cross-encoder reranking is RRF-fused with the incoming lexical/semantic order
+# rather than replacing it. Measured on our golden set, a *pure* cross-encoder
+# reorder (and the old LLM reranker) demoted exact-figure chunks that lexical
+# fusion ranks correctly, hurting recall/NDCG. Blending preserves strong matches
+# while letting the cross-encoder refine. The plain fused order is already
+# strong on a figure-heavy corpus, so the reranker is opt-in (RERANKER_ENABLED);
+# when off, we trust the RRF fusion order directly. The previous Gemini LLM
+# reranker is retired — slower, costly, nondeterministic, and measurably worse
+# than no rerank.
 
 
 def _rerank(question: str, candidates: list[dict], k: int) -> list[dict]:
     if len(candidates) <= k:
         return candidates
-    listing = "\n\n".join(
-        f"[{i + 1}] ({c['meta'].get('doc_type', 'document')}) {c['text'][:400]}"
-        for i, c in enumerate(candidates)
-    )
-    prompt = f"Question: {question}\n\nExcerpts:\n{listing}\n\nJSON array:"
-    try:
-        raw = gemini_client.generate_text(prompt, system_instruction=RERANK_SYSTEM)
-        match = re.search(r"\[[\d,\s]*\]", raw or "")
-        order = json.loads(match.group(0)) if match else []
-        picked = [candidates[n - 1] for n in order
-                  if isinstance(n, int) and 1 <= n <= len(candidates)]
-        if picked:
-            # backfill from fused order if the reranker kept too few
-            for c in candidates:
-                if len(picked) >= k:
-                    break
-                if c not in picked:
-                    picked.append(c)
-            return picked[:k]
-    except Exception as e:
-        logger.warning(f"research: rerank failed ({e}); using fused order")
-    return candidates[:k]
+
+    from app.genai import reranker
+
+    if reranker.is_enabled():
+        try:
+            ce_scores = reranker.score(question, [c["text"] for c in candidates])
+            ce_order = sorted(range(len(candidates)), key=lambda i: -ce_scores[i])
+            ce_rank = {idx: r for r, idx in enumerate(ce_order)}
+            K = 60  # candidates already arrive in fused (RRF) order → index = rank
+            blended = sorted(range(len(candidates)),
+                             key=lambda i: -(1.0 / (K + i) + 1.0 / (K + ce_rank[i])))
+            return [candidates[i] for i in blended[:k]]
+        except Exception as e:
+            logger.warning(f"research: cross-encoder rerank failed ({e}); fused order")
+    return candidates[:k]  # trust the lexical+semantic RRF fusion order
 
 
 # ---------------------------------------------------------------------------
