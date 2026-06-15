@@ -66,11 +66,15 @@ const RANGES = [
 ];
 
 function formatTick(ms: number): string {
+  // NSE encodes intraday timestamps as IST wall-clock in a UTC epoch
+  // (e.g. 09:15 IST open arrives as an epoch that reads 09:15 UTC).
+  // Formatting in UTC therefore yields the correct market time; using
+  // Asia/Kolkata would add a second +5:30 and shift the axis past 15:30.
   return new Date(ms).toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "Asia/Kolkata", // NSE trading hours, regardless of viewer tz
+    timeZone: "UTC",
   });
 }
 

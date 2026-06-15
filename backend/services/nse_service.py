@@ -292,12 +292,89 @@ class NSEService:
                 for r in (data or {}).get(key) or []
             ]
 
+        gainers = rows("topGainers")
+        losers = rows("topLoosers")  # sic — NSE's key is misspelled
+        most_active = rows("mostActiveValue")
+
+        # NSE only returns all three categories live during market hours.
+        # When closed it keeps a stale `topGainers` (illiquid junk like rights
+        # entitlements / BE series) and empties losers + most-active. If any
+        # category is missing we treat the whole response as unusable and fall
+        # back to EOD movers from our own price_history — one consistent
+        # NIFTY-500 board, same trading day, 24/7.
+        timestamp = (data or {}).get("timestamp")
+        if not (gainers and losers and most_active):
+            db = self._db_movers()
+            if db:
+                gainers, losers, most_active = db["gainers"], db["losers"], db["most_active"]
+                timestamp = db["timestamp"]
+
         return MarketMovers(
-            gainers=rows("topGainers"),
-            losers=rows("topLoosers"),  # sic — NSE's key is misspelled
-            most_active=rows("mostActiveValue"),
-            timestamp=(data or {}).get("timestamp"),
+            gainers=gainers,
+            losers=losers,
+            most_active=most_active,
+            timestamp=timestamp,
         )
+
+    @staticmethod
+    def _db_movers(top_n: int = 10) -> dict | None:
+        """Top gainers / losers / most-active from the latest two trading days
+        in price_history. Returns None if there isn't enough data."""
+        from app.db.database import get_session
+        from app.db.models import Company, PriceHistory
+
+        with get_session() as s:
+            dates = [
+                d[0] for d in
+                s.query(PriceHistory.date)
+                .distinct().order_by(PriceHistory.date.desc()).limit(2).all()
+            ]
+            if len(dates) < 2:
+                return None
+            latest, prev = dates[0], dates[1]
+
+            latest_rows = {
+                cid: (close, vol) for cid, close, vol in
+                s.query(PriceHistory.company_id, PriceHistory.close, PriceHistory.volume)
+                .filter(PriceHistory.date == latest).all()
+            }
+            prev_close = dict(
+                s.query(PriceHistory.company_id, PriceHistory.close)
+                .filter(PriceHistory.date == prev).all()
+            )
+            names = dict(s.query(Company.id, Company.symbol).all())
+
+        computed = []
+        for cid, (close, vol) in latest_rows.items():
+            pc = prev_close.get(cid)
+            if close is None or pc in (None, 0) or cid not in names:
+                continue
+            change = close - pc
+            computed.append({
+                "symbol": names[cid], "last": close, "change": change,
+                "pchange": change / pc * 100, "prev": pc,
+                "volume": vol or 0, "value": (vol or 0) * close,
+            })
+        if not computed:
+            return None
+
+        def pick(key: str, reverse: bool) -> list[MoverOut]:
+            out = sorted(computed, key=lambda r: r[key], reverse=reverse)[:top_n]
+            return [
+                MoverOut(
+                    symbol=r["symbol"], last_price=r["last"], change=r["change"],
+                    p_change=r["pchange"], previous_close=r["prev"],
+                    traded_volume=r["volume"], traded_value=r["value"],
+                )
+                for r in out
+            ]
+
+        return {
+            "gainers": pick("pchange", True),
+            "losers": pick("pchange", False),
+            "most_active": pick("value", True),
+            "timestamp": f"{latest:%d-%b-%Y} (EOD)",
+        }
 
     def block_deals(self) -> Any:
         """Raw block-deal session windows (shape varies; often empty)."""

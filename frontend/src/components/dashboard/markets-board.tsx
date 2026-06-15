@@ -12,11 +12,14 @@ import { formatINRCompact, formatNumber, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 function formatTick(ms: number): string {
+  // NSE encodes intraday timestamps as IST wall-clock in a UTC epoch
+  // (09:15 IST open arrives as an epoch reading 09:15 UTC). Formatting in
+  // UTC yields the correct market time; Asia/Kolkata would double-shift it.
   return new Date(ms).toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "Asia/Kolkata", // NSE trading hours, regardless of viewer tz
+    timeZone: "UTC",
   });
 }
 
