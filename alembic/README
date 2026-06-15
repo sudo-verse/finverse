@@ -1,0 +1,32 @@
+Database migrations (Alembic)
+=============================
+
+`alembic/env.py` pulls the schema from `app.db.models` (Base.metadata) and the
+connection URL from `app.config.DATABASE_URL`, so migrations track the models
+and target the same DB as the app (SQLite in dev, Postgres in prod).
+
+Common commands (run from the repo root):
+
+    alembic current                      # what revision the DB is at
+    alembic history                      # list migrations
+    alembic upgrade head                 # apply all pending migrations
+    alembic downgrade -1                 # roll back one
+    alembic revision --autogenerate -m "add X"   # create a migration from model changes
+
+After changing a model, ALWAYS create a migration (don't rely on create_all):
+
+    alembic revision --autogenerate -m "describe change"
+    # review the generated file in alembic/versions/, then:
+    alembic upgrade head
+
+Dev vs prod
+-----------
+- SQLite (dev): `app.db.init_db` still runs create_all for zero-setup, and the
+  dev DB has been `alembic stamp`-ed at the baseline. Prefer `alembic upgrade
+  head` for schema changes so dev matches prod.
+- Postgres (prod): init_db skips create_all; the schema is Alembic-owned. On
+  deploy: set DATABASE_URL=postgresql+psycopg://… and run `alembic upgrade head`
+  (install psycopg — see requirements-api.txt).
+
+SQLite note: env.py enables batch mode (render_as_batch) so ALTER-style
+migrations work on SQLite too.

@@ -8,3 +8,6 @@ pydantic-settings>=2.2.0
 PyJWT>=2.8.0
 bcrypt>=4.0.0
 stripe>=11.0.0
+# Migrations + Postgres driver (prod). SQLite dev needs neither psycopg.
+alembic>=1.13.0
+psycopg[binary]>=3.1.0; platform_system != "Windows"
