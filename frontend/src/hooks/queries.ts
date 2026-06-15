@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as authApi from "@/api/auth";
 import * as research from "@/api/research";
 import * as services from "@/api/services";
 import {
@@ -394,6 +395,14 @@ export function useAlertEvents() {
     queryFn: services.getAlertEvents,
     staleTime: 30_000,
     refetchInterval: 60_000, // keeps the bell badge fresh
+  });
+}
+
+export function useUsage() {
+  return useQuery({
+    queryKey: ["usage"],
+    queryFn: authApi.fetchUsage,
+    staleTime: 30_000,
   });
 }
 

@@ -20,3 +20,7 @@ class ConflictError(Exception):
 
 class UnauthorizedError(Exception):
     """Authentication missing or invalid (→ 401)."""
+
+
+class QuotaExceededError(Exception):
+    """The caller hit a plan usage limit (→ 429, upsell to upgrade)."""

@@ -36,3 +36,20 @@ export async function fetchMe(): Promise<AuthUser> {
   const { data } = await apiClient.get<AuthUser>("/auth/me");
   return data;
 }
+
+export interface UsageMetric {
+  metric: string;
+  label: string;
+  used: number;
+  limit: number | null;
+}
+
+export interface Usage {
+  plan: string;
+  metrics: UsageMetric[];
+}
+
+export async function fetchUsage(): Promise<Usage> {
+  const { data } = await apiClient.get<Usage>("/usage");
+  return data;
+}

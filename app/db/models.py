@@ -33,6 +33,20 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class UsageRecord(Base):
+    """Per-user, per-day counter for a metered metric (e.g. AI chat, reports).
+    Backs plan-based daily quotas. One row per (user, day, metric)."""
+
+    __tablename__ = "usage_records"
+    __table_args__ = (UniqueConstraint("user_id", "day", "metric", name="uq_usage_user_day_metric"),)
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    day = Column(Date, nullable=False, index=True)
+    metric = Column(String(32), nullable=False)
+    count = Column(Integer, nullable=False, default=0)
+
+
 class Company(Base):
     """Company master — one row per listed NSE stock."""
 

@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { Bell, BellOff, LogOut, Menu, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
-import { useAlertEvents, useMarkAlertsSeen, useMarketOverview } from "@/hooks/queries";
+import { useAlertEvents, useMarkAlertsSeen, useMarketOverview, useUsage } from "@/hooks/queries";
 import { formatNumber, formatPercent, timeAgo } from "@/lib/format";
 import { NAV_ITEMS } from "./sidebar";
 import { cn } from "@/lib/utils";
@@ -97,6 +97,7 @@ function AlertsBell() {
 
 function UserMenu() {
   const { user, logout } = useAuth();
+  const { data: usage } = useUsage();
   const [open, setOpen] = useState(false);
   const blurTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   if (!user) return null;
@@ -131,9 +132,25 @@ function UserMenu() {
             <p className="truncate text-sm font-medium">{user.fullName || "Account"}</p>
             <p className="truncate text-xs text-muted-foreground">{user.email}</p>
             <span className="mt-1 inline-block rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-              {user.plan}
+              {user.plan} plan
             </span>
           </div>
+          {usage && (
+            <div className="border-b border-border/60 px-3 py-2.5">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Today's usage
+              </p>
+              {usage.metrics.map((m) => (
+                <div key={m.metric} className="flex items-center justify-between py-0.5 text-xs">
+                  <span className="text-muted-foreground">{m.label}</span>
+                  <span className="font-mono tabular">
+                    {m.used}
+                    <span className="text-muted-foreground">/{m.limit ?? "∞"}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
           <button
             type="button"
             onClick={logout}

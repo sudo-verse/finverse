@@ -30,6 +30,7 @@ from backend.schemas.research import (
     ResearchHistoryItem,
 )
 from backend.services.research_service import research_service
+from backend.services.usage_service import usage_service
 
 logger = logging.getLogger("finverse.api")
 
@@ -76,6 +77,7 @@ def research_chat(payload: ResearchChatRequest, user: User = Depends(get_current
     """Ask a plain-English question about one company. Answers are grounded in
     the indexed filings (hybrid RAG) plus Finverse structured data, with
     numbered source citations. Streams SSE unless `stream` is false."""
+    usage_service.enforce(user.id, user.plan, "chat")
     citations, token_gen, meta = research_service.prepare_chat(user.id, payload)
     return _respond(citations, token_gen, meta, payload.stream)
 
@@ -85,6 +87,7 @@ def research_chat(payload: ResearchChatRequest, user: User = Depends(get_current
 def research_compare(payload: ResearchCompareRequest, user: User = Depends(get_current_user)):
     """Comparison mode: retrieves documents for each company and generates a
     head-to-head analyst report."""
+    usage_service.enforce(user.id, user.plan, "chat")
     citations, token_gen, meta = research_service.prepare_compare(user.id, payload)
     return _respond(citations, token_gen, meta, payload.stream)
 

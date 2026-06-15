@@ -23,6 +23,7 @@ from backend.api import (
     auth,
     chat,
     competitors,
+    usage,
     dashboard,
     market,
     portfolio,
@@ -39,6 +40,7 @@ from backend.core.exceptions import (
     ConflictError,
     NoDataError,
     NotFoundError,
+    QuotaExceededError,
     ServiceUnavailableError,
     UnauthorizedError,
 )
@@ -142,6 +144,11 @@ async def unauthorized_handler(_: Request, exc: UnauthorizedError) -> JSONRespon
                         headers={"WWW-Authenticate": "Bearer"})
 
 
+@app.exception_handler(QuotaExceededError)
+async def quota_handler(_: Request, exc: QuotaExceededError) -> JSONResponse:
+    return JSONResponse(status_code=429, content={"detail": str(exc)})
+
+
 @app.exception_handler(Exception)
 async def unhandled_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.exception("Unhandled error on %s %s", request.method, request.url.path)
@@ -179,6 +186,7 @@ if os.path.isdir("documents"):
 
 for router in (
     auth.router,
+    usage.router,
     dashboard.router,
     signals.router,
     stocks.router,
