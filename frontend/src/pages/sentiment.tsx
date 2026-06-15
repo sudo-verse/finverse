@@ -348,6 +348,42 @@ export default function SentimentPage() {
               </div>
             </CardContent>
           </Card>
+          {/* Recent headlines behind the score */}
+          {data.newsItems && data.newsItems.length > 0 && (
+            <Card className="glass-hover">
+              <CardHeader>
+                <CardTitle>Recent News</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {data.newsItems.map((n, i) => (
+                  <div key={i} className="flex items-start gap-3 rounded-lg bg-secondary/40 px-3 py-2">
+                    <span
+                      className={cn(
+                        "mt-1.5 h-2 w-2 shrink-0 rounded-full",
+                        n.sentimentLabel === "positive"
+                          ? "bg-bull"
+                          : n.sentimentLabel === "negative"
+                            ? "bg-bear"
+                            : "bg-muted-foreground",
+                      )}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm leading-snug text-foreground/90">{n.headline}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                        {n.source && <span>{n.source}</span>}
+                        {n.publishedAt && <span>· {n.publishedAt}</span>}
+                        {n.signal && (
+                          <Badge variant="outline" className="h-4 px-1 text-[10px] font-normal">
+                            {n.signal}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
           {pillar("News") && <PillarSection pillar={pillar("News")!} />}
           {/* Ownership summary lives here too — it feeds the same narrative */}
           {pillar("Ownership") && <PillarSection pillar={pillar("Ownership")!} />}

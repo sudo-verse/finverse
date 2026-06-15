@@ -31,6 +31,7 @@ from backend.schemas.sentiment import (
     Factor,
     LeaderboardEntry,
     MomentumRange,
+    NewsItem,
     NewsBucket,
     OwnershipRow,
     PillarDetail,
@@ -245,12 +246,17 @@ class SentimentService:
                        summary_hint=f"No annual statements for {symbol} — run the financials ETL.")
 
     # ------------------------------------------------------------------ news
-    def news(self, session: Session, symbol: str) -> tuple[PillarDetail, NewsBucket]:
+    def news(self, session: Session, symbol: str) -> tuple[PillarDetail, NewsBucket, list[NewsItem]]:
         rows = (
             session.query(NewsSignal)
             .filter(NewsSignal.ticker == symbol)
             .order_by(NewsSignal.id.desc()).limit(50).all()
         )
+        items = [
+            NewsItem(headline=r.news, source=r.source, published_at=r.published_at,
+                     sentiment_label=r.sentiment_label, signal=r.signal)
+            for r in rows[:12] if r.news
+        ]
         bucket = NewsBucket(positive_pct=0, negative_pct=0, neutral_pct=0, impact=None, count=len(rows))
         factors: list[Factor] = []
         if rows:
@@ -282,7 +288,7 @@ class SentimentService:
                     name="Engine Signals", value=buys, score=_clamp(50 + buys * 10), status="bullish",
                     explanation=f"{buys} BUY signal{'s' if buys > 1 else ''} among the 15 most recent engine events.",
                 ))
-        return _pillar("News", factors, summary_hint="No news signals recorded for this stock yet."), bucket
+        return _pillar("News", factors, summary_hint="No news signals recorded for this stock yet."), bucket, items
 
     # ------------------------------------------------------------- ownership
     def ownership(self, symbol: str) -> tuple[PillarDetail, list[OwnershipRow]]:
@@ -371,7 +377,7 @@ class SentimentService:
 
         technical, ranges, pivots, mas = self.technical(symbol)
         fundamental = self.fundamental(session, symbol)
-        news, bucket = self.news(session, symbol)
+        news, bucket, news_items = self.news(session, symbol)
         if skip_ownership:
             ownership = _pillar("Ownership", [],
                                 summary_hint="Ownership pillar skipped for bulk scoring.")
@@ -408,6 +414,7 @@ class SentimentService:
             pivots=pivots,
             moving_averages={k: (round(v, 2) if v is not None else None) for k, v in mas.items()},
             news_bucket=bucket,
+            news_items=news_items,
             holdings=holdings,
         )
         self._persist(out)

@@ -47,6 +47,16 @@ class NewsBucket(APIModel):
     count: int
 
 
+class NewsItem(APIModel):
+    """A recent scored news/announcement headline behind the News pillar."""
+
+    headline: str
+    source: str | None = None
+    published_at: str | None = None
+    sentiment_label: str | None = None   # positive | negative | neutral
+    signal: str | None = None            # BUY | SELL | HOLD
+
+
 class OwnershipRow(APIModel):
     category: str
     pct: float | None = None
@@ -65,6 +75,7 @@ class SentimentOut(APIModel):
     pivots: PivotLevels | None = None
     moving_averages: dict[str, float | None]
     news_bucket: NewsBucket
+    news_items: list[NewsItem] = []   # recent headlines behind the News pillar
     holdings: list[OwnershipRow]
 
 

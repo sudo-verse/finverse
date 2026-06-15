@@ -620,6 +620,14 @@ export interface OwnershipRow {
   delta: number | null;
 }
 
+export interface NewsItem {
+  headline: string;
+  source: string | null;
+  publishedAt: string | null;
+  sentimentLabel: string | null;
+  signal: string | null;
+}
+
 export interface SentimentData {
   symbol: string;
   overall: number;
@@ -632,6 +640,7 @@ export interface SentimentData {
   pivots: PivotLevels | null;
   movingAverages: Record<string, number | null>;
   newsBucket: NewsBucket;
+  newsItems: NewsItem[];
   holdings: OwnershipRow[];
 }
 
