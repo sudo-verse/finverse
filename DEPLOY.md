@@ -83,6 +83,17 @@ subscribe to `checkout.session.completed`, `customer.subscription.deleted`,
 `BACKEND_STRIPE_WEBHOOK_SECRET`. Locally: `stripe listen --forward-to
 localhost:8000/api/billing/webhook`.
 
+## Observability
+
+- **Probes:** `GET /health` (liveness — process up) and `GET /readyz` (readiness
+  — DB reachable, returns 503 otherwise). Point the orchestrator's liveness at
+  `/health` and readiness/traffic-gating at `/readyz`.
+- **Request correlation:** every request carries an `X-Request-ID` (inbound or
+  generated), echoed in the response header and stamped on every log line —
+  `2026-… [<request-id>] finverse.api INFO …`.
+- **Errors:** set `BACKEND_SENTRY_DSN` (+ `BACKEND_ENVIRONMENT`) to ship
+  exceptions to Sentry; no-op when unset.
+
 ## Go-live checklist
 
 - [ ] `BACKEND_JWT_SECRET` set (strong); **rotate** any keys shared during dev.

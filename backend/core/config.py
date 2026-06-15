@@ -10,6 +10,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="BACKEND_", extra="ignore")
 
+    # Deployment environment label (dev | staging | production) — used for log
+    # context and Sentry tagging.
+    environment: str = "development"
+    # Optional Sentry DSN for error tracking; left empty disables Sentry.
+    sentry_dsn: str = ""
+
     title: str = "Finverse API"
     description: str = (
         "REST layer over the Finverse NSE intelligence engine: signals, "

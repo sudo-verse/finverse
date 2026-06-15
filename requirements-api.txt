@@ -11,3 +11,5 @@ stripe>=11.0.0
 # Migrations + Postgres driver (prod). SQLite dev needs neither psycopg.
 alembic>=1.13.0
 psycopg[binary]>=3.1.0; platform_system != "Windows"
+# Error tracking (optional — only used when BACKEND_SENTRY_DSN is set).
+sentry-sdk[fastapi]>=2.0.0

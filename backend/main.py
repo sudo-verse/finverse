@@ -46,11 +46,16 @@ from backend.core.exceptions import (
     UnauthorizedError,
 )
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+from backend.core.observability import (
+    configure_logging,
+    init_sentry,
+    new_request_id,
 )
+
+configure_logging()
 logger = logging.getLogger("finverse.api")
+if init_sentry():
+    logger.info("Sentry error tracking enabled (env=%s)", settings.environment)
 
 
 @asynccontextmanager
@@ -107,6 +112,7 @@ app.add_middleware(
 # --------------------------------------------------------------------------
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
+    request_id = new_request_id(request.headers.get("X-Request-ID"))
     start = time.perf_counter()
     response = await call_next(request)
     duration_ms = (time.perf_counter() - start) * 1000
@@ -114,6 +120,11 @@ async def log_requests(request: Request, call_next):
         "%s %s -> %d (%.1f ms)",
         request.method, request.url.path, response.status_code, duration_ms,
     )
+    response.headers["X-Request-ID"] = request_id
+    # Baseline security headers (defence-in-depth; TLS/HSTS handled at the proxy).
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
     return response
 
 
@@ -163,6 +174,23 @@ async def unhandled_handler(request: Request, exc: Exception) -> JSONResponse:
 @app.get("/health", tags=["meta"], summary="Liveness probe")
 async def health() -> dict[str, str]:
     return {"status": "ok", "version": settings.version}
+
+
+@app.get("/readyz", tags=["meta"], summary="Readiness probe (checks the database)")
+async def readyz() -> JSONResponse:
+    """Returns 200 only when the database is reachable — for load balancers /
+    orchestrators to gate traffic until the instance can actually serve."""
+    from sqlalchemy import text
+
+    from app.db.database import engine
+
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return JSONResponse({"status": "ready"})
+    except Exception:
+        logger.exception("readiness check failed: database unreachable")
+        return JSONResponse(status_code=503, content={"status": "not ready"})
 
 
 @app.get("/api/engine/status", tags=["meta"], summary="Embedded news-engine status")
