@@ -27,10 +27,13 @@ SEMANTIC_CANDIDATES = 18
 KEYWORD_CANDIDATES = 12
 RERANK_INPUT_MAX = 20
 DEFAULT_TOP_K = 6
-# Token budget guards (chars ~ 4x tokens).
-CHUNK_CHAR_BUDGET = 900
+# Token budget guards (chars ~ 4x tokens). The per-chunk budget is generous
+# because parent expansion hands back page-level sections we don't want to
+# over-prune.
+CHUNK_CHAR_BUDGET = 1400
 CONTEXT_CHAR_BUDGET = 9000
 STRUCTURED_CHAR_BUDGET = 6000
+_NUM_RE_C = re.compile(r"\d")  # finance answers are numbers — never prune them
 
 DOC_TYPE_LABELS = {
     "annual_report": "Annual Report",
@@ -186,7 +189,9 @@ def _compress(text: str, terms: list[str], budget: int = CHUNK_CHAR_BUDGET) -> s
     keep = set()
     for i, s in enumerate(sentences):
         low = s.lower()
-        if any(t in low for t in terms):
+        # Keep query-term matches and any sentence carrying figures — in an
+        # equity-research corpus the numbers are usually the answer.
+        if any(t in low for t in terms) or _NUM_RE_C.search(s):
             keep.update({i - 1, i, i + 1})  # neighbours preserve flow
     if not keep:
         return text[:budget]

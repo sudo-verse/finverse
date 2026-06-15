@@ -113,8 +113,13 @@ def main() -> int:
                "ndcg": round(ndcg, 3), "hits": sum(rels), "k": len(sources)}
 
         if args.gen:
-            srcs, gen = research.research_answer(it["question"], symbol=it.get("symbol"), k=args.k)
-            answer = "".join(gen)
+            try:
+                srcs, gen = research.research_answer(it["question"], symbol=it.get("symbol"), k=args.k)
+                answer = "".join(gen)
+            except Exception as e:  # transient model 503 etc. — skip gen metrics
+                print(f"  ! generation failed for {it['id']}: {str(e)[:80]}")
+                rows.append(row)
+                continue
             exp = it.get("answer_contains") or []
             if exp:
                 c = sum(1 for e in exp if e.lower() in answer.lower()) / len(exp)

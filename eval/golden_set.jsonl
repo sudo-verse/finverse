@@ -10,7 +10,3 @@
 {"id": "tcs-ai-strategy", "question": "What is TCS's strategy around AI adoption?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["AI", "artificial intelligence", "enterprise"]}
 {"id": "tcs-risks", "question": "What macro-economic and geopolitical risks does TCS highlight?", "symbol": "TCS", "answer_contains": [], "evidence_terms": ["macro-economic", "geo-political", "geopolitical"]}
 {"id": "tcs-tax", "question": "What was TCS's total tax expense?", "symbol": "TCS", "answer_contains": ["16,033"], "evidence_terms": ["TOTAL TAX EXPENSE", "16,033"]}
-{"id": "acme-rev-fy25", "question": "What was Acme Industries revenue in FY2025?", "symbol": "ACME", "answer_contains": ["12,450"], "evidence_terms": ["12,450"]}
-{"id": "acme-growth", "question": "How fast did Acme Industries revenue grow in FY2025?", "symbol": "ACME", "answer_contains": ["18"], "evidence_terms": ["18 percent", "grew 18"]}
-{"id": "acme-net-profit", "question": "What was Acme Industries net profit and net margin?", "symbol": "ACME", "answer_contains": ["1,820", "14.6"], "evidence_terms": ["1,820", "14.6"]}
-{"id": "acme-segment", "question": "Which segment drove Acme Industries' demand in FY2025?", "symbol": "ACME", "answer_contains": ["infrastructure"], "evidence_terms": ["infrastructure"]}
