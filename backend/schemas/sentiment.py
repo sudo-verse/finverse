@@ -68,6 +68,21 @@ class SentimentOut(APIModel):
     holdings: list[OwnershipRow]
 
 
+class LeaderboardEntry(APIModel):
+    """One ranked company in the sentiment leaderboard (latest daily snapshot)."""
+
+    rank: int
+    symbol: str
+    name: str | None = None
+    overall: float                  # 0-100
+    recommendation: str | None = None
+    confidence: float | None = None  # 0-1 data coverage
+    technical: float | None = None
+    fundamental: float | None = None
+    news: float | None = None
+    as_of: str                      # snapshot date (YYYY-MM-DD)
+
+
 class SentimentHistoryPoint(APIModel):
     date: str
     overall: float | None

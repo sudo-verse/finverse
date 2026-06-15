@@ -12,10 +12,10 @@ import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types";
 
 const SUGGESTIONS = [
+  "Top 5 stocks by sentiment score",
   "What do the ingested documents say about revenue growth?",
   "Summarise the key risks mentioned in the filings",
-  "What guidance did management give for next year?",
-  "What does the annual report say about margins?",
+  "Which stocks have the weakest sentiment?",
 ];
 
 function makeUserMessage(content: string): ChatMessage {

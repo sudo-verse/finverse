@@ -8,12 +8,34 @@ from fastapi import APIRouter, Depends, Path, Query
 from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
-from backend.schemas.sentiment import PillarDetail, SentimentHistoryPoint, SentimentOut
+from backend.schemas.sentiment import (
+    LeaderboardEntry,
+    PillarDetail,
+    SentimentHistoryPoint,
+    SentimentOut,
+)
 from backend.services.sentiment_service import sentiment_service
 
 router = APIRouter(prefix="/sentiment", tags=["sentiment"])
 
 SymbolPath = Path(min_length=1, max_length=32)
+
+
+# NOTE: declared before /{symbol} so "leaderboard" isn't matched as a symbol.
+@router.get("/leaderboard", response_model=list[LeaderboardEntry],
+            summary="Top/bottom NSE stocks by sentiment score")
+def leaderboard(
+    db: Session = Depends(get_db),
+    limit: int = Query(5, ge=1, le=50),
+    order: str = Query("top", pattern="^(top|bottom)$"),
+    min_confidence: float = Query(0.0, ge=0, le=1,
+                                  description="Drop low-coverage scores (0-1)"),
+) -> list[LeaderboardEntry]:
+    """Rank companies by their latest daily sentiment snapshot. `order=bottom`
+    surfaces the weakest names. Coverage is whatever has been scored (the daily
+    ETL refreshes the whole universe)."""
+    return sentiment_service.leaderboard(db, limit=limit, order=order,
+                                         min_confidence=min_confidence)
 
 
 def _pillar(db: Session, symbol: str, name: str) -> PillarDetail:

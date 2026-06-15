@@ -19,6 +19,7 @@ import logging
 import time
 from datetime import date
 
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
 from app.analytics import technicals as T
@@ -28,6 +29,7 @@ from app.db.models import Company, FinancialStatement, NewsSignal, SentimentScor
 from backend.core.exceptions import NoDataError, NotFoundError
 from backend.schemas.sentiment import (
     Factor,
+    LeaderboardEntry,
     MomentumRange,
     NewsBucket,
     OwnershipRow,
@@ -351,16 +353,31 @@ class SentimentService:
         return _pillar("Market", factors, summary_hint="Live market data unavailable — pillar excluded.")
 
     # ------------------------------------------------------------- composite
-    def compute(self, session: Session, symbol: str, force: bool = False) -> SentimentOut:
+    def compute(self, session: Session, symbol: str, force: bool = False,
+                skip_ownership: bool = False) -> SentimentOut:
+        """Composite sentiment for one symbol.
+
+        `skip_ownership=True` drops the per-symbol NSE shareholding call so a
+        universe-wide pass (refresh_universe) stays DB-local and fast — ownership
+        is only 10% and the weights renormalize over the pillars that have data.
+        Such partial results bypass the per-symbol UI cache so the full
+        on-demand computation stays authoritative there.
+        """
         symbol = symbol.upper()
-        cached = _CACHE.get(symbol)
-        if cached and not force and time.time() - cached[0] < CACHE_TTL:
-            return cached[1]
+        if not skip_ownership:
+            cached = _CACHE.get(symbol)
+            if cached and not force and time.time() - cached[0] < CACHE_TTL:
+                return cached[1]
 
         technical, ranges, pivots, mas = self.technical(symbol)
         fundamental = self.fundamental(session, symbol)
         news, bucket = self.news(session, symbol)
-        ownership, holdings = self.ownership(symbol)
+        if skip_ownership:
+            ownership = _pillar("Ownership", [],
+                                summary_hint="Ownership pillar skipped for bulk scoring.")
+            holdings = []
+        else:
+            ownership, holdings = self.ownership(symbol)
         market = self.market()
 
         pillars = {"technical": technical, "fundamental": fundamental,
@@ -394,7 +411,8 @@ class SentimentService:
             holdings=holdings,
         )
         self._persist(out)
-        _CACHE[symbol] = (time.time(), out)
+        if not skip_ownership:
+            _CACHE[symbol] = (time.time(), out)
         return out
 
     @staticmethod
@@ -442,6 +460,74 @@ class SentimentService:
             ))
             prev = r
         return out
+
+    # --------------------------------------------------------- leaderboard
+    def leaderboard(self, session: Session, limit: int = 5, order: str = "top",
+                    min_confidence: float = 0.0) -> list[LeaderboardEntry]:
+        """Rank companies by their latest sentiment snapshot.
+
+        Reads one row per symbol (the most recent date) from sentiment_scores,
+        joins in company names, and returns the top/bottom `limit` by score.
+        Coverage comes from refresh_universe()/the daily ETL snapshot.
+        """
+        SentimentScore.__table__.create(engine, checkfirst=True)
+        with get_session() as ws:
+            latest = (
+                ws.query(SentimentScore.symbol,
+                         func.max(SentimentScore.date).label("d"))
+                .group_by(SentimentScore.symbol).subquery()
+            )
+            rows = (
+                ws.query(SentimentScore)
+                .join(latest, and_(SentimentScore.symbol == latest.c.symbol,
+                                   SentimentScore.date == latest.c.d))
+                .filter(SentimentScore.overall.isnot(None))
+                .filter(SentimentScore.confidence >= min_confidence)
+                .all()
+            )
+            # Snapshot the fields we need before the session closes.
+            data = [
+                (r.symbol, r.overall, r.recommendation, r.confidence,
+                 r.technical, r.fundamental, r.news, str(r.date))
+                for r in rows
+            ]
+
+        names = dict(session.query(Company.symbol, Company.name).all())
+        data.sort(key=lambda t: t[1], reverse=(order != "bottom"))
+        return [
+            LeaderboardEntry(
+                rank=i, symbol=sym, name=names.get(sym), overall=overall,
+                recommendation=rec, confidence=conf, technical=tech,
+                fundamental=fund, news=news, as_of=as_of,
+            )
+            for i, (sym, overall, rec, conf, tech, fund, news, as_of)
+            in enumerate(data[:limit], start=1)
+        ]
+
+    def refresh_universe(self) -> dict:
+        """Bulk-score every company so the leaderboard covers the universe.
+
+        Skips the per-symbol NSE ownership call (skip_ownership) to stay fast;
+        symbols without enough price history raise NoDataError and are skipped.
+        Intended for the daily ETL and one-off backfills.
+        """
+        with get_session() as session:
+            symbols = [c.symbol for c in
+                       session.query(Company.symbol).order_by(Company.symbol).all()]
+        scored = skipped = failed = 0
+        for sym in symbols:
+            try:
+                with get_session() as session:
+                    self.compute(session, sym, force=True, skip_ownership=True)
+                scored += 1
+            except (NoDataError, NotFoundError):
+                skipped += 1
+            except Exception:
+                failed += 1
+                logger.exception("sentiment: universe refresh failed for %s", sym)
+        logger.info("sentiment: universe refresh — scored=%d skipped=%d failed=%d",
+                    scored, skipped, failed)
+        return {"scored": scored, "skipped": skipped, "failed": failed}
 
 
 sentiment_service = SentimentService()

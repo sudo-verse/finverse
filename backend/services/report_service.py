@@ -6,16 +6,63 @@
 """
 
 import logging
+import re
 import uuid
 from datetime import datetime, timezone
 
+from app.db.database import get_session
 from app.genai import gemini_client
 from app.genai.rag import answer_question
 from app.genai.report_generator import generate_report
 from backend.core.exceptions import NotFoundError, ServiceUnavailableError
 from backend.schemas.report import ChatOut, ChatRequest, ChatSource, ReportOut, ReportRequest
+from backend.services.sentiment_service import sentiment_service
 
 logger = logging.getLogger("finverse.api")
+
+# The assistant otherwise answers only from ingested documents (RAG), so
+# market-wide questions like "top 5 stocks by sentiment score" have nothing to
+# retrieve. Detect those and answer them from the structured sentiment_scores
+# table instead — deterministic, grounded, and works without Gemini.
+_RANK_RE = re.compile(
+    r"\b(top|best|highest|strongest|leading|bullish|positive|"
+    r"worst|lowest|weakest|bearish|negative|bottom|rank(?:ing|ed)?|leaderboard)\b"
+)
+_BOTTOM_RE = re.compile(r"\b(worst|lowest|weakest|bearish|negative|bottom)\b")
+_NUM_RE = re.compile(r"\b(\d{1,2})\b")
+
+
+def _is_leaderboard_query(message: str) -> bool:
+    low = message.lower()
+    return (("sentiment" in low or "score" in low)
+            and _RANK_RE.search(low) is not None)
+
+
+def _format_leaderboard(entries, order: str) -> str:
+    if not entries:
+        return (
+            "I don't have any sentiment scores computed yet. Open the "
+            "**Sentiment** page for a stock — or wait for the daily refresh — "
+            "to populate the leaderboard, then ask me again."
+        )
+    title = "Top" if order == "top" else "Bottom"
+    lines = [
+        f"### {title} {len(entries)} NSE stocks by Finverse sentiment score\n",
+        "| # | Stock | Score | Signal | Confidence |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for e in entries:
+        stock = e.symbol + (f" — {e.name}" if e.name else "")
+        conf = f"{round((e.confidence or 0) * 100)}%"
+        lines.append(
+            f"| {e.rank} | {stock} | **{e.overall:.1f}** | {e.recommendation or '—'} | {conf} |"
+        )
+    lines.append(
+        "\n_Scores are the latest daily snapshot from Finverse's 5-pillar "
+        "Sentiment Intelligence engine (0–100: technicals, fundamentals, news, "
+        "ownership, market). Automated research, not investment advice._"
+    )
+    return "\n".join(lines)
 
 
 def _require_gemini() -> None:
@@ -42,6 +89,11 @@ class ReportService:
         return ReportOut(**result)
 
     def chat(self, payload: ChatRequest) -> ChatOut:
+        # Market-wide sentiment-ranking questions are answered from structured
+        # data, not the document corpus (and need no Gemini key).
+        if _is_leaderboard_query(payload.message):
+            return self._leaderboard_chat(payload.message)
+
         _require_gemini()
         result = answer_question(
             payload.message,
@@ -56,6 +108,22 @@ class ReportService:
             id=f"msg-{uuid.uuid4().hex[:12]}",
             content=result["answer"],
             sources=[ChatSource(**s) for s in result["sources"]],
+            timestamp=datetime.now(timezone.utc),
+        )
+
+    def _leaderboard_chat(self, message: str) -> ChatOut:
+        low = message.lower()
+        order = "bottom" if _BOTTOM_RE.search(low) else "top"
+        match = _NUM_RE.search(low)
+        limit = min(max(int(match.group(1)), 1), 20) if match else 5
+        with get_session() as session:
+            entries = sentiment_service.leaderboard(session, limit=limit, order=order)
+        logger.info("chat: sentiment leaderboard (order=%s, limit=%d, returned=%d)",
+                    order, limit, len(entries))
+        return ChatOut(
+            id=f"msg-{uuid.uuid4().hex[:12]}",
+            content=_format_leaderboard(entries, order),
+            sources=[],
             timestamp=datetime.now(timezone.utc),
         )
 

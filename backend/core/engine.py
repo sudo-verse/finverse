@@ -189,6 +189,15 @@ class EtlWorker:
         if symbols:
             logger.info("etl: sentiment snapshots saved for %d tracked symbols", len(symbols))
 
+        # Universe-wide pass so the sentiment leaderboard (and the AI assistant's
+        # "top stocks by sentiment" answers) cover the whole NSE list, not just
+        # tracked names. Skips the per-symbol NSE ownership call to stay fast.
+        try:
+            stats = sentiment_service.refresh_universe()
+            logger.info("etl: sentiment universe refresh %s", stats)
+        except Exception as e:
+            logger.warning("etl: sentiment universe refresh failed: %s", e)
+
     def _loop(self) -> None:
         from datetime import datetime, timedelta, timezone
 
