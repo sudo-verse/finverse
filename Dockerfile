@@ -15,8 +15,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps first for better layer caching.
-COPY requirements.txt requirements-api.txt ./
-RUN pip install -r requirements-api.txt
+COPY requirements.txt requirements-api.txt requirements-engine.txt ./
+RUN pip install -r requirements-api.txt -r requirements-engine.txt && \
+    python -m spacy download en_core_web_sm
 
 COPY . .
 RUN chmod +x entrypoint.sh
