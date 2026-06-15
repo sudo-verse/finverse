@@ -49,7 +49,8 @@ def _doc_id(source: str, idx: int, content: str) -> str:
 
 
 def _build_meta(source: str, symbol: str = None, doc_type: str = None,
-                year: int = None, page: int = None) -> dict:
+                year: int = None, page: int = None, section: str = None,
+                parent_id: str = None, chunk_type: str = None) -> dict:
     """Chroma metadata values must be scalars; skip Nones entirely."""
     meta = {"source": source}
     if symbol:
@@ -60,6 +61,12 @@ def _build_meta(source: str, symbol: str = None, doc_type: str = None,
         meta["year"] = int(year)
     if page:
         meta["page"] = int(page)
+    if section:
+        meta["section"] = section
+    if parent_id:
+        meta["parent_id"] = parent_id
+    if chunk_type:
+        meta["chunk_type"] = chunk_type
     return meta
 
 
@@ -89,33 +96,74 @@ def ingest_text(text: str, source: str, symbol: str = None, doc_type: str = None
     return len(chunks)
 
 
-def ingest_pdf(path: str, symbol: str = None, doc_type: str = None, year: int = None) -> int:
-    """Ingest a PDF page by page so each chunk carries a real page number
-    (needed for 'Annual Report 2024 — Page 128' style citations)."""
-    from pypdf import PdfReader
-
-    reader = PdfReader(path)
-    source = os.path.basename(path)
-    total = 0
-    for page_no, pdf_page in enumerate(reader.pages, start=1):
-        text = pdf_page.extract_text() or ""
-        if not text.strip():
-            continue
-        total += ingest_text(text, source=source, symbol=symbol,
-                             doc_type=doc_type, year=year, page=page_no)
-    return total
-
-
 def ingest_file(path: str, symbol: str = None, doc_type: str = None, year: int = None) -> int:
-    if path.lower().endswith(".pdf"):
-        return ingest_pdf(path, symbol=symbol, doc_type=doc_type, year=year)
-    with open(path, "r", errors="ignore") as f:
-        return ingest_text(f.read(), source=os.path.basename(path),
-                           symbol=symbol, doc_type=doc_type, year=year)
+    """Structural, table-aware, parent–child ingestion (app.genai.chunking).
+
+    Embeds the *contextual* form of each child chunk (header + body) but stores
+    the clean body for display/citation; parent sections go to parent_store for
+    small-to-big retrieval. Resumable: chunk ids already present in Chroma are
+    skipped and batches are upserted as they embed, so a run interrupted by the
+    daily embedding quota continues where it left off on the next run.
+    """
+    from app.genai import chunking, parent_store
+
+    chunks, parents = chunking.chunk_file(path, symbol=symbol, doc_type=doc_type, year=year)
+    if not chunks:
+        return 0
+    source = os.path.basename(path)
+
+    # Parents are free (not embedded) — persist them up front so they survive a
+    # quota interruption mid-embed.
+    parent_store.put_many(parents)
+
+    collection = _get_collection()
+    ids = [_doc_id(source, i, c.text) for i, c in enumerate(chunks)]
+    existing = set(collection.get(ids=ids).get("ids") or [])
+
+    added = 0
+    pending: list[tuple[str, "chunking.Chunk"]] = [
+        (cid, c) for cid, c in zip(ids, chunks) if cid not in existing
+    ]
+    for i in range(0, len(pending), 100):
+        batch = pending[i:i + 100]
+        vectors = gemini_client.embed([c.embed_text for _, c in batch])  # RETRIEVAL_DOCUMENT
+        collection.upsert(
+            ids=[cid for cid, _ in batch],
+            embeddings=vectors,
+            documents=[c.text for _, c in batch],
+            metadatas=[_build_meta(source, symbol, doc_type, year, page=c.page,
+                                   section=c.section, parent_id=c.parent_id,
+                                   chunk_type=c.chunk_type)
+                       for _, c in batch],
+        )
+        added += len(batch)
+
+    if added:
+        from app.genai import lexical
+        lexical.invalidate()  # rebuild BM25 index over the new chunks
+    logger.info("rag: ingested %s — %d new chunks (%d already present)",
+                source, added, len(existing))
+    return added
 
 
 def get_collection():
     """Public accessor for the document collection (used by the research layer)."""
+    return _get_collection()
+
+
+def reset_collection():
+    """Drop and recreate the document collection. Used by a full reindex when
+    the chunking scheme changes (old chunk ids would otherwise linger)."""
+    global _collection
+    import chromadb
+
+    client = chromadb.PersistentClient(path=CHROMA_DIR)
+    try:
+        client.delete_collection(COLLECTION)
+    except Exception:  # collection may not exist yet
+        pass
+    _collection = None
+    logger.info("rag: document collection reset")
     return _get_collection()
 
 

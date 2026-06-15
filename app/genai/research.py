@@ -218,17 +218,33 @@ def retrieve(question: str, symbol: str = None, doc_type: str = None,
         return []
     top = _rerank(question, fused, k)
 
+    # Small-to-big: we matched on precise child chunks; hand the generator the
+    # fuller parent section. Children of the same parent consolidate into one
+    # source. Falls back to the child text when no parent exists (legacy corpus).
+    from app.genai import parent_store
+
     terms = _terms(question)
     results = []
+    seen_parents = set()
     for c in top:
         m = c["meta"]
+        text = c["text"]
+        pid = m.get("parent_id")
+        if pid:
+            if pid in seen_parents:
+                continue
+            parent = parent_store.get(pid)
+            if parent and parent.get("text"):
+                seen_parents.add(pid)
+                text = parent["text"]
         results.append({
             "id": c["id"],
-            "text": _compress(c["text"], terms),
+            "text": _compress(text, terms),
             "source": m.get("source", "document"),
             "doc_type": m.get("doc_type"),
             "year": m.get("year"),
             "page": m.get("page"),
+            "section": m.get("section"),
         })
     return results
 
@@ -239,6 +255,8 @@ def citation_label(src: dict) -> str:
         label += f" {src['year']}"
     if src.get("page"):
         label += f", page {src['page']}"
+    if src.get("section"):
+        label += f" — {src['section']}"
     if label != src["source"]:
         label += f" ({src['source']})"
     return label

@@ -150,9 +150,36 @@ def ingest_news_signals(symbol: str = None, limit: int = 300) -> int:
     return chunks
 
 
+def reindex() -> dict:
+    """Full rebuild for a chunking-scheme change: wipe the vector store, parent
+    store and manifest, then re-ingest all documents + news from scratch.
+
+    Resumable — if the daily embedding quota interrupts the run, re-running
+    continues from where Chroma already has chunks (ids are deterministic and
+    upserts are idempotent), so only the wipe happens once.
+    """
+    from app.genai import lexical, parent_store, rag
+
+    logger.warning("ingest: REINDEX — wiping vector store, parents and manifest")
+    rag.reset_collection()
+    parent_store.clear()
+    lexical.invalidate()
+    try:
+        os.remove(MANIFEST)
+    except FileNotFoundError:
+        pass
+
+    result = ingest_documents()
+    result["news_chunks"] = ingest_news_signals()
+    logger.info("ingest: reindex complete — %s", result)
+    return result
+
+
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:]]
-    if "--news" in args:
+    if "--reindex" in args:
+        reindex()
+    elif "--news" in args:
         args.remove("--news")
         ingest_news_signals(args[0] if args else None)
     else:
