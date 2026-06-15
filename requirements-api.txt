@@ -13,3 +13,6 @@ alembic>=1.13.0
 psycopg[binary]>=3.1.0; platform_system != "Windows"
 # Error tracking (optional — only used when BACKEND_SENTRY_DSN is set).
 sentry-sdk[fastapi]>=2.0.0
+# Distributed rate limiting across API replicas (optional — set BACKEND_REDIS_URL;
+# falls back to in-memory when unset).
+redis>=5.0.0

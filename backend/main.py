@@ -42,6 +42,7 @@ from backend.core.exceptions import (
     NoDataError,
     NotFoundError,
     QuotaExceededError,
+    RateLimitedError,
     ServiceUnavailableError,
     UnauthorizedError,
 )
@@ -160,6 +161,12 @@ async def unauthorized_handler(_: Request, exc: UnauthorizedError) -> JSONRespon
 @app.exception_handler(QuotaExceededError)
 async def quota_handler(_: Request, exc: QuotaExceededError) -> JSONResponse:
     return JSONResponse(status_code=429, content={"detail": str(exc)})
+
+
+@app.exception_handler(RateLimitedError)
+async def rate_limited_handler(_: Request, exc: RateLimitedError) -> JSONResponse:
+    return JSONResponse(status_code=429, content={"detail": str(exc)},
+                        headers={"Retry-After": str(exc.retry_after)})
 
 
 @app.exception_handler(Exception)

@@ -71,6 +71,13 @@ class Settings(BaseSettings):
     # worker process (see backend/worker.py) so it only runs once.
     alerts_enabled: bool = True
 
+    # Redis — enables distributed rate limiting (and future task queue) across
+    # API replicas. Empty → in-memory rate limiting (fine for a single instance).
+    redis_url: str = ""
+    # Auth abuse protection: max login/register attempts per IP per window.
+    auth_rate_limit: int = 10
+    auth_rate_window_seconds: int = 60
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

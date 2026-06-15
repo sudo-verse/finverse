@@ -93,6 +93,10 @@ localhost:8000/api/billing/webhook`.
   `2026-… [<request-id>] finverse.api INFO …`.
 - **Errors:** set `BACKEND_SENTRY_DSN` (+ `BACKEND_ENVIRONMENT`) to ship
   exceptions to Sentry; no-op when unset.
+- **Rate limiting:** auth endpoints are limited per-IP (brute-force / signup
+  spam → 429 + `Retry-After`). Set `BACKEND_REDIS_URL` so the limit is shared
+  across API replicas; without it each replica limits in-memory (so set a single
+  replica or Redis in prod). A bad `BACKEND_REDIS_URL` falls back to in-memory.
 
 ## Go-live checklist
 

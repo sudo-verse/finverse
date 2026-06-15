@@ -24,3 +24,11 @@ class UnauthorizedError(Exception):
 
 class QuotaExceededError(Exception):
     """The caller hit a plan usage limit (→ 429, upsell to upgrade)."""
+
+
+class RateLimitedError(Exception):
+    """Too many requests in a short window (→ 429 with Retry-After)."""
+
+    def __init__(self, retry_after: int, message: str = "Too many requests. Slow down."):
+        super().__init__(message)
+        self.retry_after = retry_after

@@ -5,6 +5,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    """Each test starts with a fresh in-memory limiter so the per-IP auth limit
+    (shared across the test client's single IP) doesn't leak between tests."""
+    from backend.core import ratelimit
+
+    ratelimit._limiter = ratelimit.InMemoryRateLimiter()
+    yield
+
+
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("BACKEND_ENGINE_ENABLED", "false")
