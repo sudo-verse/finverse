@@ -6,8 +6,14 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import DATABASE_URL
 
 # SQLite needs check_same_thread=False so the Streamlit background thread and
-# the main thread can share the connection. Ignored for MySQL.
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+# the main thread can share the connection.
+# For PostgreSQL, we disable prepared statements to prevent errors when
+# connecting through transaction poolers (like PgBouncer or Supavisor).
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args["check_same_thread"] = False
+elif "postgresql" in DATABASE_URL:
+    connect_args["prepare_threshold"] = 0
 
 engine = create_engine(
     DATABASE_URL,
