@@ -128,7 +128,7 @@ def get_latest_report(symbol):
 
 # --- AI Research Copilot chat history ---
 
-def save_research_chat(symbol, question, answer, sources_json, mode="chat"):
+def save_research_chat(user_id, symbol, question, answer, sources_json, mode="chat"):
     """Persist one copilot exchange. Best-effort: history must never break chat."""
     from app.db.models import ResearchChat
 
@@ -136,7 +136,7 @@ def save_research_chat(symbol, question, answer, sources_json, mode="chat"):
         ResearchChat.__table__.create(engine, checkfirst=True)
         with get_session() as session:
             session.add(ResearchChat(
-                symbol=symbol, mode=mode, question=question,
+                user_id=user_id, symbol=symbol, mode=mode, question=question,
                 answer=answer, sources_json=sources_json,
             ))
         return True
@@ -144,12 +144,14 @@ def save_research_chat(symbol, question, answer, sources_json, mode="chat"):
         return False
 
 
-def get_research_history(symbol=None, limit=30):
+def get_research_history(user_id, symbol=None, limit=30):
     from app.db.models import ResearchChat
 
     ResearchChat.__table__.create(engine, checkfirst=True)
     with get_session() as session:
-        q = session.query(ResearchChat).order_by(ResearchChat.id.desc())
+        q = (session.query(ResearchChat)
+             .filter(ResearchChat.user_id == user_id)
+             .order_by(ResearchChat.id.desc()))
         if symbol:
             q = q.filter(ResearchChat.symbol == symbol)
         rows = q.limit(limit).all()
@@ -165,12 +167,12 @@ def get_research_history(symbol=None, limit=30):
 
 # --- Portfolio holdings ---
 
-def add_holding(symbol, quantity, avg_price=None):
+def add_holding(user_id, symbol, quantity, avg_price=None):
     """Add or update a holding. If the symbol exists, accumulate quantity and
     blend the average price."""
     PortfolioHolding.__table__.create(engine, checkfirst=True)
     with get_session() as session:
-        row = session.query(PortfolioHolding).filter_by(symbol=symbol).first()
+        row = session.query(PortfolioHolding).filter_by(user_id=user_id, symbol=symbol).first()
         if row:
             # weighted-average the buy price across the combined quantity
             if avg_price is not None and row.avg_price is not None:
@@ -184,21 +186,23 @@ def add_holding(symbol, quantity, avg_price=None):
             row.quantity += quantity
         else:
             session.add(PortfolioHolding(
-                symbol=symbol, quantity=quantity, avg_price=avg_price
+                user_id=user_id, symbol=symbol, quantity=quantity, avg_price=avg_price
             ))
 
 
-def list_holdings():
+def list_holdings(user_id):
     PortfolioHolding.__table__.create(engine, checkfirst=True)
     with get_session() as session:
-        rows = session.query(PortfolioHolding).order_by(PortfolioHolding.symbol).all()
+        rows = (session.query(PortfolioHolding)
+                .filter_by(user_id=user_id)
+                .order_by(PortfolioHolding.symbol).all())
         return [
             {"symbol": r.symbol, "quantity": r.quantity, "avg_price": r.avg_price}
             for r in rows
         ]
 
 
-def clear_holdings():
+def clear_holdings(user_id):
     PortfolioHolding.__table__.create(engine, checkfirst=True)
     with get_session() as session:
-        session.query(PortfolioHolding).delete()
+        session.query(PortfolioHolding).filter_by(user_id=user_id).delete()

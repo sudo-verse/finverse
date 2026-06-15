@@ -18,7 +18,9 @@ from fastapi import APIRouter, Depends, Path, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from app.db.models import User
 from backend.core.database import get_db
+from backend.core.deps import get_current_user
 from backend.schemas.research import (
     CompanySourcesOut,
     ResearchChatOut,
@@ -70,20 +72,20 @@ def _respond(citations, token_gen, meta, stream: bool):
 
 @router.post("/chat", summary="Company-aware research chat",
              response_model=ResearchChatOut)
-def research_chat(payload: ResearchChatRequest):
+def research_chat(payload: ResearchChatRequest, user: User = Depends(get_current_user)):
     """Ask a plain-English question about one company. Answers are grounded in
     the indexed filings (hybrid RAG) plus Finverse structured data, with
     numbered source citations. Streams SSE unless `stream` is false."""
-    citations, token_gen, meta = research_service.prepare_chat(payload)
+    citations, token_gen, meta = research_service.prepare_chat(user.id, payload)
     return _respond(citations, token_gen, meta, payload.stream)
 
 
 @router.post("/compare", summary="Compare two or three companies",
              response_model=ResearchChatOut)
-def research_compare(payload: ResearchCompareRequest):
+def research_compare(payload: ResearchCompareRequest, user: User = Depends(get_current_user)):
     """Comparison mode: retrieves documents for each company and generates a
     head-to-head analyst report."""
-    citations, token_gen, meta = research_service.prepare_compare(payload)
+    citations, token_gen, meta = research_service.prepare_compare(user.id, payload)
     return _respond(citations, token_gen, meta, payload.stream)
 
 
@@ -112,7 +114,8 @@ def research_sources(
 @router.get("/history", response_model=list[ResearchHistoryItem],
             summary="Past research Q&A")
 def research_history(
+    user: User = Depends(get_current_user),
     symbol: str | None = Query(None, description="Filter to one company"),
     limit: int = Query(30, ge=1, le=200),
 ) -> list[ResearchHistoryItem]:
-    return research_service.history(symbol, limit)
+    return research_service.history(user.id, symbol, limit)

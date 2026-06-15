@@ -91,7 +91,7 @@ def _structured_context(symbol: str) -> dict | None:
 
 class ResearchService:
     # ------------------------------------------------------------------ chat
-    def prepare_chat(self, payload: ResearchChatRequest):
+    def prepare_chat(self, user_id: int, payload: ResearchChatRequest):
         """Run retrieval + start generation. Returns (sources, token_gen, meta).
 
         Split from response assembly so the API layer can stream tokens while
@@ -110,11 +110,11 @@ class ResearchService:
         )
         citations = [_citation(s) for s in sources]
         follow_ups = _follow_ups(payload.message, payload.history)
-        return citations, token_gen, {"symbol": symbol, "mode": "chat",
+        return citations, token_gen, {"user_id": user_id, "symbol": symbol, "mode": "chat",
                                       "question": payload.message,
                                       "follow_ups": follow_ups}
 
-    def prepare_compare(self, payload: ResearchCompareRequest):
+    def prepare_compare(self, user_id: int, payload: ResearchCompareRequest):
         _require_gemini()
         symbols = [s.upper() for s in payload.symbols]
         structured = {sym: _structured_context(sym) for sym in symbols}
@@ -124,7 +124,7 @@ class ResearchService:
         citations = [_citation(s) for s in sources]
         label = " vs ".join(symbols)
         question = payload.message or f"Compare {label}"
-        return citations, token_gen, {"symbol": label, "mode": "compare",
+        return citations, token_gen, {"user_id": user_id, "symbol": label, "mode": "compare",
                                       "question": question,
                                       "follow_ups": _follow_ups(question, [])}
 
@@ -132,6 +132,7 @@ class ResearchService:
                  answer: str) -> ResearchChatOut:
         """Persist the exchange and shape the response envelope."""
         save_research_chat(
+            user_id=meta["user_id"],
             symbol=meta["symbol"],
             question=meta["question"],
             answer=answer,
@@ -194,9 +195,9 @@ class ResearchService:
         )
 
     # ----------------------------------------------------------------- history
-    def history(self, symbol: str | None, limit: int) -> list[ResearchHistoryItem]:
+    def history(self, user_id: int, symbol: str | None, limit: int) -> list[ResearchHistoryItem]:
         items = []
-        for row in get_research_history(symbol=symbol, limit=limit):
+        for row in get_research_history(user_id, symbol=symbol, limit=limit):
             try:
                 sources = [SourceCitation(**s) for s in json.loads(row["sources_json"] or "[]")]
             except (json.JSONDecodeError, TypeError, ValueError):

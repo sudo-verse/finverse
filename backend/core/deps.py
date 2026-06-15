@@ -32,3 +32,19 @@ def get_current_user(
     if user is None or not user.is_active:
         raise UnauthorizedError("User no longer exists.")
     return user
+
+
+def get_current_user_optional(
+    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    db: Session = Depends(get_db),
+) -> User | None:
+    """Like get_current_user but returns None instead of raising when no/invalid
+    token — for endpoints that are public but enrich the response when signed in
+    (e.g. the dashboard's portfolio card)."""
+    if creds is None or not creds.credentials:
+        return None
+    payload = decode_access_token(creds.credentials)
+    if not payload or not payload.get("sub"):
+        return None
+    user = auth_service.get_by_id(db, int(payload["sub"]))
+    return user if (user and user.is_active) else None

@@ -54,8 +54,8 @@ def _growth_series(
 
 
 class PortfolioService:
-    def get_portfolio(self) -> PortfolioOut:
-        result = compute_portfolio()
+    def get_portfolio(self, user_id: int) -> PortfolioOut:
+        result = compute_portfolio(user_id)
         if "error" in result:
             raise NoDataError(
                 "No holdings in the portfolio yet. Add one via POST /api/portfolio/holdings."
@@ -119,24 +119,24 @@ class PortfolioService:
             growth=growth,
         )
 
-    def portfolio_value(self) -> tuple[float | None, float | None]:
+    def portfolio_value(self, user_id: int) -> tuple[float | None, float | None]:
         """(total_value, day_change_pct) for the dashboard card; never raises."""
         try:
-            if not list_holdings():
+            if not list_holdings(user_id):
                 return None, None
-            p = self.get_portfolio()
+            p = self.get_portfolio(user_id)
             return p.summary.total_value, p.summary.day_pnl_pct
         except Exception:  # dashboard must not fail because of portfolio state
             logger.warning("dashboard: portfolio valuation unavailable", exc_info=True)
             return None, None
 
-    def add(self, payload: HoldingCreate) -> None:
-        add_holding(payload.symbol.upper(), payload.quantity, payload.avg_price)
-        logger.info("portfolio: added %s x %s", payload.quantity, payload.symbol)
+    def add(self, user_id: int, payload: HoldingCreate) -> None:
+        add_holding(user_id, payload.symbol.upper(), payload.quantity, payload.avg_price)
+        logger.info("portfolio: user %s added %s x %s", user_id, payload.quantity, payload.symbol)
 
-    def clear(self) -> None:
-        clear_holdings()
-        logger.info("portfolio: cleared all holdings")
+    def clear(self, user_id: int) -> None:
+        clear_holdings(user_id)
+        logger.info("portfolio: user %s cleared all holdings", user_id)
 
 
 portfolio_service = PortfolioService()

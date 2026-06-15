@@ -1,8 +1,5 @@
 """Tests for auth: password hashing, JWT, and the register/login/me flow
-against an isolated in-memory database."""
-
-import pytest
-from fastapi.testclient import TestClient
+(the isolated TestClient `client` fixture lives in conftest.py)."""
 
 from backend.core import security
 
@@ -26,40 +23,6 @@ class TestJWT:
 
     def test_tampered_token_rejected(self):
         assert security.decode_access_token("garbage.token.here") is None
-
-
-@pytest.fixture
-def client(tmp_path, monkeypatch):
-    """A TestClient backed by a throwaway SQLite file (no engine/ETL workers)."""
-    monkeypatch.setenv("BACKEND_ENGINE_ENABLED", "false")
-    monkeypatch.setenv("BACKEND_ETL_ENABLED", "false")
-
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-
-    from app.db.database import Base
-    import app.db.models  # noqa: F401 — register tables
-
-    engine = create_engine(f"sqlite:///{tmp_path/'t.db'}",
-                            connect_args={"check_same_thread": False})
-    Base.metadata.create_all(engine)
-    TestingSession = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
-
-    from backend.core.database import get_db
-    from backend.main import app
-
-    def _override():
-        s = TestingSession()
-        try:
-            yield s
-            s.commit()
-        finally:
-            s.close()
-
-    app.dependency_overrides[get_db] = _override
-    with TestClient(app) as c:
-        yield c
-    app.dependency_overrides.clear()
 
 
 class TestAuthFlow:

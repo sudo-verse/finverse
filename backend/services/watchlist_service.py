@@ -34,9 +34,11 @@ def _ensure_tables() -> None:
 
 class WatchlistService:
     # ------------------------------------------------------------- watchlist
-    def list(self, session: Session) -> list[WatchlistItemOut]:
+    def list(self, session: Session, user_id: int) -> list[WatchlistItemOut]:
         _ensure_tables()
-        items = session.query(WatchlistItem).order_by(WatchlistItem.symbol).all()
+        items = (session.query(WatchlistItem)
+                 .filter_by(user_id=user_id)
+                 .order_by(WatchlistItem.symbol).all())
         if not items:
             return []
         companies = {
@@ -45,7 +47,8 @@ class WatchlistService:
         }
         alert_counts = dict(
             session.query(AlertRule.symbol, _count(AlertRule.id))
-            .filter(AlertRule.active, AlertRule.symbol.in_([i.symbol for i in items]))
+            .filter(AlertRule.user_id == user_id, AlertRule.active,
+                    AlertRule.symbol.in_([i.symbol for i in items]))
             .group_by(AlertRule.symbol).all()
         )
         out = []
@@ -73,20 +76,20 @@ class WatchlistService:
             out.append(row)
         return out
 
-    def add(self, session: Session, payload: WatchlistCreate) -> None:
+    def add(self, session: Session, user_id: int, payload: WatchlistCreate) -> None:
         _ensure_tables()
         symbol = payload.symbol.upper()
         if not session.query(Company).filter_by(symbol=symbol).first():
             raise NotFoundError(f"Unknown symbol: {symbol}")
-        if not session.query(WatchlistItem).filter_by(symbol=symbol).first():
-            session.add(WatchlistItem(symbol=symbol, note=payload.note))
+        if not session.query(WatchlistItem).filter_by(user_id=user_id, symbol=symbol).first():
+            session.add(WatchlistItem(user_id=user_id, symbol=symbol, note=payload.note))
 
-    def remove(self, session: Session, symbol: str) -> None:
+    def remove(self, session: Session, user_id: int, symbol: str) -> None:
         _ensure_tables()
         symbol = symbol.upper()
-        session.query(WatchlistItem).filter_by(symbol=symbol).delete()
-        # rules are symbol-scoped to the watchlist; clean them up too
-        session.query(AlertRule).filter_by(symbol=symbol).delete()
+        session.query(WatchlistItem).filter_by(user_id=user_id, symbol=symbol).delete()
+        # rules are symbol-scoped to the watchlist; clean up this user's too
+        session.query(AlertRule).filter_by(user_id=user_id, symbol=symbol).delete()
 
     def symbols(self) -> "list[str]":  # quoted: `list` method shadows the builtin here
         """Watchlist symbols (own session — used by background workers)."""
@@ -95,38 +98,43 @@ class WatchlistService:
             return [r.symbol for r in s.query(WatchlistItem.symbol).all()]
 
     # ----------------------------------------------------------------- rules
-    def list_rules(self, session: Session, symbol: str | None = None) -> "list[AlertRuleOut]":
+    def list_rules(self, session: Session, user_id: int,
+                   symbol: str | None = None) -> "list[AlertRuleOut]":
         _ensure_tables()
-        q = session.query(AlertRule).order_by(AlertRule.id.desc())
+        q = session.query(AlertRule).filter_by(user_id=user_id).order_by(AlertRule.id.desc())
         if symbol:
             q = q.filter_by(symbol=symbol.upper())
         return [AlertRuleOut.model_validate(r) for r in q.all()]
 
-    def create_rule(self, session: Session, payload: AlertRuleCreate) -> AlertRuleOut:
+    def create_rule(self, session: Session, user_id: int,
+                    payload: AlertRuleCreate) -> AlertRuleOut:
         _ensure_tables()
         if payload.kind not in ALERT_KINDS:
             raise NoDataError(f"Unknown alert kind — use one of {', '.join(ALERT_KINDS)}.")
         if payload.kind not in ("buy_signal",) and payload.threshold is None:
             raise NoDataError(f"Alert kind '{payload.kind}' needs a threshold.")
-        rule = AlertRule(symbol=payload.symbol.upper(), kind=payload.kind,
-                         threshold=payload.threshold)
+        rule = AlertRule(user_id=user_id, symbol=payload.symbol.upper(),
+                         kind=payload.kind, threshold=payload.threshold)
         session.add(rule)
         session.flush()
         return AlertRuleOut.model_validate(rule)
 
-    def delete_rule(self, session: Session, rule_id: int) -> None:
+    def delete_rule(self, session: Session, user_id: int, rule_id: int) -> None:
         _ensure_tables()
-        session.query(AlertRule).filter_by(id=rule_id).delete()
+        session.query(AlertRule).filter_by(user_id=user_id, id=rule_id).delete()
 
     # ---------------------------------------------------------------- events
-    def list_events(self, session: Session, limit: int = 30) -> "list[AlertEventOut]":
+    def list_events(self, session: Session, user_id: int,
+                    limit: int = 30) -> "list[AlertEventOut]":
         _ensure_tables()
-        rows = session.query(AlertEvent).order_by(AlertEvent.id.desc()).limit(limit).all()
+        rows = (session.query(AlertEvent).filter_by(user_id=user_id)
+                .order_by(AlertEvent.id.desc()).limit(limit).all())
         return [AlertEventOut.model_validate(r) for r in rows]
 
-    def mark_events_seen(self, session: Session) -> None:
+    def mark_events_seen(self, session: Session, user_id: int) -> None:
         _ensure_tables()
-        session.query(AlertEvent).filter_by(seen=False).update({"seen": True})
+        (session.query(AlertEvent)
+         .filter_by(user_id=user_id, seen=False).update({"seen": True}))
 
     # ------------------------------------------------------------- evaluator
     def evaluate_all(self) -> int:
@@ -147,7 +155,8 @@ class WatchlistService:
                     continue
                 if message:
                     rule.last_triggered_at = datetime.utcnow()
-                    s.add(AlertEvent(rule_id=rule.id, symbol=rule.symbol, message=message))
+                    s.add(AlertEvent(user_id=rule.user_id, rule_id=rule.id,
+                                     symbol=rule.symbol, message=message))
                     fired += 1
                     try:
                         from app.utils.telegram import send_telegram

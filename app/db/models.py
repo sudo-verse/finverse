@@ -133,12 +133,14 @@ class AIReport(Base):
 
 
 class WatchlistItem(Base):
-    """A stock the user is tracking."""
+    """A stock a user is tracking (unique per user, not globally)."""
 
     __tablename__ = "watchlist"
+    __table_args__ = (UniqueConstraint("user_id", "symbol", name="uq_watchlist_user_symbol"),)
 
     id = Column(Integer, primary_key=True)
-    symbol = Column(String(32), unique=True, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    symbol = Column(String(32), nullable=False, index=True)
     note = Column(String(255))
     added_at = Column(DateTime, default=datetime.utcnow)
 
@@ -153,6 +155,7 @@ class AlertRule(Base):
     __tablename__ = "alert_rules"
 
     id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     symbol = Column(String(32), nullable=False, index=True)
     kind = Column(String(32), nullable=False)
     threshold = Column(Float)              # price level, score, or pp delta
@@ -167,6 +170,7 @@ class AlertEvent(Base):
     __tablename__ = "alert_events"
 
     id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     rule_id = Column(Integer, ForeignKey("alert_rules.id"), index=True)
     symbol = Column(String(32), index=True)
     message = Column(String(512))
@@ -216,6 +220,7 @@ class ResearchChat(Base):
     __tablename__ = "research_chats"
 
     id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     symbol = Column(String(80), index=True)        # "RELIANCE" or "TCS vs INFY"
     mode = Column(String(16), default="chat")      # "chat" | "compare"
     question = Column(Text, nullable=False)
@@ -228,8 +233,10 @@ class PortfolioHolding(Base):
     """A single position in the user's portfolio."""
 
     __tablename__ = "portfolio_holdings"
+    __table_args__ = (UniqueConstraint("user_id", "symbol", name="uq_holding_user_symbol"),)
 
     id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     symbol = Column(String(32), nullable=False, index=True)
     quantity = Column(Float, nullable=False)
     avg_price = Column(Float)  # average buy price (optional, for P&L)

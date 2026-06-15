@@ -31,7 +31,7 @@ TOP_INDUSTRIES = 8
 
 
 class DashboardService:
-    def get_dashboard(self, session: Session) -> DashboardOut:
+    def get_dashboard(self, session: Session, user_id: int | None = None) -> DashboardOut:
         # --- Signal distribution (one grouped query feeds counts + chart) ---
         dist_rows = (
             session.query(NewsSignal.signal, func.count(NewsSignal.id))
@@ -41,7 +41,11 @@ class DashboardService:
         by_signal = {(sig or "UNKNOWN"): n for sig, n in dist_rows}
         total_signals = sum(by_signal.values())
 
-        portfolio_value, portfolio_day_change_pct = portfolio_service.portfolio_value()
+        # Portfolio card is per-user; only populated when signed in.
+        if user_id is not None:
+            portfolio_value, portfolio_day_change_pct = portfolio_service.portfolio_value(user_id)
+        else:
+            portfolio_value, portfolio_day_change_pct = None, None
 
         metrics = DashboardMetrics(
             total_companies=session.query(func.count(Company.id)).scalar() or 0,

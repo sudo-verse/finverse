@@ -41,9 +41,9 @@ def _returns_frame(price_map: dict) -> pd.DataFrame:
     return pd.DataFrame(series).dropna()
 
 
-def compute_portfolio(risk_free=M.DEFAULT_RISK_FREE) -> dict:
-    """Compute portfolio-level analytics for the stored holdings."""
-    holdings = list_holdings()
+def compute_portfolio(user_id, risk_free=M.DEFAULT_RISK_FREE) -> dict:
+    """Compute portfolio-level analytics for one user's stored holdings."""
+    holdings = list_holdings(user_id)
     if not holdings:
         return {"error": "no holdings", "holdings": []}
 
