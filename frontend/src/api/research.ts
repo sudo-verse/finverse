@@ -2,6 +2,7 @@
  *  streaming (axios cannot consume ReadableStream in the browser). */
 
 import { apiClient } from "./client";
+import { UNAUTHORIZED_EVENT, clearToken, getToken } from "@/lib/auth-token";
 import type {
   CompanySources,
   ResearchCompany,
@@ -43,12 +44,20 @@ export interface CompareBody {
 }
 
 async function streamSSE(path: string, body: object, cb: StreamCallbacks, signal?: AbortSignal) {
+  const token = getToken();
   const res = await fetch(`/api${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ ...body, stream: true }),
     signal,
   });
+  if (res.status === 401) {
+    clearToken();
+    window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+  }
   if (!res.ok || !res.body) {
     let detail = `Request failed (${res.status})`;
     try {

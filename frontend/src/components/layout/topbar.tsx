@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Bell, BellOff, Menu, Search, X } from "lucide-react";
+import { Bell, BellOff, LogOut, Menu, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth";
 import { useAlertEvents, useMarkAlertsSeen, useMarketOverview } from "@/hooks/queries";
 import { formatNumber, formatPercent, timeAgo } from "@/lib/format";
 import { NAV_ITEMS } from "./sidebar";
@@ -94,6 +95,58 @@ function AlertsBell() {
   );
 }
 
+function UserMenu() {
+  const { user, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const blurTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  if (!user) return null;
+
+  const initials =
+    (user.fullName || user.email)
+      .split(/[\s@.]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((s) => s[0]?.toUpperCase())
+      .join("") || "U";
+
+  return (
+    <div
+      className="relative"
+      onBlur={() => {
+        blurTimer.current = setTimeout(() => setOpen(false), 150);
+      }}
+      onFocus={() => clearTimeout(blurTimer.current)}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Account menu"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-xs font-bold text-white shadow-md"
+      >
+        {initials}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-11 z-40 w-56 overflow-hidden rounded-xl border border-border bg-popover shadow-2xl">
+          <div className="border-b border-border/60 px-3 py-2.5">
+            <p className="truncate text-sm font-medium">{user.fullName || "Account"}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+            <span className="mt-1 inline-block rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+              {user.plan}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-accent/40"
+          >
+            <LogOut className="h-4 w-4" /> Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Topbar({ onOpenPalette }: TopbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: market } = useMarketOverview();
@@ -141,10 +194,7 @@ export function Topbar({ onOpenPalette }: TopbarProps) {
         </button>
 
         <AlertsBell />
-
-        <div className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-xs font-bold text-white shadow-md">
-          SK
-        </div>
+        <UserMenu />
       </div>
 
       {/* Mobile nav drawer */}

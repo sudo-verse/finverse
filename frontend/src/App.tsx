@@ -1,9 +1,11 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-layout";
+import { RequireAuth } from "@/components/auth/require-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Route-level code splitting keeps the initial bundle lean.
+const LoginPage = lazy(() => import("@/pages/login"));
 const DashboardPage = lazy(() => import("@/pages/dashboard"));
 const SignalsPage = lazy(() => import("@/pages/signals"));
 const StockAnalysisPage = lazy(() => import("@/pages/stock-analysis"));
@@ -34,7 +36,21 @@ function PageFallback() {
 export default function App() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      <Route
+        path="/login"
+        element={
+          <Suspense fallback={<PageFallback />}>
+            <LoginPage />
+          </Suspense>
+        }
+      />
+      <Route
+        element={
+          <RequireAuth>
+            <AppLayout />
+          </RequireAuth>
+        }
+      >
         <Route
           index
           element={
