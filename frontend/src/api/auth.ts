@@ -53,3 +53,9 @@ export async function fetchUsage(): Promise<Usage> {
   const { data } = await apiClient.get<Usage>("/usage");
   return data;
 }
+
+/** Create a Stripe Checkout session and return its hosted URL to redirect to. */
+export async function startCheckout(): Promise<string> {
+  const { data } = await apiClient.post<{ url: string }>("/billing/checkout", {});
+  return data.url;
+}

@@ -30,6 +30,8 @@ class User(Base):
     full_name = Column(String(128))
     plan = Column(String(32), nullable=False, default="free")  # free | pro | …
     is_active = Column(Boolean, nullable=False, default=True)
+    stripe_customer_id = Column(String(64), index=True)
+    stripe_subscription_id = Column(String(64))
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

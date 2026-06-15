@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Bell, BellOff, LogOut, Menu, Search, X } from "lucide-react";
+import { Bell, BellOff, LogOut, Menu, Search, Sparkles, X } from "lucide-react";
+import { toast } from "sonner";
+import { startCheckout } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
 import { useAlertEvents, useMarkAlertsSeen, useMarketOverview, useUsage } from "@/hooks/queries";
@@ -150,6 +152,21 @@ function UserMenu() {
                 </div>
               ))}
             </div>
+          )}
+          {user.plan === "free" && (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  window.location.href = await startCheckout();
+                } catch {
+                  toast.error("Could not start checkout. Please try again.");
+                }
+              }}
+              className="flex w-full cursor-pointer items-center gap-2 border-b border-border/60 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+            >
+              <Sparkles className="h-4 w-4" /> Upgrade to Pro
+            </button>
           )}
           <button
             type="button"

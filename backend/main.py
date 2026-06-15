@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 
 from backend.api import (
     auth,
+    billing,
     chat,
     competitors,
     usage,
@@ -187,6 +188,7 @@ if os.path.isdir("documents"):
 for router in (
     auth.router,
     usage.router,
+    billing.router,
     dashboard.router,
     signals.router,
     stocks.router,

@@ -31,6 +31,23 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 24 * 7  # 7 days
 
+    # Billing (Stripe). Set BACKEND_STRIPE_SECRET_KEY to enable. The webhook
+    # secret is required to verify webhooks in production; without it the
+    # webhook accepts unsigned events (dev only — logged as a warning).
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_publishable_key: str = ""
+    # Pro plan price for inline Checkout (smallest currency unit; 2900 = $29.00).
+    pro_price_amount: int = 2900
+    pro_price_currency: str = "usd"
+    pro_price_interval: str = "month"
+    # Where Stripe redirects back to after checkout (the frontend origin).
+    app_base_url: str = "http://localhost:5173"
+
+    @property
+    def stripe_enabled(self) -> bool:
+        return bool(self.stripe_secret_key)
+
     # Embedded news-ingestion engine (set BACKEND_ENGINE_ENABLED=false when
     # running `python -m app.main_nse` as a separate process instead).
     engine_enabled: bool = True
