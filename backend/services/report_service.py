@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 
 from app.db.database import get_session
-from app.genai import gemini_client, research
+from app.genai import gemini_client, research, semantic_cache
 from app.genai.report_generator import generate_report
 from backend.core.exceptions import NotFoundError, ServiceUnavailableError
 from backend.schemas.report import ChatOut, ChatRequest, ChatSource, ReportOut, ReportRequest
@@ -95,12 +95,47 @@ class ReportService:
 
         _require_gemini()
         symbol = payload.symbol.upper() if payload.symbol else None
-        # Route through the advanced retrieval pipeline (hybrid search + RRF +
-        # rerank + compression) rather than the naive single-vector top-k path.
+
+        def _serve(cached):
+            logger.info("chat: cache hit (%s, symbol=%s)", cached["via"], symbol)
+            return ChatOut(
+                id=f"msg-{uuid.uuid4().hex[:12]}",
+                content=cached["answer"],
+                sources=[ChatSource(**s) for s in cached["sources"]],
+                timestamp=datetime.now(timezone.utc),
+            )
+
+        # 1. Free exact-cache pre-check (no embedding).
+        cached = semantic_cache.get(payload.message, symbol, record=False)
+        if cached:
+            return _serve(cached)
+
+        # 2. Embed the query once — serves both the semantic-cache lookup and
+        # (on a miss) the retrieval step, so a miss costs no extra embed.
+        qvec = None
+        try:
+            qvec = gemini_client.embed([payload.message],
+                                       task_type="RETRIEVAL_QUERY", max_retries=0)[0]
+        except Exception:
+            pass  # embeddings unavailable — skip semantic cache; retrieval → BM25
+        if qvec is not None:
+            cached = semantic_cache.get(payload.message, symbol, query_vec=qvec)
+            if cached:
+                return _serve(cached)
+
+        # 3. Miss → advanced retrieval (hybrid + RRF + parent expansion +
+        # compression) and generation; cache the result.
         sources, token_gen = research.research_answer(
-            payload.message, symbol=symbol, k=payload.k,
+            payload.message, symbol=symbol, k=payload.k, query_vec=qvec,
         )
         answer = "".join(token_gen)
+        chat_sources = [
+            ChatSource(source=research.citation_label(s),
+                       snippet=(s.get("text") or "")[:240])
+            for s in sources
+        ]
+        semantic_cache.put(payload.message, symbol, answer,
+                           [s.model_dump() for s in chat_sources], query_vec=qvec)
         logger.info(
             "chat: answered via research pipeline with %d sources (symbol=%s)",
             len(sources), symbol,
@@ -108,11 +143,7 @@ class ReportService:
         return ChatOut(
             id=f"msg-{uuid.uuid4().hex[:12]}",
             content=answer,
-            sources=[
-                ChatSource(source=research.citation_label(s),
-                           snippet=(s.get("text") or "")[:240])
-                for s in sources
-            ],
+            sources=chat_sources,
             timestamp=datetime.now(timezone.utc),
         )
 

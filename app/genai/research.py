@@ -84,12 +84,14 @@ def _where(symbol: str = None, doc_type: str = None, year: int = None):
 # 1+2. Hybrid retrieval with metadata filtering
 # ---------------------------------------------------------------------------
 
-def _semantic_candidates(question: str, where) -> list[dict]:
+def _semantic_candidates(question: str, where, query_vec=None) -> list[dict]:
     collection = get_collection()
     try:
-        # Fail fast on the query path — don't inherit ingestion's long 429
-        # backoff; degrade to keyword retrieval instead of stalling the user.
-        q_vec = gemini_client.embed(
+        # Reuse a caller-supplied embedding (e.g. from the semantic-cache lookup)
+        # to avoid embedding the query twice. Otherwise embed now, failing fast
+        # on the query path — don't inherit ingestion's long 429 backoff;
+        # degrade to keyword retrieval instead of stalling the user.
+        q_vec = query_vec if query_vec is not None else gemini_client.embed(
             [question], task_type="RETRIEVAL_QUERY", max_retries=0
         )[0]
     except Exception as e:
@@ -205,14 +207,14 @@ def _compress(text: str, terms: list[str], budget: int = CHUNK_CHAR_BUDGET) -> s
 # ---------------------------------------------------------------------------
 
 def retrieve(question: str, symbol: str = None, doc_type: str = None,
-             year: int = None, k: int = DEFAULT_TOP_K) -> list[dict]:
+             year: int = None, k: int = DEFAULT_TOP_K, query_vec=None) -> list[dict]:
     """Full pipeline → list of {id, text, source, doc_type, year, page}."""
     collection = get_collection()
     if collection.count() == 0:
         return []
 
     where = _where(symbol, doc_type, year)
-    semantic = _semantic_candidates(question, where)
+    semantic = _semantic_candidates(question, where, query_vec=query_vec)
     keyword = _keyword_candidates(question, where)
     fused = _fuse(semantic, keyword)
     if not fused:
@@ -331,10 +333,11 @@ def _history_block(history: list[dict] | None) -> str:
 
 def research_answer(question: str, symbol: str = None, history: list[dict] = None,
                     structured: dict = None, doc_type: str = None,
-                    year: int = None, k: int = DEFAULT_TOP_K):
+                    year: int = None, k: int = DEFAULT_TOP_K, query_vec=None):
     """Returns (sources, token_generator). Sources are resolved before
     generation starts so the API can emit them ahead of the streamed answer."""
-    sources = retrieve(question, symbol=symbol, doc_type=doc_type, year=year, k=k)
+    sources = retrieve(question, symbol=symbol, doc_type=doc_type, year=year,
+                       k=k, query_vec=query_vec)
 
     scope = f" about {symbol}" if symbol else ""
     excerpts = _context_block(sources) if sources else "(no document excerpts matched)"
