@@ -77,7 +77,8 @@ async def lifespan(_: FastAPI):
         start_engine(settings.engine_interval)
     if settings.etl_enabled:
         start_etl(settings.etl_hour_ist, settings.etl_minute_ist)
-    start_alerts(settings.alerts_interval)
+    if settings.alerts_enabled:
+        start_alerts(settings.alerts_interval)
     yield
     stop_alerts()
     stop_etl()

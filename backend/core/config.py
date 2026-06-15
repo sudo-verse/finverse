@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     etl_hour_ist: int = 18    # run at 18:30 IST daily
     etl_minute_ist: int = 30
 
+    # Alert-rule evaluator. Disable on API replicas when running a dedicated
+    # worker process (see backend/worker.py) so it only runs once.
+    alerts_enabled: bool = True
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
