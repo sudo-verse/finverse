@@ -59,6 +59,7 @@ services:
       redis:
         condition: service_healthy
 
+  # Periodic worker: news engine, daily ETL, alert evaluator.
   worker:
     build: .
     command: python -m backend.worker
@@ -71,6 +72,23 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+
+  # On-demand job worker (Arq): enqueued ingestion / sentiment refresh / etc.
+  jobs-worker:
+    build: .
+    command: arq backend.arq_worker.WorkerSettings
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://finverse:${POSTGRES_PASSWORD:-finverse}@db:5432/finverse
+      BACKEND_REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./chroma_db:/app/chroma_db   # ingestion writes the vector store
+      - ./documents:/app/documents
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
 volumes:
   pgdata:

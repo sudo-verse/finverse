@@ -13,6 +13,7 @@ alembic>=1.13.0
 psycopg[binary]>=3.1.0; platform_system != "Windows"
 # Error tracking (optional — only used when BACKEND_SENTRY_DSN is set).
 sentry-sdk[fastapi]>=2.0.0
-# Distributed rate limiting across API replicas (optional — set BACKEND_REDIS_URL;
-# falls back to in-memory when unset).
+# Redis + Arq: distributed rate limiting and the background job queue
+# (optional — set BACKEND_REDIS_URL; rate limiting falls back to in-memory).
 redis>=5.0.0
+arq>=0.26.0

@@ -25,6 +25,8 @@ with a static React frontend.
 - **api** runs worker-free (`BACKEND_ENGINE_ENABLED/ETL_ENABLED/ALERTS_ENABLED=false`)
   so it can scale to N replicas.
 - **worker** (exactly one) owns the news engine, daily ETL and alert evaluator.
+- **jobs-worker** (Arq) consumes on-demand background jobs (document ingestion,
+  full-universe sentiment refresh) enqueued via `POST /api/jobs/*`; needs Redis.
 - **Postgres** is the system of record; schema is owned by **Alembic**.
 - The vector store (`chroma_db/`) and source filings (`documents/`) are mounted
   on the API (RAG reads). Use a persistent volume in prod.
