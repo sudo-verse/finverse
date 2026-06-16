@@ -1,3 +1,4 @@
+import os
 import requests
 import time
 
@@ -9,6 +10,18 @@ class NSEClient:
 
     def __init__(self):
         self.session = requests.Session()
+
+        # Route traffic through a proxy if configured (e.g. on Hugging Face Spaces)
+        nse_proxy = os.getenv("NSE_PROXY")
+        if nse_proxy:
+            self.session.proxies = {
+                "http": nse_proxy,
+                "https": nse_proxy,
+            }
+
+        self.nse_api_base_url = os.getenv("NSE_API_BASE_URL")
+        if self.nse_api_base_url:
+            self.nse_api_base_url = self.nse_api_base_url.rstrip("/")
 
         self.headers = {
             "User-Agent": "Mozilla/5.0",
@@ -24,7 +37,8 @@ class NSEClient:
         self.last_fetch = 0
 
         # initialize session
-        self.session.get(self.base_url, headers=self.headers)
+        if not self.nse_api_base_url:
+            self.session.get(self.base_url, headers=self.headers)
 
     def get_data(self):
         now = time.time()
@@ -32,6 +46,17 @@ class NSEClient:
         # cache for 5 sec
         if self.cache and (now - self.last_fetch < 5):
             return self.cache
+
+        if self.nse_api_base_url:
+            try:
+                res = self.session.get(f"{self.nse_api_base_url}/nse/equity-stockIndices", timeout=10)
+                if res.status_code == 200:
+                    self.cache = res.json().get("data")
+                    self.last_fetch = now
+                    return self.cache
+            except Exception as e:
+                print("NSE API proxy error (get_data):", e)
+            return None
 
         try:
             res = self.session.get(self.api_url, headers=self.headers, timeout=5)
@@ -78,6 +103,22 @@ class NSEClient:
         re-doing the homepage handshake (NSE cookies expire).
         """
         query = {"functionName": function_name, **params}
+
+        if self.nse_api_base_url:
+            if url == self.QUOTE_API_URL:
+                path = "/nse/quote"
+            elif url == self.NEXT_API_URL:
+                path = "/nse/next"
+            else:
+                path = "/nse/home"
+            try:
+                res = self.session.get(f"{self.nse_api_base_url}{path}", params=query, timeout=10)
+                if res.status_code == 200:
+                    return res.json()
+            except Exception as e:
+                print(f"NSE API proxy error ({function_name}):", e)
+            return None
+
         for attempt in (1, 2):
             try:
                 res = self.session.get(url, params=query, headers=self.headers, timeout=10)

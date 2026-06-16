@@ -1,3 +1,4 @@
+import os
 import requests
 
 from app.ingestion.base_fetcher import BaseFetcher, make_article
@@ -5,6 +6,17 @@ from app.utils.logger import logger
 
 
 def fetch_nse_announcements():
+    nse_api_base_url = os.getenv("NSE_API_BASE_URL")
+    if nse_api_base_url:
+        try:
+            base = nse_api_base_url.rstrip("/")
+            response = requests.get(f"{base}/nse/announcements", timeout=10)
+            if response.status_code == 200:
+                return response.json()
+        except Exception as e:
+            logger.error(f"NSE API proxy error (announcements): {e}")
+        return []
+
     url = "https://www.nseindia.com/api/corporate-announcements?index=equities"
 
     headers = {
@@ -13,6 +25,12 @@ def fetch_nse_announcements():
     }
 
     session = requests.Session()
+    nse_proxy = os.getenv("NSE_PROXY")
+    if nse_proxy:
+        session.proxies = {
+            "http": nse_proxy,
+            "https": nse_proxy,
+        }
     session.get("https://www.nseindia.com", headers=headers)
 
     response = session.get(url, headers=headers)

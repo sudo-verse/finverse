@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 
 from backend.schemas.nse import (
     IndexQuote,
@@ -59,3 +59,46 @@ def marquee() -> list[MarqueeItem]:
 def turnover() -> list[TurnoverRow]:
     """Segment-wise equity market turnover, trades and volume vs previous day."""
     return nse_service.turnover()
+
+
+@router.get("/nse/announcements", summary="Proxy corporate announcements")
+def nse_announcements() -> list:
+    """Fetch corporate announcements directly from the local (working) scraper."""
+    from app.ingestion.nse_fetcher import fetch_nse_announcements
+    return fetch_nse_announcements()
+
+
+@router.get("/nse/equity-stockIndices", summary="Proxy equity stock indices")
+def nse_equity_stock_indices() -> dict:
+    """Fetch equity stock indices (NIFTY 500) using the working client."""
+    client = nse_service._get_client()
+    data = client.get_data()
+    return {"data": data}
+
+
+@router.get("/nse/quote", summary="Proxy quote api")
+def nse_quote(functionName: str, request: Request) -> Any:
+    """Proxy Quote API (NextApi GetQuoteApi)."""
+    client = nse_service._get_client()
+    params = dict(request.query_params)
+    params.pop("functionName", None)
+    return client.quote_api(functionName, **params)
+
+
+@router.get("/nse/next", summary="Proxy next api")
+def nse_next(functionName: str, request: Request) -> Any:
+    """Proxy Next API (NextApi apiClient)."""
+    client = nse_service._get_client()
+    params = dict(request.query_params)
+    params.pop("functionName", None)
+    return client.next_api(functionName, **params)
+
+
+@router.get("/nse/home", summary="Proxy home api")
+def nse_home(functionName: str, request: Request) -> Any:
+    """Proxy Home API (NextApi homeApi)."""
+    client = nse_service._get_client()
+    params = dict(request.query_params)
+    params.pop("functionName", None)
+    return client.home_api(functionName, **params)
+
