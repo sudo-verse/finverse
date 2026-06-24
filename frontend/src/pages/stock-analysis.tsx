@@ -39,6 +39,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CorporatePanel } from "@/components/stock/corporate-panel";
 import { NseInsights } from "@/components/stock/nse-insights";
 import { FinancialsPanel } from "@/components/stock/financials-panel";
+import { ScorecardPanel } from "@/components/stock/scorecard-panel";
 import { useCompetitors, useGenerateReport, useHistoryRange, useIntraday, useLiveQuote, useStock } from "@/hooks/queries";
 import {
   formatCompact,
@@ -442,6 +443,8 @@ export default function StockAnalysisPage() {
           </div>
 
           {/* Fundamentals terminal: CAGR, statements, ratio trends, pros & cons */}
+          {stock && <ScorecardPanel symbol={activeSymbol} />}
+
           {stock && <FinancialsPanel symbol={activeSymbol} />}
 
           {/* AI report + competitor snapshot */}

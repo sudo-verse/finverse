@@ -728,3 +728,28 @@ export interface SignalPerformance {
   best: SignalExample[];
   worst: SignalExample[];
 }
+
+export interface ScorecardCheck {
+  category: string;
+  verdict: "good" | "average" | "bad" | "na";
+  score: number | null;
+  detail: string;
+}
+
+export interface Scorecard {
+  symbol: string;
+  name: string;
+  overallScore: number | null;
+  rating: string;
+  checks: ScorecardCheck[];
+}
+
+export interface PromoterActivityRow {
+  symbol: string;
+  name: string;
+  promoterPct: number | null;
+  prevPct: number | null;
+  change: number | null;
+  period: string | null;
+  prevPeriod: string | null;
+}
