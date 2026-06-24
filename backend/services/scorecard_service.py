@@ -7,6 +7,7 @@ external calls. Mirrors the "scorecard" pattern users expect from
 Tickertape/Trendlyne. Ratios match backend.services.screener_service.
 """
 
+import math
 from datetime import date, timedelta
 
 from sqlalchemy import func
@@ -54,20 +55,29 @@ class ScorecardService:
         latest = rows[-1] if rows else None
         prev = rows[-2] if len(rows) >= 2 else None
 
-        price = (
+        # Live feeds can leave the most recent bar's close as NaN (not NULL),
+        # so scan a few recent rows for the latest finite close.
+        recent = (
             session.query(PriceHistory.close)
             .filter_by(company_id=company.id)
             .filter(PriceHistory.close.isnot(None))
             .order_by(PriceHistory.date.desc())
-            .limit(1)
-            .scalar()
+            .limit(15)
+            .all()
         )
+        price = next((c for (c,) in recent if c is not None and not math.isnan(c)), None)
+
         cutoff = date.today() - timedelta(days=365)
         hi, lo = (
             session.query(func.max(PriceHistory.close), func.min(PriceHistory.close))
-            .filter(PriceHistory.company_id == company.id, PriceHistory.date >= cutoff)
+            .filter(PriceHistory.company_id == company.id, PriceHistory.date >= cutoff,
+                    PriceHistory.close != float("nan"))  # Postgres drops NaN rows here
             .first()
         )
+        if hi is not None and math.isnan(hi):
+            hi = None
+        if lo is not None and math.isnan(lo):
+            lo = None
         sentiment = (
             session.query(SentimentScore.overall)
             .filter_by(symbol=symbol)
