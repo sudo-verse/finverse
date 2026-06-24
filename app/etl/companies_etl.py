@@ -11,7 +11,9 @@ CSV_PATH = "nse_equity_list.csv"
 
 def run(csv_path=CSV_PATH):
     try:
-        df = pd.read_csv(csv_path)
+        # dtype=str + keep_default_na=False: blank cells stay "" (not NaN), so
+        # empty fields like Industry become None below instead of the string "nan".
+        df = pd.read_csv(csv_path, dtype=str, keep_default_na=False)
     except Exception as e:
         logger.error(f"companies_etl: failed to read {csv_path}: {e}")
         return 0
