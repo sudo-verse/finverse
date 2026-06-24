@@ -50,5 +50,11 @@ RERANKER_MODEL = os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-base")
 # back to the raw question on any failure. Disable with QUERY_REWRITE_ENABLED=false.
 QUERY_REWRITE_ENABLED = os.getenv("QUERY_REWRITE_ENABLED", "true").lower() == "true"
 
+# Twelve Data — backup market-data provider (free tier covers NSE). Used as a
+# last-resort live-price fallback when the NSE feed and Yahoo Finance both fail
+# (NSE blocked / Yahoo rate-limited). Free key: https://twelvedata.com/.
+# Unset → the fallback is disabled (no-op).
+TWELVEDATA_API_KEY = os.getenv("TWELVEDATA_API_KEY")
+
 MAX_ARTICLES = 5
 SENTIMENT_THRESHOLD = 0.7

@@ -80,9 +80,17 @@ class NSEClient:
                 if stock["symbol"] == symbol:
                     return float(stock["lastPrice"])
 
-        # Fallback: Yahoo Finance covers all listed equities, not just
+        # Fallback 1: Yahoo Finance covers all listed equities, not just
         # NIFTY 500 constituents (NSE symbols map to "<symbol>.NS")
-        return self.get_yahoo_price(symbol)
+        price = self.get_yahoo_price(symbol)
+        if price is not None:
+            return price
+
+        # Fallback 2: Twelve Data — independent backup provider for when both
+        # the NSE feed and Yahoo are unavailable (no-op if no API key set).
+        from app.market import twelvedata_client
+
+        return twelvedata_client.get_price(symbol)
 
     def quote_api(self, function_name, **params):
         """NextApi GetQuoteApi — symbol-scoped data (quote, filings, peers…)."""
