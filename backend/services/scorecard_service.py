@@ -126,6 +126,11 @@ class ScorecardService:
             add("Valuation", BAD, "Loss-making — P/E not meaningful")
         elif pe is None:
             add("Valuation", None, "No P/E data available")
+        elif pe > 150 or (pb is not None and pb > 40):
+            # P/E and P/B mix a statement figure (EPS / book) with share count;
+            # some filers' statements are stored at a different scale via yfinance,
+            # producing absurd multiples. Skip rather than show a wrong verdict.
+            add("Valuation", None, "Valuation data looks unreliable — skipped")
         else:
             pb_txt = f", P/B {pb:.1f}" if pb else ""
             if pe < 22 and (pb is None or pb < 4):
