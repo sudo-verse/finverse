@@ -110,12 +110,19 @@ def _parse_xbrl(url: str) -> dict:
 
 def detail(symbol: str, periods: int = 4, sleep: float = 0.3) -> list[dict]:
     """Latest `periods` quarters, newest first:
-    {period_date, period, promoter, public, fii, dii}."""
+    {period_date, period, promoter, public, fii, dii}.
+
+    NSE's master can list the same quarter twice (a revised + original filing);
+    we keep the first (latest revision) per quarter and dedupe the rest."""
     out = []
-    for rec in (_master(symbol) or [])[:periods]:
+    seen = set()
+    for rec in (_master(symbol) or []):
+        if len(out) >= periods:
+            break
         pd = _parse_date(rec.get("date", ""))
-        if not pd:
+        if not pd or pd in seen:
             continue
+        seen.add(pd)
         row = {
             "period_date": pd, "period": rec.get("date"),
             "promoter": _num(rec.get("pr_and_prgrp")), "public": _num(rec.get("public_val")),

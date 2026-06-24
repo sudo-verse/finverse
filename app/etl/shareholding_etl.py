@@ -67,6 +67,16 @@ def run(limit=None, sleep=0.5, symbols=None, detail=False):
             q = q.limit(limit)
         companies = list(q.all())
 
+    if detail and not symbols:
+        # resume: skip companies already enriched with FII so a re-run only
+        # processes the remaining tail (avoids re-downloading their XBRLs).
+        with get_session() as s:
+            done = {cid for (cid,) in s.query(Shareholding.company_id)
+                    .filter(Shareholding.fii_pct.isnot(None)).distinct()}
+        before = len(companies)
+        companies = [(cid, sym) for cid, sym in companies if cid not in done]
+        logger.info("shareholding_etl: resume — skipping %d already-FII companies", before - len(companies))
+
     mode = "detail (FII/DII)" if detail else "summary"
     logger.info("shareholding_etl [%s]: %d companies", mode, len(companies))
     rows = miss = 0
@@ -84,10 +94,13 @@ def run(limit=None, sleep=0.5, symbols=None, detail=False):
             miss += 1
             time.sleep(sleep)
             continue
-        with get_session() as s:
-            for d in recs:
-                _upsert(s, cid, d)
-                rows += 1
+        try:
+            with get_session() as s:
+                for d in recs:
+                    _upsert(s, cid, d)
+                    rows += 1
+        except Exception as e:  # one bad company must not kill the whole run
+            logger.warning("shareholding_etl: upsert failed for %s: %s", symbol, e)
         if i % 25 == 0:
             logger.info("shareholding_etl: %d/%d (rows=%d, miss=%d)", i, len(companies), rows, miss)
         time.sleep(sleep)
