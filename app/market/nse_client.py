@@ -86,11 +86,11 @@ class NSEClient:
         if price is not None:
             return price
 
-        # Fallback 2: Twelve Data — independent backup provider for when both
-        # the NSE feed and Yahoo are unavailable (no-op if no API key set).
-        from app.market import twelvedata_client
+        # Fallback 2: BSE — Indian stocks are dual-listed, so the BSE official
+        # API is an independent backup when both the NSE feed and Yahoo fail.
+        from app.market import bse_client
 
-        return twelvedata_client.get_price(symbol)
+        return bse_client.get_price(symbol)
 
     def quote_api(self, function_name, **params):
         """NextApi GetQuoteApi — symbol-scoped data (quote, filings, peers…)."""
