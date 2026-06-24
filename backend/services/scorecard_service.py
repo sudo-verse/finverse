@@ -78,7 +78,11 @@ class ScorecardService:
         )
 
         # --- derived ratios (same definitions as the screener) ---
+        # yfinance often leaves per-share EPS null for Indian filers; derive it
+        # from net income / shares when shares outstanding is available.
         eps = latest.eps if latest else None
+        if (not eps) and latest and latest.shares_outstanding:
+            eps = _ratio(latest.net_income, latest.shares_outstanding)
         pe = _ratio(price, eps) if (eps and eps > 0) else None
         book = _ratio(latest.total_equity, latest.shares_outstanding) if latest else None
         pb = _ratio(price, book) if (book and book > 0) else None
@@ -108,9 +112,10 @@ class ScorecardService:
             ))
 
         # 1. Valuation
-        if pe is None or pe <= 0:
-            add("Valuation", BAD if latest else None,
-                "Loss-making / no earnings — P/E not meaningful" if latest else "No earnings data")
+        if latest and (latest.net_income or 0) < 0:
+            add("Valuation", BAD, "Loss-making — P/E not meaningful")
+        elif pe is None:
+            add("Valuation", None, "No P/E data available")
         else:
             pb_txt = f", P/B {pb:.1f}" if pb else ""
             if pe < 22 and (pb is None or pb < 4):
