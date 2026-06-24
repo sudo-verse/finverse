@@ -15,8 +15,10 @@ from backend.schemas.nse import (
     QuarterlyResultOut,
     ShareholdingPeriod,
 )
+from backend.schemas.scorecard import ScorecardOut
 from backend.schemas.stock import CompanyOut, StockDetailOut
 from backend.services.nse_service import nse_service
+from backend.services.scorecard_service import scorecard_service
 from backend.services.stock_service import stock_service
 
 router = APIRouter(tags=["stocks"])
@@ -44,6 +46,15 @@ def get_stock(
     quant bundle (returns, volatility, Sharpe, drawdown, trend), financial
     ratios and the stock's recent signals."""
     return stock_service.get_stock_detail(db, symbol, history_days=history_days)
+
+
+@router.get("/stocks/{symbol}/scorecard", response_model=ScorecardOut,
+            summary="Composite stock scorecard")
+def get_scorecard(db: Session = Depends(get_db), symbol: str = SymbolPath) -> ScorecardOut:
+    """A glanceable multi-factor verdict (valuation, growth, profitability,
+    financial health, red flags, momentum) computed from the stock's financials,
+    prices and sentiment — each with a good/average/bad call and a one-line why."""
+    return scorecard_service.compute(db, symbol)
 
 
 # ----------------------------------------------------------------------------
