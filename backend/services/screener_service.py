@@ -10,6 +10,7 @@ company's filing currency, so PE/PB are unreliable for the few USD filers;
 ratios and growth are currency-agnostic.
 """
 
+import math
 import time
 
 from sqlalchemy import func
@@ -24,8 +25,11 @@ CACHE_TTL = 600
 
 def _latest_prices(session: Session) -> dict[int, float]:
     """company_id -> latest close (one grouped query, not 500)."""
+    # The most recent bar can carry a NaN close (partial live bar), so compute
+    # the latest date over *finite* closes only (Postgres: close <> 'NaN').
     latest_date = (
         session.query(PriceHistory.company_id, func.max(PriceHistory.date).label("d"))
+        .filter(PriceHistory.close.isnot(None), PriceHistory.close != float("nan"))
         .group_by(PriceHistory.company_id).subquery()
     )
     rows = (
@@ -34,7 +38,8 @@ def _latest_prices(session: Session) -> dict[int, float]:
               & (PriceHistory.date == latest_date.c.d))
         .all()
     )
-    return {cid: close for cid, close in rows if close is not None}
+    return {cid: close for cid, close in rows
+            if close is not None and not math.isnan(close)}
 
 
 def _latest_sentiment(session: Session) -> dict[str, tuple[float, str]]:
