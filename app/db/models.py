@@ -258,3 +258,23 @@ class PortfolioHolding(Base):
     quantity = Column(Float, nullable=False)
     avg_price = Column(Float)  # average buy price (optional, for P&L)
     added_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Shareholding(Base):
+    """Quarterly shareholding snapshot per company (one row per filing period).
+
+    Promoter/public come from NSE's summary pattern; fii/dii are reserved for
+    the detailed-filing parser (left null until that source is wired)."""
+
+    __tablename__ = "shareholdings"
+    __table_args__ = (UniqueConstraint("company_id", "period_date", name="uq_shp_company_period"),)
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    period = Column(String(16), nullable=False)        # label, e.g. "31-Mar-2026"
+    period_date = Column(Date, nullable=False, index=True)
+    promoter_pct = Column(Float)
+    public_pct = Column(Float)
+    fii_pct = Column(Float)    # reserved — detailed filing
+    dii_pct = Column(Float)    # reserved — detailed filing
+    fetched_at = Column(DateTime, default=datetime.utcnow)
