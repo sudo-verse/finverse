@@ -1,13 +1,15 @@
-"""ETL: persist quarterly shareholding snapshots (promoter/public) per company.
+"""ETL: persist quarterly shareholding snapshots per company.
 
-Pulls NSE's summary shareholding pattern per symbol and upserts the latest few
-quarters into `shareholdings`, so promoter-holding trends and a market-wide
-"promoter accumulating / reducing" view can be computed without re-fetching.
-FII/DII columns are left null until the detailed-filing source is wired.
+Two modes:
+  * summary (default) — NSE's fast summary pattern → promoter/public %.
+  * --detail          — NSE's XBRL filing (app.market.nse_shp) → also FII/DII %.
 
-Resumable and rate-limited (per-symbol NSE call). Run from an Indian IP.
+Upserts the latest few quarters into `shareholdings`, powering promoter/FII/DII
+trends and the market-wide "who's accumulating / reducing" view. None-preserving
+(detail fills FII/DII without clobbering promoter, and vice-versa). Resumable,
+rate-limited, Indian-IP only.
 
-    python -m app.etl.shareholding_etl [--limit N] [--sleep 0.5] [--symbols A,B]
+    python -m app.etl.shareholding_etl [--detail] [--limit N] [--sleep S] [--symbols A,B]
 """
 
 import time
@@ -20,25 +22,43 @@ from app.utils.logger import logger
 
 def _parse_date(label: str):
     try:
-        return datetime.strptime(label, "%d-%b-%Y").date()
+        return datetime.strptime((label or "").title(), "%d-%b-%Y").date()
     except Exception:
         return None
 
 
-def _extract(holdings):
-    promoter = public = None
-    for h in holdings:
-        c = (h.category or "").lower()
-        if "promoter" in c:
-            promoter = h.pct
-        elif "public" in c:
-            public = h.pct
-    return promoter, public
-
-
-def run(limit=None, sleep=0.5, symbols=None):
+def _from_summary(symbol):
+    """[{period_date, period, promoter, public}] from the fast summary API."""
     from backend.services.nse_service import nse_service
 
+    out = []
+    for p in nse_service.shareholding(symbol, limit=4):
+        pd = _parse_date(p.date)
+        if not pd:
+            continue
+        promoter = public = None
+        for h in p.holdings:
+            c = (h.category or "").lower()
+            if "promoter" in c:
+                promoter = h.pct
+            elif "public" in c:
+                public = h.pct
+        out.append({"period_date": pd, "period": p.date, "promoter": promoter, "public": public})
+    return out
+
+
+def _upsert(session, cid, d):
+    row = session.query(Shareholding).filter_by(company_id=cid, period_date=d["period_date"]).first()
+    if row is None:
+        row = Shareholding(company_id=cid, period=d["period"], period_date=d["period_date"])
+        session.add(row)
+    for col in ("promoter", "public", "fii", "dii"):
+        v = d.get(col)
+        if v is not None:  # None-preserving: don't clobber an existing value
+            setattr(row, f"{col}_pct", v)
+
+
+def run(limit=None, sleep=0.5, symbols=None, detail=False):
     with get_session() as s:
         q = s.query(Company.id, Company.symbol).order_by(Company.id)
         if symbols:
@@ -47,36 +67,32 @@ def run(limit=None, sleep=0.5, symbols=None):
             q = q.limit(limit)
         companies = list(q.all())
 
-    logger.info("shareholding_etl: %d companies", len(companies))
+    mode = "detail (FII/DII)" if detail else "summary"
+    logger.info("shareholding_etl [%s]: %d companies", mode, len(companies))
     rows = miss = 0
     for i, (cid, symbol) in enumerate(companies, 1):
         try:
-            periods = nse_service.shareholding(symbol, limit=4)
+            if detail:
+                from app.market import nse_shp
+                recs = nse_shp.detail(symbol, periods=4)
+            else:
+                recs = _from_summary(symbol)
         except Exception as e:
             logger.debug("shareholding_etl: %s failed: %s", symbol, e)
-            periods = []
-        if not periods:
+            recs = []
+        if not recs:
             miss += 1
             time.sleep(sleep)
             continue
         with get_session() as s:
-            for p in periods:
-                pd = _parse_date(p.date)
-                if not pd:
-                    continue
-                promoter, public = _extract(p.holdings)
-                row = s.query(Shareholding).filter_by(company_id=cid, period_date=pd).first()
-                if row:
-                    row.promoter_pct, row.public_pct = promoter, public
-                else:
-                    s.add(Shareholding(company_id=cid, period=p.date, period_date=pd,
-                                       promoter_pct=promoter, public_pct=public))
+            for d in recs:
+                _upsert(s, cid, d)
                 rows += 1
-        if i % 50 == 0:
+        if i % 25 == 0:
             logger.info("shareholding_etl: %d/%d (rows=%d, miss=%d)", i, len(companies), rows, miss)
         time.sleep(sleep)
 
-    logger.info("shareholding_etl: done — rows=%d, miss=%d", rows, miss)
+    logger.info("shareholding_etl [%s]: done — rows=%d, miss=%d", mode, rows, miss)
     return rows
 
 
@@ -84,9 +100,10 @@ if __name__ == "__main__":
     import argparse
 
     ap = argparse.ArgumentParser(description="Persist quarterly shareholding snapshots from NSE")
+    ap.add_argument("--detail", action="store_true", help="also fetch FII/DII from the XBRL filing")
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--sleep", type=float, default=0.5)
     ap.add_argument("--symbols", type=str, default=None, help="comma-separated subset")
     a = ap.parse_args()
     syms = [x.strip().upper() for x in a.symbols.split(",")] if a.symbols else None
-    run(limit=a.limit, sleep=a.sleep, symbols=syms)
+    run(limit=a.limit, sleep=a.sleep, symbols=syms, detail=a.detail)

@@ -9,39 +9,64 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import type { PromoterActivityRow } from "@/types";
+import type { OwnershipActivityRow } from "@/types";
 
+type Metric = "promoter" | "fii" | "dii";
 type Direction = "buying" | "selling";
 
-function usePromoterActivity(direction: Direction) {
+const METRICS: { key: Metric; label: string }[] = [
+  { key: "promoter", label: "Promoters" },
+  { key: "fii", label: "FII / FPI" },
+  { key: "dii", label: "DII" },
+];
+
+function useOwnershipActivity(metric: Metric, direction: Direction) {
   return useQuery({
-    queryKey: ["promoter-activity", direction],
+    queryKey: ["ownership-activity", metric, direction],
     queryFn: async () =>
-      (await apiClient.get<PromoterActivityRow[]>("/ownership/promoter-activity", {
-        params: { direction, limit: 50 },
+      (await apiClient.get<OwnershipActivityRow[]>("/ownership/activity", {
+        params: { metric, direction, limit: 50 },
       })).data,
     staleTime: 10 * 60_000,
   });
 }
 
 export default function OwnershipPage() {
+  const [metric, setMetric] = useState<Metric>("promoter");
   const [direction, setDirection] = useState<Direction>("buying");
-  const { data, isLoading } = usePromoterActivity(direction);
+  const { data, isLoading } = useOwnershipActivity(metric, direction);
+  const label = METRICS.find((m) => m.key === metric)!.label;
 
   return (
     <div>
       <PageHeader
-        title="Promoter Activity"
-        description="Stocks where promoters increased or reduced their stake quarter-on-quarter — a strong insider signal. (FII/DII tracking coming soon.)"
+        title="Smart-Money Activity"
+        description="Stocks where promoters, FIIs or DIIs increased or reduced their stake quarter-on-quarter — sourced from NSE shareholding filings."
       />
 
-      <div className="mt-4 flex gap-2">
-        <Button size="sm" variant={direction === "buying" ? "default" : "outline"} onClick={() => setDirection("buying")}>
-          <TrendingUp className="mr-1.5 h-4 w-4" /> Accumulating
-        </Button>
-        <Button size="sm" variant={direction === "selling" ? "default" : "outline"} onClick={() => setDirection("selling")}>
-          <TrendingDown className="mr-1.5 h-4 w-4" /> Reducing
-        </Button>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 rounded-lg bg-muted/40 p-1">
+          {METRICS.map((m) => (
+            <button
+              key={m.key}
+              onClick={() => setMetric(m.key)}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                metric === m.key ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant={direction === "buying" ? "default" : "outline"} onClick={() => setDirection("buying")}>
+            <TrendingUp className="mr-1.5 h-4 w-4" /> Accumulating
+          </Button>
+          <Button size="sm" variant={direction === "selling" ? "default" : "outline"} onClick={() => setDirection("selling")}>
+            <TrendingDown className="mr-1.5 h-4 w-4" /> Reducing
+          </Button>
+        </div>
       </div>
 
       <Card className="mt-4 overflow-hidden">
@@ -53,7 +78,8 @@ export default function OwnershipPage() {
           </div>
         ) : !data || data.length === 0 ? (
           <p className="p-6 text-sm text-muted-foreground">
-            No promoter-activity data yet — run the shareholding ETL to populate quarterly snapshots.
+            No {label} activity data yet
+            {metric !== "promoter" ? " — run the shareholding ETL with --detail to populate FII/DII." : " — run the shareholding ETL to populate."}
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -81,10 +107,8 @@ export default function OwnershipPage() {
                       </Link>
                       <div className="max-w-[16rem] truncate text-xs text-muted-foreground">{r.name}</div>
                     </td>
-                    <td className="p-3 text-right font-mono tabular text-muted-foreground">
-                      {r.prevPct?.toFixed(2)}%
-                    </td>
-                    <td className="p-3 text-right font-mono tabular">{r.promoterPct?.toFixed(2)}%</td>
+                    <td className="p-3 text-right font-mono tabular text-muted-foreground">{r.prevPct?.toFixed(2)}%</td>
+                    <td className="p-3 text-right font-mono tabular">{r.pct?.toFixed(2)}%</td>
                     <td className="p-3 text-right">
                       <span className={cn("font-mono font-medium tabular", (r.change ?? 0) >= 0 ? "text-bull" : "text-bear")}>
                         {(r.change ?? 0) >= 0 ? "+" : ""}

@@ -1,23 +1,26 @@
-"""Ownership / shareholding-activity endpoints (promoter accumulation; FII/DII next)."""
+"""Ownership / shareholding-activity endpoints — promoter, FII and DII QoQ moves."""
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
-from backend.schemas.ownership import PromoterActivityRow
+from backend.schemas.ownership import OwnershipActivityRow
 from backend.services.ownership_service import ownership_service
 
 router = APIRouter(tags=["ownership"])
 
 
-@router.get("/ownership/promoter-activity", response_model=list[PromoterActivityRow],
-            summary="Stocks where promoters increased/decreased stake (QoQ)")
-def promoter_activity(
+@router.get("/ownership/activity", response_model=list[OwnershipActivityRow],
+            summary="Stocks where promoter/FII/DII increased or decreased stake (QoQ)")
+def ownership_activity(
     db: Session = Depends(get_db),
+    metric: str = Query("promoter", pattern="^(promoter|fii|dii)$",
+                        description="which holder class to rank by"),
     direction: str = Query("buying", pattern="^(buying|selling)$",
-                           description="buying = biggest stake increases; selling = decreases"),
+                           description="buying = biggest increases; selling = decreases"),
     limit: int = Query(50, ge=1, le=200),
-) -> list[PromoterActivityRow]:
-    """Market-wide promoter accumulation/reduction, from the latest two quarterly
-    shareholding snapshots (populated by the shareholding ETL)."""
-    return ownership_service.promoter_activity(db, direction=direction, limit=limit)
+) -> list[OwnershipActivityRow]:
+    """Market-wide accumulation/reduction for the chosen holder class, from the
+    latest two quarterly shareholding snapshots (populated by the shareholding ETL).
+    FII/DII require the `--detail` ETL run; promoter works from the summary run."""
+    return ownership_service.activity(db, metric=metric, direction=direction, limit=limit)

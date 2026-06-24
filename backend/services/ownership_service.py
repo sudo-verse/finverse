@@ -1,49 +1,61 @@
 """Ownership / shareholding-activity analytics over the persisted snapshots.
 
-Market-wide "promoter accumulating / reducing" view, derived by comparing each
-company's two most recent quarterly shareholding snapshots. FII/DII activity
-will plug into the same shape once the detailed-filing source is wired.
+Market-wide "who's accumulating / reducing" view for promoter, FII and DII
+holdings, derived by comparing each company's two most recent quarterly
+snapshots of the chosen metric.
 """
 
 from sqlalchemy.orm import Session
 
 from app.db.models import Company, Shareholding
-from backend.schemas.ownership import PromoterActivityRow
+from backend.schemas.ownership import OwnershipActivityRow
+
+_COL = {
+    "promoter": Shareholding.promoter_pct,
+    "fii": Shareholding.fii_pct,
+    "dii": Shareholding.dii_pct,
+}
 
 
 class OwnershipService:
-    def promoter_activity(self, session: Session, direction: str = "buying",
-                          limit: int = 50, min_change: float = 0.05) -> list[PromoterActivityRow]:
-        """Stocks ranked by promoter-holding change between the latest two quarters.
+    def activity(self, session: Session, metric: str = "promoter", direction: str = "buying",
+                 limit: int = 50, min_change: float = 0.05) -> list[OwnershipActivityRow]:
+        """Stocks ranked by QoQ change in the chosen holding metric.
 
-        direction="buying" → biggest increases; "selling" → biggest decreases.
-        min_change filters out negligible (rounding-level) moves.
+        metric: promoter | fii | dii. direction="buying" → biggest increases,
+        "selling" → biggest decreases. Only companies with two consecutive
+        non-null snapshots of the metric are considered.
         """
+        col = _COL.get(metric)
+        if col is None:
+            return []
+
         rows = (
-            session.query(Shareholding, Company.symbol, Company.name)
+            session.query(Shareholding.company_id, Company.symbol, Company.name,
+                          Shareholding.period, col.label("pct"))
             .join(Company, Company.id == Shareholding.company_id)
+            .filter(col.isnot(None))
             .order_by(Shareholding.company_id, Shareholding.period_date.desc())
             .all()
         )
 
         by_co: dict[int, dict] = {}
-        for shp, sym, name in rows:
-            co = by_co.setdefault(shp.company_id, {"sym": sym, "name": name, "snaps": []})
-            co["snaps"].append(shp)
+        for cid, sym, name, period, pct in rows:
+            co = by_co.setdefault(cid, {"sym": sym, "name": name, "snaps": []})
+            co["snaps"].append((period, pct))
 
-        out: list[PromoterActivityRow] = []
+        out: list[OwnershipActivityRow] = []
         for co in by_co.values():
             snaps = co["snaps"]  # newest first
             if len(snaps) < 2:
                 continue
-            latest, prev = snaps[0], snaps[1]
-            if latest.promoter_pct is None or prev.promoter_pct is None:
+            (lp, lpct), (pp, ppct) = snaps[0], snaps[1]
+            if lpct is None or ppct is None:
                 continue
-            change = latest.promoter_pct - prev.promoter_pct
-            out.append(PromoterActivityRow(
-                symbol=co["sym"], name=co["name"],
-                promoter_pct=latest.promoter_pct, prev_pct=prev.promoter_pct,
-                change=round(change, 2), period=latest.period, prev_period=prev.period,
+            out.append(OwnershipActivityRow(
+                symbol=co["sym"], name=co["name"], metric=metric,
+                pct=lpct, prev_pct=ppct, change=round(lpct - ppct, 2),
+                period=lp, prev_period=pp,
             ))
 
         if direction == "selling":

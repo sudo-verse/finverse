@@ -744,10 +744,11 @@ export interface Scorecard {
   checks: ScorecardCheck[];
 }
 
-export interface PromoterActivityRow {
+export interface OwnershipActivityRow {
   symbol: string;
   name: string;
-  promoterPct: number | null;
+  metric: string;
+  pct: number | null;
   prevPct: number | null;
   change: number | null;
   period: string | null;
