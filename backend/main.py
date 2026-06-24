@@ -22,7 +22,6 @@ from fastapi.responses import JSONResponse
 from backend.api import (
     auth,
     billing,
-    chat,
     competitors,
     jobs,
     usage,
@@ -103,6 +102,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_origin_regex=settings.cors_origin_regex or None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -234,7 +234,6 @@ for router in (
     portfolio.router,
     market.router,
     reports.router,
-    chat.router,
     research.router,
     screener.router,
     sentiment.router,

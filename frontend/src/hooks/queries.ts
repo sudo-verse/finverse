@@ -13,7 +13,6 @@ import {
   getSignals,
   getStock,
   getStocks,
-  sendChatMessage,
 } from "@/api/services";
 import type { HoldingCreate, SignalFilters } from "@/types";
 
@@ -218,13 +217,6 @@ export function useGenerateReport() {
   return useMutation({
     mutationFn: ({ symbol, useCache }: { symbol: string; useCache?: boolean }) =>
       generateReport(symbol, useCache),
-  });
-}
-
-export function useSendChat() {
-  return useMutation({
-    mutationFn: ({ message, symbol }: { message: string; symbol?: string }) =>
-      sendChatMessage(message, symbol),
   });
 }
 

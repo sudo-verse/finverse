@@ -7,7 +7,6 @@ import type {
   Announcement,
   AnnualReportFile,
   BrsrFile,
-  ChatMessage,
   Company,
   CompanyProfile,
   CompetitorAnalysis,
@@ -172,10 +171,6 @@ export async function getBrsr(symbol: string): Promise<BrsrFile[]> {
 
 export async function generateReport(symbol: string, useCache = true): Promise<AIReport> {
   return (await apiClient.post<AIReport>("/report", { symbol, useCache })).data;
-}
-
-export async function sendChatMessage(message: string, symbol?: string): Promise<ChatMessage> {
-  return (await apiClient.post<ChatMessage>("/chat", { message, symbol: symbol ?? null })).data;
 }
 
 /* --------------------------- Company terminal --------------------------- */

@@ -2,7 +2,6 @@ import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Activity,
-  Bot,
   ChevronLeft,
   FolderOpen,
   Gauge,
@@ -38,7 +37,6 @@ const NAV_ITEMS = [
   { to: "/portfolio", label: "Portfolio", icon: Wallet },
   { to: "/research", label: "AI Research", icon: Microscope },
   { to: "/documents", label: "Documents", icon: FolderOpen },
-  { to: "/assistant", label: "AI Assistant", icon: Bot },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 

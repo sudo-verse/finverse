@@ -450,19 +450,6 @@ export interface AIReport {
   cached: boolean;
 }
 
-export interface ChatSource {
-  source: string;
-  snippet: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-  sources?: ChatSource[];
-}
-
 /* ------------------------- AI Research Copilot ------------------------- */
 
 export interface SourceCitation {

@@ -11,7 +11,6 @@ const SignalsPage = lazy(() => import("@/pages/signals"));
 const StockAnalysisPage = lazy(() => import("@/pages/stock-analysis"));
 const CompetitorsPage = lazy(() => import("@/pages/competitors"));
 const PortfolioPage = lazy(() => import("@/pages/portfolio"));
-const AssistantPage = lazy(() => import("@/pages/assistant"));
 const ResearchPage = lazy(() => import("@/pages/research"));
 const DocumentsPage = lazy(() => import("@/pages/documents"));
 const SentimentPage = lazy(() => import("@/pages/sentiment"));
@@ -75,7 +74,6 @@ export default function App() {
             ["/sentiment/:symbol", SentimentPage],
             ["/watchlist", WatchlistPage],
             ["/screener", ScreenerPage],
-            ["/assistant", AssistantPage],
             ["/settings", SettingsPage],
           ] as const
         ).map(([path, Page]) => (
