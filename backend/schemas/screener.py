@@ -7,6 +7,7 @@ class ScreenerRow(APIModel):
     symbol: str
     name: str
     industry: str | None = None
+    sector: str | None = None
     price: float | None = None
     market_cap: float | None = None      # price × shares (filing currency caveat)
     pe: float | None = None

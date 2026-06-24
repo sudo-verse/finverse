@@ -93,6 +93,7 @@ def _build(session: Session) -> list[ScreenerRow]:
             symbol=c.symbol,
             name=c.name,
             industry=c.industry,
+            sector=c.sector or c.industry,
             price=price,
             market_cap=(price * latest.shares_outstanding
                         if price is not None and latest and latest.shares_outstanding else None),

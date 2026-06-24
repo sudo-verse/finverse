@@ -57,7 +57,8 @@ class Company(Base):
     id = Column(Integer, primary_key=True)
     symbol = Column(String(32), unique=True, nullable=False, index=True)  # plain NSE symbol
     name = Column(String(255), nullable=False)
-    industry = Column(String(128))
+    industry = Column(String(128))   # specific (yfinance "industry"), e.g. "Building Materials"
+    sector = Column(String(128))     # broad (yfinance "sector"), e.g. "Basic Materials"
     isin = Column(String(32))
     series = Column(String(8))
     created_at = Column(DateTime, default=datetime.utcnow)

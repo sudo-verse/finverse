@@ -62,7 +62,7 @@ class StockService:
                 symbol=c.symbol,
                 name=c.name,
                 industry=c.industry,
-                sector=c.industry,
+                sector=c.sector or c.industry,
                 isin=c.isin,
             )
             for c in q.limit(limit).all()
