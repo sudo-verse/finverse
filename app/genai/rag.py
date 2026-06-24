@@ -8,7 +8,7 @@ be filtered to one company's filings.
 import hashlib
 import os
 
-from app.config import CHROMA_DIR
+from app.config import CHROMA_DIR, CHROMA_HOST, CHROMA_PORT
 from app.genai import gemini_client
 from app.utils.logger import logger
 
@@ -17,14 +17,21 @@ COLLECTION = "documents"
 _collection = None
 
 
+def _client():
+    """Chroma client. Talks to a standalone server when CHROMA_HOST is set
+    (shared by the API and ingestion worker), else embeds against CHROMA_DIR."""
+    import chromadb
+
+    if CHROMA_HOST:
+        return chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
+    return chromadb.PersistentClient(path=CHROMA_DIR)
+
+
 def _get_collection():
     global _collection
     if _collection is None:
-        import chromadb
-
-        client = chromadb.PersistentClient(path=CHROMA_DIR)
         # we supply our own (Gemini) embeddings, so no embedding function here
-        _collection = client.get_or_create_collection(
+        _collection = _client().get_or_create_collection(
             COLLECTION, metadata={"hnsw:space": "cosine"}
         )
     return _collection
@@ -155,11 +162,8 @@ def reset_collection():
     """Drop and recreate the document collection. Used by a full reindex when
     the chunking scheme changes (old chunk ids would otherwise linger)."""
     global _collection
-    import chromadb
-
-    client = chromadb.PersistentClient(path=CHROMA_DIR)
     try:
-        client.delete_collection(COLLECTION)
+        _client().delete_collection(COLLECTION)
     except Exception:  # collection may not exist yet
         pass
     _collection = None

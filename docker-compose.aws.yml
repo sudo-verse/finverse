@@ -1,0 +1,55 @@
+# Finverse — lean AWS free-tier stack.
+#
+# Postgres → Neon/Supabase (external), Redis → Upstash (external), so this box
+# only runs the app: migrate + api + worker. Chroma runs EMBEDDED (CHROMA_DIR on
+# the instance disk) to save RAM — no separate vector-store container.
+#
+# All connection strings come from .env:
+#   DATABASE_URL       = postgresql+psycopg://USER:PASS@HOST/DB?sslmode=require   (Neon/Supabase pooler)
+#   BACKEND_REDIS_URL  = rediss://default:PASS@HOST:PORT                          (Upstash; optional)
+#
+# Run:  docker compose -f docker-compose.aws.yml up -d --build
+
+services:
+  # One-shot: apply migrations against the external DB, then exit.
+  migrate:
+    build: .
+    command: alembic upgrade head
+    env_file: .env
+
+  # FastAPI — worker-free so it stays light (reranker off, embeddings via Gemini API).
+  api:
+    build: .
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000
+    env_file: .env
+    environment:
+      BACKEND_ENGINE_ENABLED: "false"
+      BACKEND_ETL_ENABLED: "false"
+      BACKEND_ALERTS_ENABLED: "false"
+    ports:
+      - "127.0.0.1:8000:8000"   # bound to localhost; Caddy terminates TLS in front
+    volumes:
+      - ./chroma_db:/app/chroma_db   # embedded Chroma vectors + parents.json sidecar
+      - ./documents:/app/documents   # source filings for ingestion
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # The one heavy process: news engine + daily ETL + alert evaluator (loads FinBERT).
+  # If the box OOMs, this is what to move to a bigger instance or schedule.
+  worker:
+    build: .
+    command: python -m backend.worker
+    env_file: .env
+    environment:
+      BACKEND_ENGINE_ENABLED: "true"
+      BACKEND_ETL_ENABLED: "true"
+      BACKEND_ALERTS_ENABLED: "true"
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./documents:/app/documents
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped

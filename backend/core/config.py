@@ -27,6 +27,10 @@ class Settings(BaseSettings):
 
     # Comma-separated in env: BACKEND_CORS_ORIGINS=http://localhost:5173,https://finverse.app
     cors_origins: str = "http://localhost:5173,http://localhost:4173"
+    # Regex of additional allowed origins — matched origins are echoed back so
+    # credentials work (unlike a "*" wildcard). Defaults to ngrok tunnel hosts
+    # so a quick public demo works without editing the origin list every time.
+    cors_origin_regex: str = r"https://.*\.ngrok(-free)?\.(dev|app|io)"
 
     default_page_size: int = 12
     max_page_size: int = 100

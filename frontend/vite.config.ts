@@ -13,6 +13,9 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Allow tunneled hosts (e.g. ngrok). A leading "." allows the domain and
+    // all its subdomains, so a new ngrok URL keeps working across restarts.
+    allowedHosts: [".ngrok-free.dev", ".ngrok-free.app", ".ngrok.io"],
     proxy: {
       "/api": {
         target: process.env.VITE_API_URL ?? "http://localhost:8000",

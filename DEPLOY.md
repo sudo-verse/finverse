@@ -28,8 +28,10 @@ with a static React frontend.
 - **jobs-worker** (Arq) consumes on-demand background jobs (document ingestion,
   full-universe sentiment refresh) enqueued via `POST /api/jobs/*`; needs Redis.
 - **Postgres** is the system of record; schema is owned by **Alembic**.
-- The vector store (`chroma_db/`) and source filings (`documents/`) are mounted
-  on the API (RAG reads). Use a persistent volume in prod.
+- The vector store runs as a standalone **chroma** service (set `CHROMA_HOST`);
+  API reads and jobs-worker writes share it over HTTP. Source filings
+  (`documents/`) and the `parents.json` sidecar are mounted on both. Back the
+  Chroma data dir with a persistent volume in prod.
 
 ## Local production-shaped stack (Docker)
 
@@ -40,7 +42,40 @@ docker compose up --build
 ```
 
 Services: `db` (Postgres) → `migrate` (alembic upgrade head, one-shot) →
-`api` + `worker`.
+`chroma` (vector store) + `api` + `worker` + `jobs-worker`.
+
+The vector store runs as its own `chroma` service (Chroma in client/server mode):
+the `api` reads and the `jobs-worker` writes to it over HTTP via `CHROMA_HOST`,
+so there's no shared-filesystem locking. With `CHROMA_HOST` unset the code falls
+back to an embedded store under `CHROMA_DIR` (zero-setup local dev).
+
+## Single-EC2 deployment (AWS)
+
+The whole compose stack runs on one EC2 instance — quickest path to a live
+backend. Use a managed DB/cache later by pointing `DATABASE_URL` /
+`BACKEND_REDIS_URL` at RDS / ElastiCache and removing the `db` / `redis` services.
+
+1. **Instance:** Amazon Linux 2023 / Ubuntu, ≥ `t3.large` (4 GB RAM — torch +
+   FinBERT + the cross-encoder need headroom). Install Docker + the compose plugin.
+2. **EBS for the vector store:** attach a separate EBS volume so reindexes and
+   instance replacement don't lose embeddings (they cost Gemini quota to rebuild):
+   ```bash
+   sudo mkfs -t xfs /dev/nvme1n1          # first time only
+   sudo mkdir -p /mnt/chroma && sudo mount /dev/nvme1n1 /mnt/chroma
+   echo '/dev/nvme1n1 /mnt/chroma xfs defaults,nofail 0 2' | sudo tee -a /etc/fstab
+   ```
+   Then set `CHROMA_DATA_DIR=/mnt/chroma` in `.env` (the `chroma` service binds it).
+3. **Secrets:** `cp .env.example .env` and fill it (or pull from SSM/Secrets
+   Manager at boot). Set `BACKEND_CORS_ORIGINS` to your Vercel frontend origin.
+4. **Run:** `docker compose up -d --build` (the `migrate` service applies
+   migrations before `api`/`worker` start).
+5. **TLS / domain:** terminate HTTPS in front of `api:8000` — either an ALB +
+   ACM cert targeting the instance, or Caddy/nginx on the box. Security group:
+   allow 443 inbound; keep 8000 and the Chroma port private.
+6. Point the frontend's `VITE_API_URL` at `https://<your-domain>/api`.
+
+> NSE blocks non-Indian IPs — if the engine can't fetch NSE from a US/EU region,
+> run the instance in `ap-south-1` (Mumbai) or keep the AWS NSE proxy routing.
 
 ## Migrations
 
@@ -106,7 +141,7 @@ localhost:8000/api/billing/webhook`.
 - [ ] `BACKEND_STRIPE_WEBHOOK_SECRET` set (webhooks rejected otherwise in prod).
 - [ ] `DATABASE_URL` → managed Postgres; `alembic upgrade head` run.
 - [ ] `BACKEND_CORS_ORIGINS` / `BACKEND_APP_BASE_URL` → real domains.
-- [ ] Persistent volumes for `chroma_db/` and `documents/`.
+- [ ] Persistent volume for the `chroma` data dir (`CHROMA_DATA_DIR`) + `documents/`.
 - [ ] HTTPS/TLS terminated at the proxy/load balancer.
 - [ ] **Regulatory:** confirm the SEBI positioning (educational/informational vs
       registered investment advice) before charging.

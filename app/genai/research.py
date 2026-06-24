@@ -214,8 +214,17 @@ def retrieve(question: str, symbol: str = None, doc_type: str = None,
         return []
 
     where = _where(symbol, doc_type, year)
-    semantic = _semantic_candidates(question, where, query_vec=query_vec)
-    keyword = _keyword_candidates(question, where)
+    # Query understanding: expand into semantic + keyword forms (skipped when a
+    # precomputed query_vec is supplied, i.e. the cache path). Falls back to the
+    # raw question if rewriting is disabled/unavailable.
+    from app.genai import query_rewrite
+
+    rw = query_rewrite.rewrite(question) if query_vec is None else None
+    semantic_q = rw.semantic_query if rw else question
+    keyword_q = rw.keyword_text if rw else question
+
+    semantic = _semantic_candidates(semantic_q, where, query_vec=query_vec)
+    keyword = _keyword_candidates(keyword_q, where)
     fused = _fuse(semantic, keyword)
     if not fused:
         return []
