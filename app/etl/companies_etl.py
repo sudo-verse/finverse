@@ -6,7 +6,7 @@ from app.db.database import get_session
 from app.db.repository import upsert_company
 from app.utils.logger import logger
 
-CSV_PATH = "ind_nifty500list.csv"
+CSV_PATH = "nse_equity_list.csv"
 
 
 def run(csv_path=CSV_PATH):

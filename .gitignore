@@ -14,6 +14,7 @@ __pycache__/
 
 # Data files
 *.csv
+!nse_equity_list.csv   # the NSE equity universe is shipped with the app
 *.xlsx
 signals.json
 engine_state.json

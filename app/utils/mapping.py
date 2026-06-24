@@ -13,8 +13,8 @@ def load_nifty_map(file_path):
         print(f"Error reading {file_path}: {e}")
         return {}
 
-# Initialize the data from your uploaded file
-company_to_ticker = load_nifty_map('ind_nifty500list.csv')
+# Full NSE equity universe (all listed equities, not just NIFTY 500)
+company_to_ticker = load_nifty_map('nse_equity_list.csv')
 def get_best_match(company_name):
     if not company_to_ticker:
         return None, None
