@@ -80,7 +80,20 @@ def _build(session: Session) -> list[ScreenerRow]:
         price = prices.get(c.id)
 
         eps = latest.eps if latest else None
+        # yfinance often nulls per-share EPS for Indian filers — derive it from
+        # net income / shares so P/E is populated rather than blank.
+        if (not eps) and latest and latest.shares_outstanding:
+            eps = ratio(latest.net_income, latest.shares_outstanding)
         book = ratio(latest.total_equity, latest.shares_outstanding) if latest else None
+        pe = ratio(price, eps) if (eps and eps > 0) else None
+        pb = ratio(price, book) if (book and book > 0) else None
+        # Some filers' statements are stored at a wrong scale (pure ratios stay
+        # valid, but EPS/book don't), giving absurd multiples — drop those
+        # rather than show a misleading P/E or P/B.
+        if pe is not None and pe > 150:
+            pe = None
+        if pb is not None and pb > 40:
+            pb = None
         debt = None
         if latest and latest.total_liabilities is not None and latest.current_liabilities is not None:
             debt = latest.total_liabilities - latest.current_liabilities
@@ -97,8 +110,8 @@ def _build(session: Session) -> list[ScreenerRow]:
             price=price,
             market_cap=(price * latest.shares_outstanding
                         if price is not None and latest and latest.shares_outstanding else None),
-            pe=ratio(price, eps) if eps and eps > 0 else None,
-            pb=ratio(price, book) if book and book > 0 else None,
+            pe=pe,
+            pb=pb,
             roe=ratio(latest.net_income, latest.total_equity) if latest else None,
             roce=ratio(latest.ebit, cap_emp) if latest else None,
             npm=ratio(latest.net_income, latest.revenue) if latest else None,
