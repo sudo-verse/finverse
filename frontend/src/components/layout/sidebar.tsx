@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   Activity,
   ArrowLeftRight,
+  CalendarDays,
   ChevronLeft,
   FolderOpen,
   Gauge,
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
   { to: "/screener", label: "Screener", icon: SlidersHorizontal },
   { to: "/ownership", label: "Smart Money", icon: Landmark },
   { to: "/deals", label: "Bulk & Block Deals", icon: ArrowLeftRight },
+  { to: "/events", label: "Events Calendar", icon: CalendarDays },
   { to: "/signals", label: "Signals", icon: Activity },
   { to: "/sentiment", label: "Sentiment", icon: Gauge },
   { to: "/stocks", label: "Stock Analysis", icon: LineChart },

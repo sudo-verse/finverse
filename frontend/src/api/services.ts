@@ -18,6 +18,7 @@ import type {
   IntradaySeries,
   LiveQuote,
   CagrRow,
+  CorporateEventRow,
   DealRow,
   MarketFlowSummary,
   MarketMovers,
@@ -147,6 +148,16 @@ export async function getDeals(params: {
   limit?: number;
 } = {}): Promise<DealRow[]> {
   return (await apiClient.get<DealRow[]>("/market/deals", { params })).data;
+}
+
+export async function getEventsCalendar(params: {
+  window?: string;
+  type?: string;
+  symbol?: string;
+  days?: number;
+  limit?: number;
+} = {}): Promise<CorporateEventRow[]> {
+  return (await apiClient.get<CorporateEventRow[]>("/market/events", { params })).data;
 }
 
 export async function getAllIndices(): Promise<IndexQuote[]> {

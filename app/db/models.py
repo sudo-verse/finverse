@@ -280,6 +280,28 @@ class MarketFlow(Base):
     fetched_at = Column(DateTime, default=datetime.utcnow)
 
 
+class CorporateEvent(Base):
+    """An upcoming/recent corporate event — results, dividend, split, bonus, AGM…
+
+    Merges NSE's board-meeting calendar (results & intent) with corporate
+    actions (ex-dates for dividend/split/bonus). One row per
+    (symbol, date, type). Powers the Events calendar + per-stock event strip."""
+
+    __tablename__ = "corporate_events"
+    __table_args__ = (
+        UniqueConstraint("symbol", "event_date", "event_type", name="uq_event_natural"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    symbol = Column(String(32), nullable=False, index=True)
+    name = Column(String(255))
+    event_type = Column(String(16), nullable=False, index=True)  # result|dividend|split|…
+    event_date = Column(Date, nullable=False, index=True)         # ex-date or meeting date
+    detail = Column(String(512))                                  # subject/purpose text
+    source = Column(String(16))                                   # "calendar" | "action"
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Deal(Base):
     """A bulk or block deal disclosed by NSE (large trade by a named client).
 

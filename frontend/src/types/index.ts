@@ -755,6 +755,15 @@ export interface OwnershipActivityRow {
   prevPeriod: string | null;
 }
 
+export interface CorporateEventRow {
+  symbol: string;
+  name: string | null;
+  eventType: string;
+  eventDate: string;
+  detail: string | null;
+  source: string | null;
+}
+
 export interface DealRow {
   dealDate: string;
   dealType: "bulk" | "block";

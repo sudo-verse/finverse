@@ -153,7 +153,9 @@ class EtlWorker:
     def _run_once(self) -> None:
         from datetime import datetime, timezone
 
-        from app.etl import companies_etl, deals_etl, financials_etl, market_flow_etl, prices_etl
+        from app.etl import (
+            companies_etl, deals_etl, events_etl, financials_etl, market_flow_etl, prices_etl,
+        )
 
         weekly = datetime.now(timezone.utc).weekday() == 6  # Sunday
         if weekly:
@@ -161,7 +163,8 @@ class EtlWorker:
         prices_etl.run(period="1mo")
         if weekly:
             financials_etl.run()
-        for name, fn in (("market-flow", market_flow_etl.run), ("deals", deals_etl.run)):
+        for name, fn in (("market-flow", market_flow_etl.run), ("deals", deals_etl.run),
+                         ("events", events_etl.run)):
             try:
                 fn()  # daily FII/DII flows + bulk/block deals
             except Exception as e:

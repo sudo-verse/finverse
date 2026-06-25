@@ -181,6 +181,15 @@ export function useDeals(params: { type?: string; side?: string; symbol?: string
   });
 }
 
+export function useEventsCalendar(params: { window?: string; type?: string; symbol?: string; days?: number; limit?: number } = {}) {
+  return useQuery({
+    queryKey: ["events-calendar", params],
+    queryFn: () => services.getEventsCalendar(params),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+}
+
 export function useAllIndices() {
   return useQuery({
     queryKey: ["all-indices"],

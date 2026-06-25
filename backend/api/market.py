@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
 from backend.schemas.deals import DealRow
+from backend.schemas.events import CorporateEventRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.nse import (
     IndexQuote,
@@ -17,6 +18,7 @@ from backend.schemas.nse import (
     TurnoverRow,
 )
 from backend.services.deals_service import deals_service
+from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
 
@@ -47,6 +49,21 @@ def market_deals(
     """Disclosed large trades by named clients, biggest by value first.
     Populated daily post-close by the deals ETL (NSE large-deal snapshot)."""
     return deals_service.recent(db, deal_type=type, side=side, symbol=symbol, days=days, limit=limit)
+
+
+@router.get("/market/events", response_model=list[CorporateEventRow],
+            summary="Corporate events calendar (results, dividends, splits…)")
+def market_events(
+    db: Session = Depends(get_db),
+    window: str = Query("upcoming", pattern="^(upcoming|recent|all)$"),
+    type: str | None = Query(None, description="event type, e.g. result|dividend|split"),
+    symbol: str | None = Query(None, description="restrict to one stock"),
+    days: int = Query(30, ge=1, le=180),
+    limit: int = Query(200, ge=1, le=500),
+) -> list[CorporateEventRow]:
+    """Upcoming/recent corporate events from NSE's board-meeting calendar +
+    corporate actions. Populated daily by the events ETL."""
+    return events_service.list(db, window=window, event_type=type, symbol=symbol, days=days, limit=limit)
 
 
 @router.get("/market/overview", response_model=MarketOverview, summary="Live market overview")
