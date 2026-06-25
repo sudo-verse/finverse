@@ -113,17 +113,42 @@ def _all(session: Session) -> list[EarningsRow]:
     return rows
 
 
+# Sanity bounds so the leaderboard surfaces real momentum rather than artifacts.
+# A net margin outside ±100% means PAT exceeds revenue — almost always a
+# scale-mismatched or other-income-distorted filing. Growth beyond a few
+# hundred percent is a near-zero-base turnaround, not sustainable momentum; we
+# cap it out of the ranking (the per-stock view keeps the full, honest history).
+_MAX_GROWTH = 3.0       # +300%
+_MIN_GROWTH = -0.95     # -95%
+_MAX_MARGIN_DELTA = 60  # percentage points
+
 _SORTS = {
-    "pat": lambda r: (r.pat_yoy is not None, r.pat_yoy or 0),
-    "revenue": lambda r: (r.revenue_yoy is not None, r.revenue_yoy or 0),
-    "margin": lambda r: (r.margin_delta is not None, r.margin_delta or 0),
+    "pat": ("pat_yoy", lambda r: r.pat_yoy),
+    "revenue": ("revenue_yoy", lambda r: r.revenue_yoy),
+    "margin": ("margin_delta", lambda r: r.margin_delta),
 }
 
 
+def _plausible(r: EarningsRow) -> bool:
+    """Drop filings whose internal scale is inconsistent (PAT > revenue)."""
+    return r.net_margin is not None and abs(r.net_margin) <= 1.0
+
+
+def _in_bounds(metric: str, value) -> bool:
+    if value is None:
+        return False
+    if metric == "margin_delta":
+        return abs(value) <= _MAX_MARGIN_DELTA
+    return _MIN_GROWTH <= value <= _MAX_GROWTH
+
+
 def tracker(session: Session, sort: str = "pat", limit: int = 50) -> list[EarningsRow]:
-    rows = [r for r in _all(session) if getattr(r, {"pat": "pat_yoy", "revenue": "revenue_yoy", "margin": "margin_delta"}[sort]) is not None]
-    key = _SORTS.get(sort, _SORTS["pat"])
-    rows.sort(key=key, reverse=True)
+    metric, key = _SORTS.get(sort, _SORTS["pat"])
+    rows = [
+        r for r in _all(session)
+        if _plausible(r) and _in_bounds(metric, getattr(r, metric))
+    ]
+    rows.sort(key=lambda r: key(r) or 0, reverse=True)
     return rows[:limit]
 
 
