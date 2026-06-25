@@ -21,7 +21,9 @@ import type {
   CorporateEventRow,
   DealRow,
   MarketFlowSummary,
+  RadarRow,
   SectorPerf,
+  StockRange,
   MarketMovers,
   MarketOverview,
   MarqueeItem,
@@ -139,6 +141,14 @@ export async function getMarketMovers(): Promise<MarketMovers> {
 
 export async function getSectors(): Promise<SectorPerf[]> {
   return (await apiClient.get<SectorPerf[]>("/market/sectors")).data;
+}
+
+export async function getRadar(band: "high" | "low", threshold = 5): Promise<RadarRow[]> {
+  return (await apiClient.get<RadarRow[]>("/market/radar", { params: { band, threshold, limit: 100 } })).data;
+}
+
+export async function getStockRange(symbol: string): Promise<StockRange> {
+  return (await apiClient.get<StockRange>(`/stocks/${symbol}/range-52w`)).data;
 }
 
 export async function getMarketFlows(days = 30): Promise<MarketFlowSummary> {

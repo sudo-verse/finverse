@@ -776,6 +776,30 @@ export interface OwnershipActivityRow {
   prevPeriod: string | null;
 }
 
+export interface RadarRow {
+  symbol: string;
+  name: string;
+  band: string;
+  price: number | null;
+  high52: number | null;
+  low52: number | null;
+  pctFromHigh: number | null;
+  pctFromLow: number | null;
+  pctInRange: number | null;
+}
+
+export interface StockRange {
+  symbol: string;
+  price: number | null;
+  high52: number | null;
+  low52: number | null;
+  pctFromHigh: number | null;
+  pctFromLow: number | null;
+  pctInRange: number | null;
+  atHigh: boolean;
+  atLow: boolean;
+}
+
 export interface SectorPerf {
   name: string;
   index: string;

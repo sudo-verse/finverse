@@ -41,6 +41,7 @@ import { NseInsights } from "@/components/stock/nse-insights";
 import { FinancialsPanel } from "@/components/stock/financials-panel";
 import { OwnershipTrendPanel } from "@/components/stock/ownership-trend";
 import { PeerComparisonPanel } from "@/components/stock/peer-comparison";
+import { Range52w } from "@/components/stock/range-52w";
 import { ScorecardPanel } from "@/components/stock/scorecard-panel";
 import { useCompetitors, useGenerateReport, useHistoryRange, useIntraday, useLiveQuote, useStock } from "@/hooks/queries";
 import {
@@ -445,6 +446,12 @@ export default function StockAnalysisPage() {
           </div>
 
           {/* Fundamentals terminal: CAGR, statements, ratio trends, pros & cons */}
+          {stock && (
+            <div className="mt-6">
+              <Range52w symbol={activeSymbol} />
+            </div>
+          )}
+
           {stock && <ScorecardPanel symbol={activeSymbol} />}
 
           {stock && <PeerComparisonPanel symbol={activeSymbol} />}

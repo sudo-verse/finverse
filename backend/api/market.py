@@ -9,6 +9,7 @@ from backend.core.database import get_db
 from backend.schemas.deals import DealRow
 from backend.schemas.events import CorporateEventRow
 from backend.schemas.market_flow import MarketFlowSummary
+from backend.schemas.radar import RadarRow
 from backend.schemas.sectors import SectorPerf
 from backend.schemas.nse import (
     IndexQuote,
@@ -22,6 +23,7 @@ from backend.services.deals_service import deals_service
 from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
+from backend.services.radar_service import radar_service
 from backend.services.sector_service import sector_service
 
 router = APIRouter(tags=["market"])
@@ -81,6 +83,19 @@ def market_sectors() -> list[SectorPerf]:
     """NSE sectoral indices with day/week/month/year % change — for the
     sector-rotation heatmap. Live (cached ~60s)."""
     return sector_service.heatmap()
+
+
+@router.get("/market/radar", response_model=list[RadarRow],
+            summary="Stocks near their 52-week high or low")
+def market_radar(
+    db: Session = Depends(get_db),
+    band: str = Query("high", pattern="^(high|low)$"),
+    threshold: float = Query(3.0, ge=0.1, le=25, description="% within the extreme"),
+    limit: int = Query(100, ge=1, le=500),
+) -> list[RadarRow]:
+    """Momentum/breakout radar: stocks within `threshold`% of their 52-week
+    high or low, closest to the extreme first (computed from price history)."""
+    return radar_service.screen(db, band=band, threshold=threshold, limit=limit)
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")

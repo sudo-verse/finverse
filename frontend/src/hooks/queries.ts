@@ -163,6 +163,15 @@ export function useMarketMovers() {
   });
 }
 
+export function useRadar(band: "high" | "low", threshold = 5) {
+  return useQuery({
+    queryKey: ["radar", band, threshold],
+    queryFn: () => services.getRadar(band, threshold),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 export function useSectors() {
   return useQuery({
     queryKey: ["sectors"],
