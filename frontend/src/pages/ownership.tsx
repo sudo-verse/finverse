@@ -11,13 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { OwnershipActivityRow } from "@/types";
 
-type Metric = "promoter" | "fii" | "dii";
+type Metric = "promoter" | "fii" | "dii" | "mf" | "insurance";
 type Direction = "buying" | "selling";
 
 const METRICS: { key: Metric; label: string }[] = [
   { key: "promoter", label: "Promoters" },
   { key: "fii", label: "FII / FPI" },
   { key: "dii", label: "DII" },
+  { key: "mf", label: "Mutual Funds" },
+  { key: "insurance", label: "Insurance" },
 ];
 
 function useOwnershipActivity(metric: Metric, direction: Direction) {

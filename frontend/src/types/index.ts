@@ -754,3 +754,15 @@ export interface OwnershipActivityRow {
   period: string | null;
   prevPeriod: string | null;
 }
+
+export interface OwnershipHistoryRow {
+  period: string | null;
+  promoter: number | null;
+  public: number | null;
+  fii: number | null;
+  dii: number | null;
+  mf: number | null;
+  insurance: number | null;
+  banks: number | null;
+  pension: number | null;
+}

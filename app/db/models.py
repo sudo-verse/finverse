@@ -275,6 +275,11 @@ class Shareholding(Base):
     period_date = Column(Date, nullable=False, index=True)
     promoter_pct = Column(Float)
     public_pct = Column(Float)
-    fii_pct = Column(Float)    # reserved — detailed filing
-    dii_pct = Column(Float)    # reserved — detailed filing
+    fii_pct = Column(Float)    # foreign institutions (FPI) aggregate
+    dii_pct = Column(Float)    # domestic institutions aggregate
+    # DII sub-categories (from the detailed XBRL filing), for "who's buying":
+    mf_pct = Column(Float)         # Mutual Funds / UTI
+    insurance_pct = Column(Float)  # Insurance companies (LIC, …)
+    banks_pct = Column(Float)      # Banks
+    pension_pct = Column(Float)    # Provident / pension funds
     fetched_at = Column(DateTime, default=datetime.utcnow)

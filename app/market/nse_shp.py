@@ -25,9 +25,16 @@ _XBRLI = "{http://www.xbrl.org/2003/instance}"
 _XBRLDI = "{http://xbrl.org/2006/xbrldi}"
 _PCT_TAG = "ShareholdingAsAPercentageOfTotalNumberOfShares"
 
-# SEBI XBRL aggregate dimension members → our columns.
-_FII_MEMBER = "InstitutionsForeignMember"
-_DII_MEMBER = "InstitutionsDomesticMember"
+# SEBI XBRL aggregate dimension members → our columns. The two top-level
+# institution buckets, plus the DII sub-categories that answer "who's buying".
+_MEMBERS = {
+    "fii": "InstitutionsForeignMember",
+    "dii": "InstitutionsDomesticMember",
+    "mf": "MutualFundsOrUTIMember",
+    "insurance": "InsuranceCompaniesMember",
+    "banks": "BanksMember",
+    "pension": "ProvidentFundsOrPensionFundsMember",
+}
 
 _session: requests.Session | None = None
 
@@ -102,15 +109,15 @@ def _parse_xbrl(url: str) -> dict:
             ctx[c.get("id")] = {
                 (m.text or "").split(":")[-1] for m in c.iter(_XBRLDI + "explicitMember")
             }
-        return {"fii": _pct_for(root, ctx, _FII_MEMBER), "dii": _pct_for(root, ctx, _DII_MEMBER)}
+        return {k: _pct_for(root, ctx, mem) for k, mem in _MEMBERS.items()}
     except Exception as e:
         logger.debug("nse_shp: xbrl %s failed: %s", url, e)
         return {}
 
 
-def detail(symbol: str, periods: int = 4, sleep: float = 0.3) -> list[dict]:
+def detail(symbol: str, periods: int = 8, sleep: float = 0.3) -> list[dict]:
     """Latest `periods` quarters, newest first:
-    {period_date, period, promoter, public, fii, dii}.
+    {period_date, period, promoter, public, fii, dii, mf, insurance, banks, pension}.
 
     NSE's master can list the same quarter twice (a revised + original filing);
     we keep the first (latest revision) per quarter and dedupe the rest."""
@@ -126,12 +133,11 @@ def detail(symbol: str, periods: int = 4, sleep: float = 0.3) -> list[dict]:
         row = {
             "period_date": pd, "period": rec.get("date"),
             "promoter": _num(rec.get("pr_and_prgrp")), "public": _num(rec.get("public_val")),
-            "fii": None, "dii": None,
+            **{k: None for k in _MEMBERS},  # fii, dii, mf, insurance, banks, pension
         }
         xbrl = rec.get("xbrl")
         if xbrl:
-            d = _parse_xbrl(xbrl)
-            row["fii"], row["dii"] = d.get("fii"), d.get("dii")
+            row.update(_parse_xbrl(xbrl))
             time.sleep(sleep)
         out.append(row)
     return out

@@ -52,7 +52,7 @@ def _upsert(session, cid, d):
     if row is None:
         row = Shareholding(company_id=cid, period=d["period"], period_date=d["period_date"])
         session.add(row)
-    for col in ("promoter", "public", "fii", "dii"):
+    for col in ("promoter", "public", "fii", "dii", "mf", "insurance", "banks", "pension"):
         v = d.get(col)
         if v is not None:  # None-preserving: don't clobber an existing value
             setattr(row, f"{col}_pct", v)
@@ -68,14 +68,15 @@ def run(limit=None, sleep=0.5, symbols=None, detail=False):
         companies = list(q.all())
 
     if detail and not symbols:
-        # resume: skip companies already enriched with FII so a re-run only
-        # processes the remaining tail (avoids re-downloading their XBRLs).
+        # resume: skip companies already enriched with the sub-category split
+        # (mf_pct) so a re-run only processes the remaining tail. mf_pct is the
+        # marker for the deeper/sub-category pass (fii_pct alone = older shallow run).
         with get_session() as s:
             done = {cid for (cid,) in s.query(Shareholding.company_id)
-                    .filter(Shareholding.fii_pct.isnot(None)).distinct()}
+                    .filter(Shareholding.mf_pct.isnot(None)).distinct()}
         before = len(companies)
         companies = [(cid, sym) for cid, sym in companies if cid not in done]
-        logger.info("shareholding_etl: resume — skipping %d already-FII companies", before - len(companies))
+        logger.info("shareholding_etl: resume — skipping %d already-detailed companies", before - len(companies))
 
     mode = "detail (FII/DII)" if detail else "summary"
     logger.info("shareholding_etl [%s]: %d companies", mode, len(companies))
