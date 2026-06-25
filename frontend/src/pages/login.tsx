@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { LEGAL_LINKS } from "@/lib/legal";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,7 +44,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-2 text-center">
           <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md">
@@ -113,6 +114,16 @@ export default function LoginPage() {
           </p>
         </CardContent>
       </Card>
+      <p className="mt-5 max-w-sm text-center text-[11px] leading-relaxed text-muted-foreground">
+        By continuing you agree to our{" "}
+        {LEGAL_LINKS.map((l, i) => (
+          <span key={l.to}>
+            <Link to={l.to} className="underline hover:text-foreground">{l.label}</Link>
+            {i < LEGAL_LINKS.length - 1 ? ", " : "."}
+          </span>
+        ))}{" "}
+        Not investment advice.
+      </p>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-layout";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +25,10 @@ const AnnouncementsPage = lazy(() => import("@/pages/announcements"));
 const InsiderPage = lazy(() => import("@/pages/insider"));
 const ValuationPage = lazy(() => import("@/pages/valuation"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
+const TermsPage = lazy(() => import("@/pages/legal/terms"));
+const PrivacyPage = lazy(() => import("@/pages/legal/privacy"));
+const DisclaimerPage = lazy(() => import("@/pages/legal/disclaimer"));
+const NotFoundPage = lazy(() => import("@/pages/not-found"));
 
 function PageFallback() {
   return (
@@ -51,6 +55,24 @@ export default function App() {
           </Suspense>
         }
       />
+      {/* Public legal pages — reachable without auth and crawlable. */}
+      {(
+        [
+          ["/terms", TermsPage],
+          ["/privacy", PrivacyPage],
+          ["/disclaimer", DisclaimerPage],
+        ] as const
+      ).map(([path, Page]) => (
+        <Route
+          key={path}
+          path={path}
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <Page />
+            </Suspense>
+          }
+        />
+      ))}
       <Route
         element={
           <RequireAuth>
@@ -103,7 +125,14 @@ export default function App() {
             }
           />
         ))}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <NotFoundPage />
+            </Suspense>
+          }
+        />
       </Route>
     </Routes>
   );

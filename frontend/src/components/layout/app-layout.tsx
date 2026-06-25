@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { TickerTape } from "./ticker-tape";
+import { Footer } from "./footer";
 import { CommandPalette } from "./command-palette";
 
 export function AppLayout() {
@@ -31,6 +32,7 @@ export function AppLayout() {
             </motion.div>
           </AnimatePresence>
         </main>
+        <Footer />
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
