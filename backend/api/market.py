@@ -10,6 +10,7 @@ from backend.schemas.announcements import AnnouncementFeedRow
 from backend.schemas.deals import DealRow
 from backend.schemas.earnings import EarningsRow
 from backend.schemas.events import CorporateEventRow
+from backend.schemas.insider import SastRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.radar import RadarRow
 from backend.schemas.sectors import SectorPerf
@@ -21,7 +22,7 @@ from backend.schemas.nse import (
     MarqueeItem,
     TurnoverRow,
 )
-from backend.services import announcements_service, earnings_service
+from backend.services import announcements_service, earnings_service, insider_service
 from backend.services.deals_service import deals_service
 from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
@@ -130,6 +131,25 @@ def market_announcements(
     return announcements_service.feed(
         category=category, symbol=symbol, q=q, days=days,
         include_routine=routine, limit=limit,
+    )
+
+
+@router.get("/market/sast", response_model=list[SastRow],
+            summary="Substantial-acquisition (SAST Reg29) disclosures")
+def market_sast(
+    action: str | None = Query(None, pattern="^(acquisition|sale)$"),
+    symbol: str | None = Query(None),
+    promoter: bool = Query(False, description="promoter/promoter-group filings only"),
+    q: str | None = Query(None, description="search company/symbol/acquirer"),
+    days: int = Query(5, ge=1, le=14),
+    limit: int = Query(100, ge=1, le=500),
+) -> list[SastRow]:
+    """Substantial acquisitions/sales (SEBI SAST Reg29) across the market —
+    acquirers and promoters crossing disclosure thresholds, newest first.
+    Live from NSE, cached ~5m."""
+    return insider_service.sast_feed(
+        action=action, symbol=symbol, promoter_only=promoter, q=q,
+        days=days, limit=limit,
     )
 
 

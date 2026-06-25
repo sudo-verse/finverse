@@ -19,6 +19,7 @@ import {
   Star,
   Swords,
   TrendingUp,
+  UserCheck,
   Wallet,
 } from "lucide-react";
 import { useMarketOverview } from "@/hooks/queries";
@@ -37,6 +38,7 @@ const NAV_ITEMS = [
   { to: "/watchlist", label: "Watchlist", icon: Star },
   { to: "/screener", label: "Screener", icon: SlidersHorizontal },
   { to: "/ownership", label: "Smart Money", icon: Landmark },
+  { to: "/insider", label: "Insider & SAST", icon: UserCheck },
   { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/deals", label: "Bulk & Block Deals", icon: ArrowLeftRight },
   { to: "/events", label: "Events Calendar", icon: CalendarDays },

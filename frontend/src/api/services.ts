@@ -22,7 +22,9 @@ import type {
   CorporateEventRow,
   DealRow,
   EarningsRow,
+  InsiderTrade,
   MarketFlowSummary,
+  SastRow,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -178,6 +180,21 @@ export async function getAnnouncementsFeed(params: {
   limit?: number;
 } = {}): Promise<AnnouncementFeedRow[]> {
   return (await apiClient.get<AnnouncementFeedRow[]>("/market/announcements", { params })).data;
+}
+
+export async function getSastFeed(params: {
+  action?: string;
+  symbol?: string;
+  promoter?: boolean;
+  q?: string;
+  days?: number;
+  limit?: number;
+} = {}): Promise<SastRow[]> {
+  return (await apiClient.get<SastRow[]>("/market/sast", { params })).data;
+}
+
+export async function getStockInsider(symbol: string, limit = 25): Promise<InsiderTrade[]> {
+  return (await apiClient.get<InsiderTrade[]>(`/stocks/${symbol}/insider`, { params: { limit } })).data;
 }
 
 export async function getDeals(params: {

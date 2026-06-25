@@ -227,6 +227,32 @@ export function useAnnouncementsFeed(params: {
   });
 }
 
+export function useSastFeed(params: {
+  action?: string;
+  symbol?: string;
+  promoter?: boolean;
+  q?: string;
+  days?: number;
+  limit?: number;
+} = {}) {
+  return useQuery({
+    queryKey: ["sast-feed", params],
+    queryFn: () => services.getSastFeed(params),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+}
+
+export function useStockInsider(symbol: string | undefined, limit = 25) {
+  return useQuery({
+    queryKey: ["stock-insider", symbol, limit],
+    queryFn: () => services.getStockInsider(symbol!, limit),
+    enabled: !!symbol,
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number } = {}) {
   return useQuery({
     queryKey: ["deals", params],

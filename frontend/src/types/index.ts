@@ -915,3 +915,34 @@ export interface AnnouncementFeedRow {
   industry: string | null;
   hasXbrl: boolean;
 }
+
+export interface SastRow {
+  symbol: string | null;
+  company: string | null;
+  acquirer: string | null;
+  action: string | null;
+  isPromoter: boolean;
+  shares: number | null;
+  pctTraded: number | null;
+  pctAfter: number | null;
+  mode: string | null;
+  regType: string | null;
+  tradeDate: string | null;
+  filedAt: string | null;
+  attachmentUrl: string | null;
+}
+
+export interface InsiderTrade {
+  symbol: string | null;
+  person: string | null;
+  personCategory: string | null;
+  transactionType: string | null;
+  securityType: string | null;
+  quantity: number | null;
+  value: number | null;
+  pctBefore: number | null;
+  pctAfter: number | null;
+  mode: string | null;
+  tradeDate: string | null;
+  filedAt: string | null;
+}

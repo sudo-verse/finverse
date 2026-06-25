@@ -16,11 +16,12 @@ from backend.schemas.nse import (
     ShareholdingPeriod,
 )
 from backend.schemas.earnings import StockEarnings
+from backend.schemas.insider import InsiderTrade
 from backend.schemas.peers import PeerComparison
 from backend.schemas.radar import StockRange
 from backend.schemas.scorecard import ScorecardOut
 from backend.schemas.stock import CompanyOut, StockDetailOut
-from backend.services import earnings_service
+from backend.services import earnings_service, insider_service
 from backend.services.nse_service import nse_service
 from backend.services.peer_service import peer_service
 from backend.services.radar_service import radar_service
@@ -88,6 +89,14 @@ def get_earnings(db: Session = Depends(get_db), symbol: str = SymbolPath) -> Sto
     momentum verdict (accelerating/decelerating) — for the stock-page panel."""
     result = earnings_service.stock_earnings(db, symbol)
     return result or StockEarnings(symbol=symbol.upper(), name="")
+
+
+@router.get("/stocks/{symbol}/insider", response_model=list[InsiderTrade],
+            summary="Insider (SEBI PIT) trades")
+def get_insider(symbol: str = SymbolPath, limit: int = Query(25, ge=1, le=100)) -> list[InsiderTrade]:
+    """Named-insider trades (promoters/directors/KMP buying or selling) from
+    SEBI PIT disclosures — live from NSE, per company."""
+    return insider_service.stock_insider(symbol.upper(), limit=limit)
 
 
 # ----------------------------------------------------------------------------

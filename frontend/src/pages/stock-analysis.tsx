@@ -40,6 +40,7 @@ import { CorporatePanel } from "@/components/stock/corporate-panel";
 import { NseInsights } from "@/components/stock/nse-insights";
 import { FinancialsPanel } from "@/components/stock/financials-panel";
 import { EarningsPanel } from "@/components/stock/earnings-panel";
+import { InsiderPanel } from "@/components/stock/insider-panel";
 import { OwnershipTrendPanel } from "@/components/stock/ownership-trend";
 import { PeerComparisonPanel } from "@/components/stock/peer-comparison";
 import { Range52w } from "@/components/stock/range-52w";
@@ -462,6 +463,8 @@ export default function StockAnalysisPage() {
           {stock && <EarningsPanel symbol={activeSymbol} />}
 
           {stock && <OwnershipTrendPanel symbol={activeSymbol} />}
+
+          {stock && <InsiderPanel symbol={activeSymbol} />}
 
           {/* AI report + competitor snapshot */}
           <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3">
