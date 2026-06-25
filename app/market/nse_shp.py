@@ -84,8 +84,8 @@ def _master(symbol: str):
     return []
 
 
-def _pct_for(root, ctx: dict, member: str):
-    """Aggregate holding % for a category member (smallest-dimension context)."""
+def _raw_for(root, ctx: dict, member: str):
+    """Raw holding fact for a category member (smallest-dimension context)."""
     out = []
     for el in root.iter():
         if el.tag.endswith("}" + _PCT_TAG):
@@ -95,7 +95,7 @@ def _pct_for(root, ctx: dict, member: str):
                     out.append((len(ctx[cid]), float(el.text)))
                 except (TypeError, ValueError):
                     pass
-    return round(sorted(out)[0][1] * 100, 2) if out else None  # fraction → %
+    return sorted(out)[0][1] if out else None
 
 
 def _parse_xbrl(url: str) -> dict:
@@ -109,7 +109,13 @@ def _parse_xbrl(url: str) -> dict:
             ctx[c.get("id")] = {
                 (m.text or "").split(":")[-1] for m in c.iter(_XBRLDI + "explicitMember")
             }
-        return {k: _pct_for(root, ctx, mem) for k, mem in _MEMBERS.items()}
+        raw = {k: _raw_for(root, ctx, mem) for k, mem in _MEMBERS.items()}
+        # Scale varies by filing: most store fractions (0.48 = 48%), but some
+        # interim filings store the percentage directly (48.0). A real holding
+        # fraction is ≤1, so if the largest value exceeds 1.5 it's already a %.
+        vals = [v for v in raw.values() if v is not None]
+        factor = 1.0 if (vals and max(vals) > 1.5) else 100.0
+        return {k: (round(v * factor, 2) if v is not None else None) for k, v in raw.items()}
     except Exception as e:
         logger.debug("nse_shp: xbrl %s failed: %s", url, e)
         return {}
