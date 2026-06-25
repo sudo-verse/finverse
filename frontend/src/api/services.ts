@@ -21,6 +21,7 @@ import type {
   CorporateEventRow,
   DealRow,
   MarketFlowSummary,
+  SectorPerf,
   MarketMovers,
   MarketOverview,
   MarqueeItem,
@@ -134,6 +135,10 @@ export async function getMarketOverview(): Promise<MarketOverview> {
 
 export async function getMarketMovers(): Promise<MarketMovers> {
   return (await apiClient.get<MarketMovers>("/market/movers")).data;
+}
+
+export async function getSectors(): Promise<SectorPerf[]> {
+  return (await apiClient.get<SectorPerf[]>("/market/sectors")).data;
 }
 
 export async function getMarketFlows(days = 30): Promise<MarketFlowSummary> {

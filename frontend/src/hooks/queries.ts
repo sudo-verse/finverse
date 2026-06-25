@@ -163,6 +163,16 @@ export function useMarketMovers() {
   });
 }
 
+export function useSectors() {
+  return useQuery({
+    queryKey: ["sectors"],
+    queryFn: services.getSectors,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+    retry: false,
+  });
+}
+
 export function useMarketFlows(days = 30) {
   return useQuery({
     queryKey: ["market-flows", days],

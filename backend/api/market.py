@@ -9,6 +9,7 @@ from backend.core.database import get_db
 from backend.schemas.deals import DealRow
 from backend.schemas.events import CorporateEventRow
 from backend.schemas.market_flow import MarketFlowSummary
+from backend.schemas.sectors import SectorPerf
 from backend.schemas.nse import (
     IndexQuote,
     IntradaySeries,
@@ -21,6 +22,7 @@ from backend.services.deals_service import deals_service
 from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
+from backend.services.sector_service import sector_service
 
 router = APIRouter(tags=["market"])
 
@@ -71,6 +73,14 @@ def market_overview() -> MarketOverview:
     """Live index quotes, GIFT Nifty futures, USD/INR, total market cap and
     the exchange's market-status code (cached ~30s)."""
     return nse_service.market_overview()
+
+
+@router.get("/market/sectors", response_model=list[SectorPerf],
+            summary="Sector index performance (day/week/month/year)")
+def market_sectors() -> list[SectorPerf]:
+    """NSE sectoral indices with day/week/month/year % change — for the
+    sector-rotation heatmap. Live (cached ~60s)."""
+    return sector_service.heatmap()
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")

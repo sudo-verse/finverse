@@ -18,6 +18,7 @@ import { Activity, ArrowDownRight, ArrowUpRight, Building2, Flame, Newspaper, Wa
 import { PageHeader } from "@/components/layout/page-header";
 import { MarketsBoard } from "@/components/dashboard/markets-board";
 import { InstitutionalFlows } from "@/components/dashboard/institutional-flows";
+import { SectorHeatmap } from "@/components/dashboard/sector-heatmap";
 import { MetricCard, MetricCardSkeleton } from "@/components/shared/metric-card";
 import { ChartCard, ChartSkeleton } from "@/components/shared/chart-card";
 import { SentimentDot, SignalBadge } from "@/components/shared/signal-badge";
@@ -159,6 +160,9 @@ export default function DashboardPage() {
 
       {/* Daily FII/DII cash-market flows */}
       <InstitutionalFlows />
+
+      {/* Sector rotation heatmap */}
+      <SectorHeatmap />
 
       {/* Charts row */}
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">

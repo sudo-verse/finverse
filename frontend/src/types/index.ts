@@ -776,6 +776,19 @@ export interface OwnershipActivityRow {
   prevPeriod: string | null;
 }
 
+export interface SectorPerf {
+  name: string;
+  index: string;
+  last: number | null;
+  day: number | null;
+  week: number | null;
+  month: number | null;
+  year: number | null;
+  advances: number | null;
+  declines: number | null;
+  pe: number | null;
+}
+
 export interface CorporateEventRow {
   symbol: string;
   name: string | null;
