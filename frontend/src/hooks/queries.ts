@@ -217,6 +217,7 @@ export function useAnnouncementsFeed(params: {
   days?: number;
   routine?: boolean;
   limit?: number;
+  universe?: string;
 } = {}) {
   return useQuery({
     queryKey: ["announcements-feed", params],
@@ -234,6 +235,7 @@ export function useSastFeed(params: {
   q?: string;
   days?: number;
   limit?: number;
+  universe?: string;
 } = {}) {
   return useQuery({
     queryKey: ["sast-feed", params],
@@ -272,7 +274,7 @@ export function useStockValuation(symbol: string | undefined) {
   });
 }
 
-export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number } = {}) {
+export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number; universe?: string } = {}) {
   return useQuery({
     queryKey: ["deals", params],
     queryFn: () => services.getDeals(params),

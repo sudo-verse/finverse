@@ -181,6 +181,7 @@ export async function getAnnouncementsFeed(params: {
   days?: number;
   routine?: boolean;
   limit?: number;
+  universe?: string;
 } = {}): Promise<AnnouncementFeedRow[]> {
   return (await apiClient.get<AnnouncementFeedRow[]>("/market/announcements", { params })).data;
 }
@@ -192,6 +193,7 @@ export async function getSastFeed(params: {
   q?: string;
   days?: number;
   limit?: number;
+  universe?: string;
 } = {}): Promise<SastRow[]> {
   return (await apiClient.get<SastRow[]>("/market/sast", { params })).data;
 }
@@ -218,6 +220,7 @@ export async function getDeals(params: {
   symbol?: string;
   days?: number;
   limit?: number;
+  universe?: string;
 } = {}): Promise<DealRow[]> {
   return (await apiClient.get<DealRow[]>("/market/deals", { params })).data;
 }

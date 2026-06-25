@@ -142,8 +142,11 @@ def feed(
     days: int = 2,
     include_routine: bool = False,
     limit: int = 100,
+    universe: str | None = None,
 ) -> list[AnnouncementFeedRow]:
     rows = _window(days)
+    from backend.services import universe_service
+    rows = universe_service.filter_rows(rows, universe)
     if category:
         rows = [r for r in rows if r.category == category]
     elif not include_routine:

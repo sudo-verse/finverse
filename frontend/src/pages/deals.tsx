@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeals } from "@/hooks/queries";
+import { usePreferences } from "@/contexts/preferences";
 import { cn } from "@/lib/utils";
 
 type DealType = "all" | "bulk" | "block";
@@ -29,6 +30,7 @@ function fmtQty(q: number | null): string {
 }
 
 export default function DealsPage() {
+  const { prefs } = usePreferences();
   const [type, setType] = useState<DealType>("all");
   const [side, setSide] = useState<Side>("all");
   const { data, isLoading } = useDeals({
@@ -36,6 +38,7 @@ export default function DealsPage() {
     side: side === "all" ? undefined : side,
     days: 30,
     limit: 200,
+    universe: prefs.universe,
   });
 
   return (

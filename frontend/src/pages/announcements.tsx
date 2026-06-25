@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAnnouncementsFeed } from "@/hooks/queries";
+import { usePreferences } from "@/contexts/preferences";
 import { timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -64,10 +65,12 @@ function CategoryTag({ category }: { category: string }) {
 export default function AnnouncementsPage() {
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
+  const { prefs } = usePreferences();
   const { data, isLoading } = useAnnouncementsFeed({
     category: category || undefined,
     days: 2,
     limit: 200,
+    universe: prefs.universe,
   });
 
   const rows = useMemo(() => {

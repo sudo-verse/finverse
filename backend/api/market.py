@@ -60,10 +60,11 @@ def market_deals(
     symbol: str | None = Query(None, description="restrict to one stock"),
     days: int = Query(30, ge=1, le=365),
     limit: int = Query(100, ge=1, le=500),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
 ) -> list[DealRow]:
     """Disclosed large trades by named clients, biggest by value first.
     Populated daily post-close by the deals ETL (NSE large-deal snapshot)."""
-    return deals_service.recent(db, deal_type=type, side=side, symbol=symbol, days=days, limit=limit)
+    return deals_service.recent(db, deal_type=type, side=side, symbol=symbol, days=days, limit=limit, universe=universe)
 
 
 @router.get("/market/events", response_model=list[CorporateEventRow],
@@ -139,13 +140,14 @@ def market_announcements(
     days: int = Query(2, ge=1, le=7),
     routine: bool = Query(False, description="include routine noise (trading-window, newspaper copies)"),
     limit: int = Query(100, ge=1, le=500),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
 ) -> list[AnnouncementFeedRow]:
     """Latest exchange filings across the whole market, classified into
     investor-facing buckets (live from NSE, cached ~5m). Routine noise is
     hidden unless `routine=true` or a specific category is requested."""
     return announcements_service.feed(
         category=category, symbol=symbol, q=q, days=days,
-        include_routine=routine, limit=limit,
+        include_routine=routine, limit=limit, universe=universe,
     )
 
 
@@ -158,13 +160,14 @@ def market_sast(
     q: str | None = Query(None, description="search company/symbol/acquirer"),
     days: int = Query(5, ge=1, le=14),
     limit: int = Query(100, ge=1, le=500),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
 ) -> list[SastRow]:
     """Substantial acquisitions/sales (SEBI SAST Reg29) across the market —
     acquirers and promoters crossing disclosure thresholds, newest first.
     Live from NSE, cached ~5m."""
     return insider_service.sast_feed(
         action=action, symbol=symbol, promoter_only=promoter, q=q,
-        days=days, limit=limit,
+        days=days, limit=limit, universe=universe,
     )
 
 

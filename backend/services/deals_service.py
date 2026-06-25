@@ -6,12 +6,14 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Deal
 from backend.schemas.deals import DealRow
+from backend.services import universe_service
 
 
 class DealsService:
     def recent(self, session: Session, deal_type: str | None = None, side: str | None = None,
-               symbol: str | None = None, days: int = 30, limit: int = 100) -> list[DealRow]:
-        """Recent deals, newest first, filterable by type/side/symbol.
+               symbol: str | None = None, days: int = 30, limit: int = 100,
+               universe: str | None = None) -> list[DealRow]:
+        """Recent deals, newest first, filterable by type/side/symbol/universe.
 
         Ranked by value (largest first) within the date window so the biggest
         trades surface, then by recency."""
@@ -22,6 +24,9 @@ class DealsService:
             q = q.filter(Deal.side == side)
         if symbol:
             q = q.filter(Deal.symbol == symbol.upper())
+        allowed = universe_service.members(universe)
+        if allowed is not None:
+            q = q.filter(Deal.symbol.in_(allowed))
         rows = q.order_by(Deal.deal_date.desc(), Deal.value.desc().nullslast()).limit(limit).all()
         return [
             DealRow(

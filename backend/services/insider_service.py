@@ -100,8 +100,10 @@ def sast_feed(
     q: str | None = None,
     days: int = 5,
     limit: int = 100,
+    universe: str | None = None,
 ) -> list[SastRow]:
-    rows = _sast_window(days)
+    from backend.services import universe_service
+    rows = universe_service.filter_rows(_sast_window(days), universe)
     if action:
         a = action.lower()
         rows = [r for r in rows if (r.action or "").lower().startswith(a)]

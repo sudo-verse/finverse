@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSastFeed } from "@/hooks/queries";
+import { usePreferences } from "@/contexts/preferences";
 import { cn } from "@/lib/utils";
 
 type Action = "all" | "acquisition" | "sale";
@@ -29,11 +30,13 @@ export default function InsiderPage() {
   const [action, setAction] = useState<Action>("all");
   const [promoter, setPromoter] = useState(false);
   const [search, setSearch] = useState("");
+  const { prefs } = usePreferences();
   const { data, isLoading } = useSastFeed({
     action: action === "all" ? undefined : action,
     promoter: promoter || undefined,
     days: 7,
     limit: 250,
+    universe: prefs.universe,
   });
 
   const rows = useMemo(() => {
