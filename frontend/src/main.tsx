@@ -7,7 +7,10 @@ import App from "./App";
 import { AuthProvider } from "@/contexts/auth";
 import { PreferencesProvider } from "@/contexts/preferences";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { initSentry } from "@/lib/sentry";
 import "./index.css";
+
+initSentry();
 
 const queryClient = new QueryClient({
   defaultOptions: {
