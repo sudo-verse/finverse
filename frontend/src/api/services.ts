@@ -20,9 +20,11 @@ import type {
   CagrRow,
   CorporateEventRow,
   DealRow,
+  EarningsRow,
   MarketFlowSummary,
   RadarRow,
   SectorPerf,
+  StockEarnings,
   StockRange,
   MarketMovers,
   MarketOverview,
@@ -153,6 +155,17 @@ export async function getStockRange(symbol: string): Promise<StockRange> {
 
 export async function getMarketFlows(days = 30): Promise<MarketFlowSummary> {
   return (await apiClient.get<MarketFlowSummary>("/market/flows", { params: { days } })).data;
+}
+
+export async function getEarningsTracker(
+  sort: "pat" | "revenue" | "margin" = "pat",
+  limit = 50,
+): Promise<EarningsRow[]> {
+  return (await apiClient.get<EarningsRow[]>("/market/earnings", { params: { sort, limit } })).data;
+}
+
+export async function getStockEarnings(symbol: string): Promise<StockEarnings> {
+  return (await apiClient.get<StockEarnings>(`/stocks/${symbol}/earnings`)).data;
 }
 
 export async function getDeals(params: {

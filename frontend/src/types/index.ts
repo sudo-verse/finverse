@@ -864,3 +864,41 @@ export interface OwnershipHistoryRow {
   banks: number | null;
   pension: number | null;
 }
+
+export type EarningsMomentum = "accelerating" | "decelerating" | "steady" | null;
+
+export interface EarningsRow {
+  symbol: string;
+  name: string;
+  fy: string;
+  revenue: number | null;
+  netIncome: number | null;
+  eps: number | null;
+  revenueYoy: number | null;
+  patYoy: number | null;
+  epsYoy: number | null;
+  netMargin: number | null;
+  marginDelta: number | null;
+  momentum: EarningsMomentum;
+  trend: number[];
+}
+
+export interface EarningsYear {
+  fy: string;
+  revenue: number | null;
+  netIncome: number | null;
+  eps: number | null;
+  revenueYoy: number | null;
+  patYoy: number | null;
+  netMargin: number | null;
+}
+
+export interface StockEarnings {
+  symbol: string;
+  name: string;
+  fy: string | null;
+  revenueYoy: number | null;
+  patYoy: number | null;
+  momentum: EarningsMomentum;
+  years: EarningsYear[];
+}

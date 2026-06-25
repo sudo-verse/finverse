@@ -191,6 +191,25 @@ export function useMarketFlows(days = 30) {
   });
 }
 
+export function useEarningsTracker(sort: "pat" | "revenue" | "margin" = "pat", limit = 50) {
+  return useQuery({
+    queryKey: ["earnings-tracker", sort, limit],
+    queryFn: () => services.getEarningsTracker(sort, limit),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
+export function useStockEarnings(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["stock-earnings", symbol],
+    queryFn: () => services.getStockEarnings(symbol!),
+    enabled: !!symbol,
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number } = {}) {
   return useQuery({
     queryKey: ["deals", params],

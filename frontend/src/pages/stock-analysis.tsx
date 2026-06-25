@@ -39,6 +39,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CorporatePanel } from "@/components/stock/corporate-panel";
 import { NseInsights } from "@/components/stock/nse-insights";
 import { FinancialsPanel } from "@/components/stock/financials-panel";
+import { EarningsPanel } from "@/components/stock/earnings-panel";
 import { OwnershipTrendPanel } from "@/components/stock/ownership-trend";
 import { PeerComparisonPanel } from "@/components/stock/peer-comparison";
 import { Range52w } from "@/components/stock/range-52w";
@@ -457,6 +458,8 @@ export default function StockAnalysisPage() {
           {stock && <PeerComparisonPanel symbol={activeSymbol} />}
 
           {stock && <FinancialsPanel symbol={activeSymbol} />}
+
+          {stock && <EarningsPanel symbol={activeSymbol} />}
 
           {stock && <OwnershipTrendPanel symbol={activeSymbol} />}
 

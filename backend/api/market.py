@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
 from backend.schemas.deals import DealRow
+from backend.schemas.earnings import EarningsRow
 from backend.schemas.events import CorporateEventRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.radar import RadarRow
@@ -19,6 +20,7 @@ from backend.schemas.nse import (
     MarqueeItem,
     TurnoverRow,
 )
+from backend.services import earnings_service
 from backend.services.deals_service import deals_service
 from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
@@ -96,6 +98,19 @@ def market_radar(
     """Momentum/breakout radar: stocks within `threshold`% of their 52-week
     high or low, closest to the extreme first (computed from price history)."""
     return radar_service.screen(db, band=band, threshold=threshold, limit=limit)
+
+
+@router.get("/market/earnings", response_model=list[EarningsRow],
+            summary="Earnings-growth (momentum) tracker")
+def market_earnings(
+    db: Session = Depends(get_db),
+    sort: str = Query("pat", pattern="^(pat|revenue|margin)$"),
+    limit: int = Query(50, ge=1, le=300),
+) -> list[EarningsRow]:
+    """Latest-FY YoY growth ranked by PAT growth, revenue growth or net-margin
+    expansion. `momentum` flags whether PAT growth is accelerating or
+    decelerating versus the prior year (annual financials, cached ~10m)."""
+    return earnings_service.tracker(db, sort=sort, limit=limit)
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")

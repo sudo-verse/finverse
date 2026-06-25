@@ -15,10 +15,12 @@ from backend.schemas.nse import (
     QuarterlyResultOut,
     ShareholdingPeriod,
 )
+from backend.schemas.earnings import StockEarnings
 from backend.schemas.peers import PeerComparison
 from backend.schemas.radar import StockRange
 from backend.schemas.scorecard import ScorecardOut
 from backend.schemas.stock import CompanyOut, StockDetailOut
+from backend.services import earnings_service
 from backend.services.nse_service import nse_service
 from backend.services.peer_service import peer_service
 from backend.services.radar_service import radar_service
@@ -77,6 +79,15 @@ def get_range_52w(db: Session = Depends(get_db), symbol: str = SymbolPath) -> St
     """Where the stock sits between its 52-week low and high, with % from each
     extreme — for the stock-page range bar."""
     return radar_service.stock_range(db, symbol)
+
+
+@router.get("/stocks/{symbol}/earnings", response_model=StockEarnings,
+            summary="Annual earnings-growth history")
+def get_earnings(db: Session = Depends(get_db), symbol: str = SymbolPath) -> StockEarnings:
+    """Year-by-year revenue, PAT, EPS and net margin with YoY growth, plus a
+    momentum verdict (accelerating/decelerating) — for the stock-page panel."""
+    result = earnings_service.stock_earnings(db, symbol)
+    return result or StockEarnings(symbol=symbol.upper(), name="")
 
 
 # ----------------------------------------------------------------------------

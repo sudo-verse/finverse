@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   Activity,
   ArrowLeftRight,
+  BarChart3,
   CalendarDays,
   ChevronLeft,
   FolderOpen,
@@ -38,6 +39,7 @@ const NAV_ITEMS = [
   { to: "/deals", label: "Bulk & Block Deals", icon: ArrowLeftRight },
   { to: "/events", label: "Events Calendar", icon: CalendarDays },
   { to: "/radar", label: "52-Week Radar", icon: Radar },
+  { to: "/earnings", label: "Earnings Momentum", icon: BarChart3 },
   { to: "/signals", label: "Signals", icon: Activity },
   { to: "/sentiment", label: "Sentiment", icon: Gauge },
   { to: "/stocks", label: "Stock Analysis", icon: LineChart },
