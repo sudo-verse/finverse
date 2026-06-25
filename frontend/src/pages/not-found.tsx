@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { Compass, Home, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Seo } from "@/components/seo";
 
 export default function NotFoundPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
+      <Seo title="Page not found" noIndex />
+
       <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md">
         <TrendingUp className="h-6 w-6" />
       </div>

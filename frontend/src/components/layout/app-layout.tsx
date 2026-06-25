@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./sidebar";
@@ -7,10 +7,39 @@ import { TickerTape } from "./ticker-tape";
 import { Footer } from "./footer";
 import { CommandPalette } from "./command-palette";
 
+/** First path segment → document title for authenticated pages. */
+const ROUTE_TITLES: Record<string, string> = {
+  "": "Dashboard",
+  watchlist: "Watchlist",
+  screener: "Screener",
+  valuation: "Fair Value",
+  ownership: "Smart Money",
+  insider: "Insider & SAST",
+  announcements: "Announcements",
+  deals: "Bulk & Block Deals",
+  events: "Events Calendar",
+  radar: "52-Week Radar",
+  earnings: "Earnings Momentum",
+  signals: "Signals",
+  sentiment: "Sentiment",
+  stocks: "Stock Analysis",
+  competitors: "Competitors",
+  portfolio: "Portfolio",
+  research: "AI Research",
+  documents: "Documents",
+  settings: "Settings",
+};
+
 export function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const seg = location.pathname.split("/")[1] ?? "";
+    const label = ROUTE_TITLES[seg];
+    document.title = label ? `${label} · Finverse` : "Finverse — AI Stock Intelligence for the NSE";
+  }, [location.pathname]);
 
   return (
     <div className="flex min-h-screen">

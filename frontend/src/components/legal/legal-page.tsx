@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, TrendingUp } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
+import { Seo } from "@/components/seo";
 import { LEGAL, LEGAL_LINKS } from "@/lib/legal";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ interface LegalPageProps {
 export function LegalPage({ title, current, children }: LegalPageProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <Seo title={title} description={`${title} for Finverse — AI-powered NSE stock intelligence.`} />
       <header className="border-b border-border/60">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-4">
           <Link to="/" className="flex items-center gap-2.5">

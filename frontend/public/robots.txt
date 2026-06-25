@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /$
+Allow: /login
+Allow: /terms
+Allow: /privacy
+Allow: /disclaimer
+# Authenticated app routes have no crawlable content (SPA shell behind auth).
+Disallow: /signals
+Disallow: /stocks
+Disallow: /portfolio
+Disallow: /research
+Disallow: /documents
+Disallow: /settings
+Disallow: /watchlist
+
+Sitemap: https://finverse-henna.vercel.app/sitemap.xml
