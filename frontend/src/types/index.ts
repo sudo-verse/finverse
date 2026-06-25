@@ -755,6 +755,19 @@ export interface OwnershipActivityRow {
   prevPeriod: string | null;
 }
 
+export interface DealRow {
+  dealDate: string;
+  dealType: "bulk" | "block";
+  symbol: string;
+  name: string | null;
+  clientName: string | null;
+  side: "BUY" | "SELL" | null;
+  quantity: number | null;
+  price: number | null;
+  value: number | null;
+  remarks: string | null;
+}
+
 export interface MarketFlowRow {
   date: string;
   fiiBuy: number | null;

@@ -172,6 +172,15 @@ export function useMarketFlows(days = 30) {
   });
 }
 
+export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number } = {}) {
+  return useQuery({
+    queryKey: ["deals", params],
+    queryFn: () => services.getDeals(params),
+    staleTime: 15 * 60_000,
+    retry: false,
+  });
+}
+
 export function useAllIndices() {
   return useQuery({
     queryKey: ["all-indices"],

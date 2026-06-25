@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Activity,
+  ArrowLeftRight,
   ChevronLeft,
   FolderOpen,
   Gauge,
@@ -32,6 +33,7 @@ const NAV_ITEMS = [
   { to: "/watchlist", label: "Watchlist", icon: Star },
   { to: "/screener", label: "Screener", icon: SlidersHorizontal },
   { to: "/ownership", label: "Smart Money", icon: Landmark },
+  { to: "/deals", label: "Bulk & Block Deals", icon: ArrowLeftRight },
   { to: "/signals", label: "Signals", icon: Activity },
   { to: "/sentiment", label: "Sentiment", icon: Gauge },
   { to: "/stocks", label: "Stock Analysis", icon: LineChart },

@@ -6,6 +6,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
+from backend.schemas.deals import DealRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.nse import (
     IndexQuote,
@@ -15,6 +16,7 @@ from backend.schemas.nse import (
     MarqueeItem,
     TurnoverRow,
 )
+from backend.services.deals_service import deals_service
 from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
 
@@ -30,6 +32,21 @@ def market_flows(
     """Latest provisional FII/DII buy/sell/net plus the rolling history and
     window net totals. Populated daily post-close by the market-flow ETL."""
     return market_flow_service.summary(db, days=days)
+
+
+@router.get("/market/deals", response_model=list[DealRow],
+            summary="Bulk & block deals (largest first)")
+def market_deals(
+    db: Session = Depends(get_db),
+    type: str | None = Query(None, pattern="^(bulk|block)$", description="deal type filter"),
+    side: str | None = Query(None, pattern="^(BUY|SELL)$", description="buy/sell filter"),
+    symbol: str | None = Query(None, description="restrict to one stock"),
+    days: int = Query(30, ge=1, le=365),
+    limit: int = Query(100, ge=1, le=500),
+) -> list[DealRow]:
+    """Disclosed large trades by named clients, biggest by value first.
+    Populated daily post-close by the deals ETL (NSE large-deal snapshot)."""
+    return deals_service.recent(db, deal_type=type, side=side, symbol=symbol, days=days, limit=limit)
 
 
 @router.get("/market/overview", response_model=MarketOverview, summary="Live market overview")

@@ -280,6 +280,33 @@ class MarketFlow(Base):
     fetched_at = Column(DateTime, default=datetime.utcnow)
 
 
+class Deal(Base):
+    """A bulk or block deal disclosed by NSE (large trade by a named client).
+
+    One row per (date, type, symbol, client, side, qty) — the natural key NSE
+    publishes. Sourced from the daily large-deal snapshot; powers the Deals
+    feed and the per-stock recent-deals panel."""
+
+    __tablename__ = "deals"
+    __table_args__ = (
+        UniqueConstraint("deal_date", "deal_type", "symbol", "client_name", "side",
+                         "quantity", name="uq_deal_natural"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    deal_date = Column(Date, nullable=False, index=True)
+    deal_type = Column(String(8), nullable=False)      # "bulk" | "block"
+    symbol = Column(String(32), nullable=False, index=True)
+    name = Column(String(255))
+    client_name = Column(String(255))
+    side = Column(String(4))                            # "BUY" | "SELL"
+    quantity = Column(BigInteger)
+    price = Column(Float)                                # weighted-avg trade price
+    value = Column(Float)                                # quantity × price (₹)
+    remarks = Column(String(255))
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Shareholding(Base):
     """Quarterly shareholding snapshot per company (one row per filing period).
 
