@@ -52,15 +52,6 @@ def _sess() -> requests.Session:
     return _session
 
 
-def _refresh_session() -> None:
-    """Drop the cached session so the next call does a fresh cookie handshake.
-    NSE returns a *truncated* shareholding master (only the most recent ~4
-    quarters) once a long-lived session's cookies go stale; a fresh session
-    restores the full history."""
-    global _session
-    _session = None
-
-
 def _num(v):
     try:
         return float(v)
@@ -75,32 +66,22 @@ def _parse_date(s: str):
         return None
 
 
-# Below this many distinct quarters a 200 response is treated as a stale-session
-# truncation worth retrying on a fresh session (young listings just re-confirm).
-_MIN_QUARTERS = 6
-
-
 def _master(symbol: str):
-    best: list = []
     for attempt in (1, 2):
         try:
             r = _sess().get(_MASTER, params={"index": "equities", "symbol": symbol}, timeout=15)
             if r.status_code == 200:
-                data = r.json() or []
-                if len(data) > len(best):
-                    best = data
-                uniq = len({d.get("date") for d in data})
-                if uniq >= _MIN_QUARTERS or attempt == 2:
-                    return best
-                _refresh_session()  # likely truncated — retry on a fresh session
-                continue
+                return r.json()
             if attempt == 1:
-                _refresh_session()
+                _sess().get(_HOME, timeout=10)  # refresh stale cookies
         except Exception as e:
             logger.debug("nse_shp: master %s failed: %s", symbol, e)
             if attempt == 1:
-                _refresh_session()
-    return best
+                try:
+                    _sess().get(_HOME, timeout=10)
+                except Exception:
+                    pass
+    return []
 
 
 def _raw_for(root, ctx: dict, member: str):

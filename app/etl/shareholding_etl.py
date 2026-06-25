@@ -85,7 +85,7 @@ def run(limit=None, sleep=0.5, symbols=None, detail=False):
         try:
             if detail:
                 from app.market import nse_shp
-                recs = nse_shp.detail(symbol, periods=4)
+                recs = nse_shp.detail(symbol, periods=8)
             else:
                 recs = _from_summary(symbol)
         except Exception as e:
