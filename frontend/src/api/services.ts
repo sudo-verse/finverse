@@ -5,6 +5,7 @@ import type {
   AlertKind,
   AlertRule,
   Announcement,
+  AnnouncementFeedRow,
   AnnualReportFile,
   BrsrFile,
   Company,
@@ -166,6 +167,17 @@ export async function getEarningsTracker(
 
 export async function getStockEarnings(symbol: string): Promise<StockEarnings> {
   return (await apiClient.get<StockEarnings>(`/stocks/${symbol}/earnings`)).data;
+}
+
+export async function getAnnouncementsFeed(params: {
+  category?: string;
+  symbol?: string;
+  q?: string;
+  days?: number;
+  routine?: boolean;
+  limit?: number;
+} = {}): Promise<AnnouncementFeedRow[]> {
+  return (await apiClient.get<AnnouncementFeedRow[]>("/market/announcements", { params })).data;
 }
 
 export async function getDeals(params: {

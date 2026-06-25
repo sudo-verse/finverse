@@ -6,6 +6,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
+from backend.schemas.announcements import AnnouncementFeedRow
 from backend.schemas.deals import DealRow
 from backend.schemas.earnings import EarningsRow
 from backend.schemas.events import CorporateEventRow
@@ -20,7 +21,7 @@ from backend.schemas.nse import (
     MarqueeItem,
     TurnoverRow,
 )
-from backend.services import earnings_service
+from backend.services import announcements_service, earnings_service
 from backend.services.deals_service import deals_service
 from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
@@ -111,6 +112,25 @@ def market_earnings(
     expansion. `momentum` flags whether PAT growth is accelerating or
     decelerating versus the prior year (annual financials, cached ~10m)."""
     return earnings_service.tracker(db, sort=sort, limit=limit)
+
+
+@router.get("/market/announcements", response_model=list[AnnouncementFeedRow],
+            summary="Market-wide corporate announcements feed")
+def market_announcements(
+    category: str | None = Query(None, description="order|rating|fundraise|result|mna|dividend|buyback|board|agm|management|investor|sast|other|routine"),
+    symbol: str | None = Query(None),
+    q: str | None = Query(None, description="free-text search over name/symbol/subject"),
+    days: int = Query(2, ge=1, le=7),
+    routine: bool = Query(False, description="include routine noise (trading-window, newspaper copies)"),
+    limit: int = Query(100, ge=1, le=500),
+) -> list[AnnouncementFeedRow]:
+    """Latest exchange filings across the whole market, classified into
+    investor-facing buckets (live from NSE, cached ~5m). Routine noise is
+    hidden unless `routine=true` or a specific category is requested."""
+    return announcements_service.feed(
+        category=category, symbol=symbol, q=q, days=days,
+        include_routine=routine, limit=limit,
+    )
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")

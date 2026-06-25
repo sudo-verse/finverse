@@ -902,3 +902,16 @@ export interface StockEarnings {
   momentum: EarningsMomentum;
   years: EarningsYear[];
 }
+
+export interface AnnouncementFeedRow {
+  symbol: string | null;
+  name: string | null;
+  category: string;
+  desc: string | null;
+  detail: string | null;
+  broadcastAt: string | null;
+  displayTime: string | null;
+  attachmentUrl: string | null;
+  industry: string | null;
+  hasXbrl: boolean;
+}

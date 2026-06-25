@@ -210,6 +210,23 @@ export function useStockEarnings(symbol: string | undefined) {
   });
 }
 
+export function useAnnouncementsFeed(params: {
+  category?: string;
+  symbol?: string;
+  q?: string;
+  days?: number;
+  routine?: boolean;
+  limit?: number;
+} = {}) {
+  return useQuery({
+    queryKey: ["announcements-feed", params],
+    queryFn: () => services.getAnnouncementsFeed(params),
+    staleTime: 5 * 60_000,
+    refetchInterval: 5 * 60_000,
+    retry: false,
+  });
+}
+
 export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number } = {}) {
   return useQuery({
     queryKey: ["deals", params],
