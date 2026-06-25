@@ -755,6 +755,24 @@ export interface OwnershipActivityRow {
   prevPeriod: string | null;
 }
 
+export interface MarketFlowRow {
+  date: string;
+  fiiBuy: number | null;
+  fiiSell: number | null;
+  fiiNet: number | null;
+  diiBuy: number | null;
+  diiSell: number | null;
+  diiNet: number | null;
+}
+
+export interface MarketFlowSummary {
+  latest: MarketFlowRow | null;
+  history: MarketFlowRow[];
+  fiiNetWindow: number | null;
+  diiNetWindow: number | null;
+  windowDays: number;
+}
+
 export interface OwnershipHistoryRow {
   period: string | null;
   promoter: number | null;

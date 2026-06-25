@@ -2,6 +2,11 @@ from typing import Any
 
 from fastapi import APIRouter, Query, Request
 
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+from backend.core.database import get_db
+from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.nse import (
     IndexQuote,
     IntradaySeries,
@@ -10,9 +15,21 @@ from backend.schemas.nse import (
     MarqueeItem,
     TurnoverRow,
 )
+from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
 
 router = APIRouter(tags=["market"])
+
+
+@router.get("/market/flows", response_model=MarketFlowSummary,
+            summary="Daily FII/DII cash-market flows (₹ crore)")
+def market_flows(
+    db: Session = Depends(get_db),
+    days: int = Query(30, ge=1, le=250, description="trading days of history"),
+) -> MarketFlowSummary:
+    """Latest provisional FII/DII buy/sell/net plus the rolling history and
+    window net totals. Populated daily post-close by the market-flow ETL."""
+    return market_flow_service.summary(db, days=days)
 
 
 @router.get("/market/overview", response_model=MarketOverview, summary="Live market overview")

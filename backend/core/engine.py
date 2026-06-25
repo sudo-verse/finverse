@@ -153,7 +153,7 @@ class EtlWorker:
     def _run_once(self) -> None:
         from datetime import datetime, timezone
 
-        from app.etl import companies_etl, financials_etl, prices_etl
+        from app.etl import companies_etl, financials_etl, market_flow_etl, prices_etl
 
         weekly = datetime.now(timezone.utc).weekday() == 6  # Sunday
         if weekly:
@@ -161,6 +161,10 @@ class EtlWorker:
         prices_etl.run(period="1mo")
         if weekly:
             financials_etl.run()
+        try:
+            market_flow_etl.run()  # daily FII/DII provisional flows
+        except Exception as e:
+            logger.warning("etl: market-flow refresh failed: %s", e)
         self._snapshot_sentiment()
         self.status.update(
             runs=self.status["runs"] + 1,

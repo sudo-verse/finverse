@@ -260,6 +260,26 @@ class PortfolioHolding(Base):
     added_at = Column(DateTime, default=datetime.utcnow)
 
 
+class MarketFlow(Base):
+    """Daily market-wide FII/DII cash-market provisional flow (₹ crore).
+
+    One row per trading day, sourced from NSE's fiidiiTradeReact. Powers the
+    "today's institutional flows" dashboard widget + the rolling-net history."""
+
+    __tablename__ = "market_flows"
+    __table_args__ = (UniqueConstraint("date", name="uq_market_flow_date"),)
+
+    id = Column(Integer, primary_key=True)
+    date = Column(Date, nullable=False, unique=True, index=True)
+    fii_buy = Column(Float)
+    fii_sell = Column(Float)
+    fii_net = Column(Float)
+    dii_buy = Column(Float)
+    dii_sell = Column(Float)
+    dii_net = Column(Float)
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Shareholding(Base):
     """Quarterly shareholding snapshot per company (one row per filing period).
 

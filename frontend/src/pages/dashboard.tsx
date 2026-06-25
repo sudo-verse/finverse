@@ -17,6 +17,7 @@ import {
 import { Activity, ArrowDownRight, ArrowUpRight, Building2, Flame, Newspaper, Wallet } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { MarketsBoard } from "@/components/dashboard/markets-board";
+import { InstitutionalFlows } from "@/components/dashboard/institutional-flows";
 import { MetricCard, MetricCardSkeleton } from "@/components/shared/metric-card";
 import { ChartCard, ChartSkeleton } from "@/components/shared/chart-card";
 import { SentimentDot, SignalBadge } from "@/components/shared/signal-badge";
@@ -155,6 +156,9 @@ export default function DashboardPage() {
 
       {/* Live markets: index chart, indices board, turnover */}
       <MarketsBoard />
+
+      {/* Daily FII/DII cash-market flows */}
+      <InstitutionalFlows />
 
       {/* Charts row */}
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">

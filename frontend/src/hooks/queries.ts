@@ -163,6 +163,15 @@ export function useMarketMovers() {
   });
 }
 
+export function useMarketFlows(days = 30) {
+  return useQuery({
+    queryKey: ["market-flows", days],
+    queryFn: () => services.getMarketFlows(days),
+    staleTime: 15 * 60_000,
+    retry: false,
+  });
+}
+
 export function useAllIndices() {
   return useQuery({
     queryKey: ["all-indices"],

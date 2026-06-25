@@ -18,6 +18,7 @@ import type {
   IntradaySeries,
   LiveQuote,
   CagrRow,
+  MarketFlowSummary,
   MarketMovers,
   MarketOverview,
   MarqueeItem,
@@ -131,6 +132,10 @@ export async function getMarketOverview(): Promise<MarketOverview> {
 
 export async function getMarketMovers(): Promise<MarketMovers> {
   return (await apiClient.get<MarketMovers>("/market/movers")).data;
+}
+
+export async function getMarketFlows(days = 30): Promise<MarketFlowSummary> {
+  return (await apiClient.get<MarketFlowSummary>("/market/flows", { params: { days } })).data;
 }
 
 export async function getAllIndices(): Promise<IndexQuote[]> {
