@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Company, Shareholding
 from backend.schemas.ownership import OwnershipActivityRow, OwnershipHistoryRow
+from backend.services import universe_service
 
 _COL = {
     "promoter": Shareholding.promoter_pct,
@@ -23,7 +24,8 @@ _COL = {
 
 class OwnershipService:
     def activity(self, session: Session, metric: str = "promoter", direction: str = "buying",
-                 limit: int = 50, min_change: float = 0.05) -> list[OwnershipActivityRow]:
+                 limit: int = 50, min_change: float = 0.05,
+                 universe: str | None = None) -> list[OwnershipActivityRow]:
         """Stocks ranked by QoQ change in the chosen holding metric.
 
         metric: promoter | fii | dii. direction="buying" → biggest increases,
@@ -61,6 +63,8 @@ class OwnershipService:
                 pct=lpct, prev_pct=ppct, change=round(lpct - ppct, 2),
                 period=lp, prev_period=pp,
             ))
+
+        out = universe_service.filter_rows(out, universe)
 
         if direction == "selling":
             out = [r for r in out if r.change is not None and r.change <= -min_change]

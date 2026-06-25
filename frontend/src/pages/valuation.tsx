@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useValuationLeaderboard } from "@/hooks/queries";
+import { usePreferences } from "@/contexts/preferences";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,8 @@ const VERDICT_BADGE: Record<string, { label: string; variant: "bull" | "bear" | 
 
 export default function ValuationPage() {
   const [verdict, setVerdict] = useState<Verdict>("undervalued");
-  const { data, isLoading } = useValuationLeaderboard(verdict === "all" ? undefined : verdict, 60);
+  const { prefs } = usePreferences();
+  const { data, isLoading } = useValuationLeaderboard(verdict === "all" ? undefined : verdict, 60, prefs.universe);
 
   return (
     <div>

@@ -22,7 +22,7 @@ from collections import defaultdict
 from sqlalchemy.orm import Session
 
 from backend.schemas.valuation import ValuationOut, ValuationRow
-from backend.services import screener_service
+from backend.services import screener_service, universe_service
 
 _CACHE_TTL = 600
 _cache: tuple[float, dict[str, ValuationOut]] | None = None
@@ -167,9 +167,13 @@ def stock(session: Session, symbol: str) -> ValuationOut | None:
     return _all(session).get(symbol.upper())
 
 
-def tracker(session: Session, verdict: str | None = None, limit: int = 50) -> list[ValuationRow]:
+def tracker(session: Session, verdict: str | None = None, limit: int = 50,
+            universe: str | None = None) -> list[ValuationRow]:
+    # Medians are computed on the full universe (in _all); only the leaderboard
+    # rows are narrowed to the chosen index here.
+    candidates = universe_service.filter_rows(list(_all(session).values()), universe)
     rows = [
-        v for v in _all(session).values()
+        v for v in candidates
         if v.confidence != "low" and v.upside_pct is not None and -90 <= v.upside_pct <= 200
     ]
     if verdict:

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRadar } from "@/hooks/queries";
+import { usePreferences } from "@/contexts/preferences";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +33,8 @@ function RangeBar({ pct, band }: { pct: number | null; band: Band }) {
 
 export default function RadarPage() {
   const [band, setBand] = useState<Band>("high");
-  const { data, isLoading } = useRadar(band, 5);
+  const { prefs } = usePreferences();
+  const { data, isLoading } = useRadar(band, 5, prefs.universe);
 
   return (
     <div>

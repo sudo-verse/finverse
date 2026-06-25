@@ -150,8 +150,8 @@ export async function getSectors(): Promise<SectorPerf[]> {
   return (await apiClient.get<SectorPerf[]>("/market/sectors")).data;
 }
 
-export async function getRadar(band: "high" | "low", threshold = 5): Promise<RadarRow[]> {
-  return (await apiClient.get<RadarRow[]>("/market/radar", { params: { band, threshold, limit: 100 } })).data;
+export async function getRadar(band: "high" | "low", threshold = 5, universe?: string): Promise<RadarRow[]> {
+  return (await apiClient.get<RadarRow[]>("/market/radar", { params: { band, threshold, limit: 100, universe } })).data;
 }
 
 export async function getStockRange(symbol: string): Promise<StockRange> {
@@ -165,8 +165,9 @@ export async function getMarketFlows(days = 30): Promise<MarketFlowSummary> {
 export async function getEarningsTracker(
   sort: "pat" | "revenue" | "margin" = "pat",
   limit = 50,
+  universe?: string,
 ): Promise<EarningsRow[]> {
-  return (await apiClient.get<EarningsRow[]>("/market/earnings", { params: { sort, limit } })).data;
+  return (await apiClient.get<EarningsRow[]>("/market/earnings", { params: { sort, limit, universe } })).data;
 }
 
 export async function getStockEarnings(symbol: string): Promise<StockEarnings> {
@@ -202,8 +203,9 @@ export async function getStockInsider(symbol: string, limit = 25): Promise<Insid
 export async function getValuationLeaderboard(
   verdict?: string,
   limit = 50,
+  universe?: string,
 ): Promise<ValuationRow[]> {
-  return (await apiClient.get<ValuationRow[]>("/market/valuation", { params: { verdict, limit } })).data;
+  return (await apiClient.get<ValuationRow[]>("/market/valuation", { params: { verdict, limit, universe } })).data;
 }
 
 export async function getStockValuation(symbol: string): Promise<ValuationOut> {

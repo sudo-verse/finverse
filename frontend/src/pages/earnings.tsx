@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEarningsTracker } from "@/hooks/queries";
+import { usePreferences } from "@/contexts/preferences";
 import type { EarningsMomentum } from "@/types";
 import { formatFraction, formatINRCompact } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -73,7 +74,8 @@ function MomentumBadge({ momentum }: { momentum: EarningsMomentum }) {
 
 export default function EarningsPage() {
   const [sort, setSort] = useState<Sort>("pat");
-  const { data, isLoading } = useEarningsTracker(sort, 50);
+  const { prefs } = usePreferences();
+  const { data, isLoading } = useEarningsTracker(sort, 50, prefs.universe);
 
   return (
     <div>

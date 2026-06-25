@@ -14,12 +14,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatFraction, formatINRCompact, formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { usePreferences } from "@/contexts/preferences";
 import type { ScreenerRow } from "@/types";
 
-function useScreener() {
+function useScreener(universe: string) {
   return useQuery({
-    queryKey: ["screener"],
-    queryFn: async () => (await apiClient.get<ScreenerRow[]>("/screener")).data,
+    queryKey: ["screener", universe],
+    queryFn: async () =>
+      (await apiClient.get<ScreenerRow[]>("/screener", { params: { universe } })).data,
     staleTime: 10 * 60_000,
   });
 }
@@ -63,7 +65,8 @@ function fmtCell(field: SortField, v: number | null): string {
 }
 
 export default function ScreenerPage() {
-  const { data, isLoading } = useScreener();
+  const { prefs } = usePreferences();
+  const { data, isLoading } = useScreener(prefs.universe);
   const [filters, setFilters] = useState<Partial<Record<FilterField, string>>>({});
   const [industry, setIndustry] = useState("ALL");
   const [sort, setSort] = useState<SortField>("marketCap");

@@ -23,7 +23,13 @@ from backend.schemas.nse import (
     MarqueeItem,
     TurnoverRow,
 )
-from backend.services import announcements_service, earnings_service, insider_service, valuation_service
+from backend.services import (
+    announcements_service,
+    earnings_service,
+    insider_service,
+    universe_service,
+    valuation_service,
+)
 from backend.services.deals_service import deals_service
 from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
@@ -82,6 +88,12 @@ def market_overview() -> MarketOverview:
     return nse_service.market_overview()
 
 
+@router.get("/market/universes", summary="Available stock universes (NSE index filters)")
+def market_universes() -> list[dict]:
+    """The index universes the UI can filter ranked lists by (Nifty 50/100/200/500)."""
+    return universe_service.UNIVERSES
+
+
 @router.get("/market/sectors", response_model=list[SectorPerf],
             summary="Sector index performance (day/week/month/year)")
 def market_sectors() -> list[SectorPerf]:
@@ -97,10 +109,11 @@ def market_radar(
     band: str = Query("high", pattern="^(high|low)$"),
     threshold: float = Query(3.0, ge=0.1, le=25, description="% within the extreme"),
     limit: int = Query(100, ge=1, le=500),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
 ) -> list[RadarRow]:
     """Momentum/breakout radar: stocks within `threshold`% of their 52-week
     high or low, closest to the extreme first (computed from price history)."""
-    return radar_service.screen(db, band=band, threshold=threshold, limit=limit)
+    return radar_service.screen(db, band=band, threshold=threshold, limit=limit, universe=universe)
 
 
 @router.get("/market/earnings", response_model=list[EarningsRow],
@@ -109,11 +122,12 @@ def market_earnings(
     db: Session = Depends(get_db),
     sort: str = Query("pat", pattern="^(pat|revenue|margin)$"),
     limit: int = Query(50, ge=1, le=300),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
 ) -> list[EarningsRow]:
     """Latest-FY YoY growth ranked by PAT growth, revenue growth or net-margin
     expansion. `momentum` flags whether PAT growth is accelerating or
     decelerating versus the prior year (annual financials, cached ~10m)."""
-    return earnings_service.tracker(db, sort=sort, limit=limit)
+    return earnings_service.tracker(db, sort=sort, limit=limit, universe=universe)
 
 
 @router.get("/market/announcements", response_model=list[AnnouncementFeedRow],
@@ -160,11 +174,12 @@ def market_valuation(
     db: Session = Depends(get_db),
     verdict: str | None = Query(None, pattern="^(undervalued|overvalued|fairly valued)$"),
     limit: int = Query(50, ge=1, le=300),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
 ) -> list[ValuationRow]:
     """Stocks ranked by upside to sector-relative fair value (quality-adjusted
     multiples). A screening signal, not a price target; low-confidence and
     outlier estimates are excluded. Cached ~10m."""
-    return valuation_service.tracker(db, verdict=verdict, limit=limit)
+    return valuation_service.tracker(db, verdict=verdict, limit=limit, universe=universe)
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")

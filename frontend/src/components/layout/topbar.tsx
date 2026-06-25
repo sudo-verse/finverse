@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/auth";
 import { useAlertEvents, useMarkAlertsSeen, useMarketOverview, useUsage } from "@/hooks/queries";
 import { formatNumber, formatPercent, timeAgo } from "@/lib/format";
 import { NAV_ITEMS } from "./sidebar";
+import { UniverseSelector } from "./universe-selector";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
@@ -213,6 +214,9 @@ export function Topbar({ onOpenPalette }: TopbarProps) {
         </div>
 
         <div className="flex-1" />
+
+        {/* Global stock-universe filter */}
+        <UniverseSelector />
 
         {/* Command palette trigger */}
         <button

@@ -21,11 +21,12 @@ def ownership_activity(
     direction: str = Query("buying", pattern="^(buying|selling)$",
                            description="buying = biggest increases; selling = decreases"),
     limit: int = Query(50, ge=1, le=200),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
 ) -> list[OwnershipActivityRow]:
     """Market-wide accumulation/reduction for the chosen holder class, from the
     latest two quarterly shareholding snapshots (populated by the shareholding ETL).
     Institutional classes require the `--detail` ETL run; promoter works from the summary run."""
-    return ownership_service.activity(db, metric=metric, direction=direction, limit=limit)
+    return ownership_service.activity(db, metric=metric, direction=direction, limit=limit, universe=universe)
 
 
 @router.get("/ownership/{symbol}/history", response_model=list[OwnershipHistoryRow],

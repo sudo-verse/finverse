@@ -163,10 +163,10 @@ export function useMarketMovers() {
   });
 }
 
-export function useRadar(band: "high" | "low", threshold = 5) {
+export function useRadar(band: "high" | "low", threshold = 5, universe?: string) {
   return useQuery({
-    queryKey: ["radar", band, threshold],
-    queryFn: () => services.getRadar(band, threshold),
+    queryKey: ["radar", band, threshold, universe],
+    queryFn: () => services.getRadar(band, threshold, universe),
     staleTime: 10 * 60_000,
     retry: false,
   });
@@ -191,10 +191,10 @@ export function useMarketFlows(days = 30) {
   });
 }
 
-export function useEarningsTracker(sort: "pat" | "revenue" | "margin" = "pat", limit = 50) {
+export function useEarningsTracker(sort: "pat" | "revenue" | "margin" = "pat", limit = 50, universe?: string) {
   return useQuery({
-    queryKey: ["earnings-tracker", sort, limit],
-    queryFn: () => services.getEarningsTracker(sort, limit),
+    queryKey: ["earnings-tracker", sort, limit, universe],
+    queryFn: () => services.getEarningsTracker(sort, limit, universe),
     staleTime: 10 * 60_000,
     retry: false,
   });
@@ -253,10 +253,10 @@ export function useStockInsider(symbol: string | undefined, limit = 25) {
   });
 }
 
-export function useValuationLeaderboard(verdict?: string, limit = 50) {
+export function useValuationLeaderboard(verdict?: string, limit = 50, universe?: string) {
   return useQuery({
-    queryKey: ["valuation-leaderboard", verdict, limit],
-    queryFn: () => services.getValuationLeaderboard(verdict, limit),
+    queryKey: ["valuation-leaderboard", verdict, limit, universe],
+    queryFn: () => services.getValuationLeaderboard(verdict, limit, universe),
     staleTime: 10 * 60_000,
     retry: false,
   });

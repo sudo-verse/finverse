@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { usePreferences } from "@/contexts/preferences";
 import type { OwnershipActivityRow } from "@/types";
 
 type Metric = "promoter" | "fii" | "dii" | "mf" | "insurance";
@@ -22,12 +23,12 @@ const METRICS: { key: Metric; label: string }[] = [
   { key: "insurance", label: "Insurance" },
 ];
 
-function useOwnershipActivity(metric: Metric, direction: Direction) {
+function useOwnershipActivity(metric: Metric, direction: Direction, universe: string) {
   return useQuery({
-    queryKey: ["ownership-activity", metric, direction],
+    queryKey: ["ownership-activity", metric, direction, universe],
     queryFn: async () =>
       (await apiClient.get<OwnershipActivityRow[]>("/ownership/activity", {
-        params: { metric, direction, limit: 50 },
+        params: { metric, direction, limit: 50, universe },
       })).data,
     staleTime: 10 * 60_000,
   });
@@ -36,7 +37,8 @@ function useOwnershipActivity(metric: Metric, direction: Direction) {
 export default function OwnershipPage() {
   const [metric, setMetric] = useState<Metric>("promoter");
   const [direction, setDirection] = useState<Direction>("buying");
-  const { data, isLoading } = useOwnershipActivity(metric, direction);
+  const { prefs } = usePreferences();
+  const { data, isLoading } = useOwnershipActivity(metric, direction, prefs.universe);
   const label = METRICS.find((m) => m.key === metric)!.label;
 
   return (

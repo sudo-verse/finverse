@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Company, FinancialStatement
 from backend.schemas.earnings import EarningsRow, EarningsYear, StockEarnings
+from backend.services import universe_service
 
 _CACHE_TTL = 600
 _cache: tuple[float, list[EarningsRow]] | None = None
@@ -142,10 +143,11 @@ def _in_bounds(metric: str, value) -> bool:
     return _MIN_GROWTH <= value <= _MAX_GROWTH
 
 
-def tracker(session: Session, sort: str = "pat", limit: int = 50) -> list[EarningsRow]:
+def tracker(session: Session, sort: str = "pat", limit: int = 50,
+            universe: str | None = None) -> list[EarningsRow]:
     metric, key = _SORTS.get(sort, _SORTS["pat"])
     rows = [
-        r for r in _all(session)
+        r for r in universe_service.filter_rows(_all(session), universe)
         if _plausible(r) and _in_bounds(metric, getattr(r, metric))
     ]
     rows.sort(key=lambda r: key(r) or 0, reverse=True)

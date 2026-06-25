@@ -8,6 +8,17 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
  */
 export type Accent = "blue" | "emerald" | "violet" | "amber";
 
+/** NSE index universe used to personalise ranked lists. */
+export type Universe = "all" | "nifty50" | "nifty100" | "nifty200" | "nifty500";
+
+export const UNIVERSES: { key: Universe; label: string }[] = [
+  { key: "all", label: "All stocks" },
+  { key: "nifty50", label: "Nifty 50" },
+  { key: "nifty100", label: "Nifty 100" },
+  { key: "nifty200", label: "Nifty 200" },
+  { key: "nifty500", label: "Nifty 500" },
+];
+
 export interface NotificationPrefs {
   buy: boolean;
   sell: boolean;
@@ -17,13 +28,17 @@ export interface NotificationPrefs {
 
 export interface Preferences {
   accent: Accent;
+  universe: Universe;
   notifications: NotificationPrefs;
 }
 
 const DEFAULTS: Preferences = {
   accent: "blue",
+  universe: "all",
   notifications: { buy: true, sell: true, news: false, telegram: false },
 };
+
+const UNIVERSE_KEYS = UNIVERSES.map((u) => u.key);
 
 /** Accent → (primary, primary-foreground, ring). */
 export const ACCENTS: Record<Accent, { label: string; primary: string; foreground: string }> = {
@@ -42,6 +57,7 @@ function load(): Preferences {
     const parsed = JSON.parse(raw) as Partial<Preferences>;
     return {
       accent: parsed.accent && parsed.accent in ACCENTS ? parsed.accent : DEFAULTS.accent,
+      universe: parsed.universe && UNIVERSE_KEYS.includes(parsed.universe) ? parsed.universe : DEFAULTS.universe,
       notifications: { ...DEFAULTS.notifications, ...(parsed.notifications ?? {}) },
     };
   } catch {
@@ -60,6 +76,7 @@ function applyAccent(accent: Accent) {
 interface PreferencesContextValue {
   prefs: Preferences;
   setAccent: (accent: Accent) => void;
+  setUniverse: (universe: Universe) => void;
   setNotification: (key: keyof NotificationPrefs, value: boolean) => void;
   reset: () => void;
 }
@@ -80,6 +97,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   }, [prefs]);
 
   const setAccent = useCallback((accent: Accent) => setPrefs((p) => ({ ...p, accent })), []);
+  const setUniverse = useCallback((universe: Universe) => setPrefs((p) => ({ ...p, universe })), []);
   const setNotification = useCallback(
     (key: keyof NotificationPrefs, value: boolean) =>
       setPrefs((p) => ({ ...p, notifications: { ...p.notifications, [key]: value } })),
@@ -88,8 +106,8 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const reset = useCallback(() => setPrefs(DEFAULTS), []);
 
   const value = useMemo(
-    () => ({ prefs, setAccent, setNotification, reset }),
-    [prefs, setAccent, setNotification, reset],
+    () => ({ prefs, setAccent, setUniverse, setNotification, reset }),
+    [prefs, setAccent, setUniverse, setNotification, reset],
   );
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

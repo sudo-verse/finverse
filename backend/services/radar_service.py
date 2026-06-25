@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Company, PriceHistory
 from backend.schemas.radar import RadarRow, StockRange
+from backend.services import universe_service
 from backend.services.screener_service import _latest_prices
 
 _WINDOW_DAYS = 365
@@ -87,10 +88,10 @@ def _all(session: Session) -> list[RadarRow]:
 
 class RadarService:
     def screen(self, session: Session, band: str = "high", threshold: float = 3.0,
-               limit: int = 100) -> list[RadarRow]:
+               limit: int = 100, universe: str | None = None) -> list[RadarRow]:
         """Stocks within `threshold`% of their 52-week high (band="high") or
         low (band="low"), closest to the extreme first."""
-        rows = _all(session)
+        rows = universe_service.filter_rows(_all(session), universe)
         if band == "low":
             near = [r for r in rows if r.pct_from_low is not None and r.pct_from_low <= threshold]
             near.sort(key=lambda r: r.pct_from_low)
