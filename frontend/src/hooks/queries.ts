@@ -253,6 +253,25 @@ export function useStockInsider(symbol: string | undefined, limit = 25) {
   });
 }
 
+export function useValuationLeaderboard(verdict?: string, limit = 50) {
+  return useQuery({
+    queryKey: ["valuation-leaderboard", verdict, limit],
+    queryFn: () => services.getValuationLeaderboard(verdict, limit),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
+export function useStockValuation(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["stock-valuation", symbol],
+    queryFn: () => services.getStockValuation(symbol!),
+    enabled: !!symbol,
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number } = {}) {
   return useQuery({
     queryKey: ["deals", params],

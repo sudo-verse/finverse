@@ -11,6 +11,7 @@ from backend.schemas.deals import DealRow
 from backend.schemas.earnings import EarningsRow
 from backend.schemas.events import CorporateEventRow
 from backend.schemas.insider import SastRow
+from backend.schemas.valuation import ValuationRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.radar import RadarRow
 from backend.schemas.sectors import SectorPerf
@@ -22,7 +23,7 @@ from backend.schemas.nse import (
     MarqueeItem,
     TurnoverRow,
 )
-from backend.services import announcements_service, earnings_service, insider_service
+from backend.services import announcements_service, earnings_service, insider_service, valuation_service
 from backend.services.deals_service import deals_service
 from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
@@ -151,6 +152,19 @@ def market_sast(
         action=action, symbol=symbol, promoter_only=promoter, q=q,
         days=days, limit=limit,
     )
+
+
+@router.get("/market/valuation", response_model=list[ValuationRow],
+            summary="Relative fair-value leaderboard")
+def market_valuation(
+    db: Session = Depends(get_db),
+    verdict: str | None = Query(None, pattern="^(undervalued|overvalued|fairly valued)$"),
+    limit: int = Query(50, ge=1, le=300),
+) -> list[ValuationRow]:
+    """Stocks ranked by upside to sector-relative fair value (quality-adjusted
+    multiples). A screening signal, not a price target; low-confidence and
+    outlier estimates are excluded. Cached ~10m."""
+    return valuation_service.tracker(db, verdict=verdict, limit=limit)
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")

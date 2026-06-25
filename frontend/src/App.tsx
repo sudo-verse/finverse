@@ -23,6 +23,7 @@ const RadarPage = lazy(() => import("@/pages/radar"));
 const EarningsPage = lazy(() => import("@/pages/earnings"));
 const AnnouncementsPage = lazy(() => import("@/pages/announcements"));
 const InsiderPage = lazy(() => import("@/pages/insider"));
+const ValuationPage = lazy(() => import("@/pages/valuation"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
 
 function PageFallback() {
@@ -88,6 +89,7 @@ export default function App() {
             ["/earnings", EarningsPage],
             ["/announcements", AnnouncementsPage],
             ["/insider", InsiderPage],
+            ["/valuation", ValuationPage],
             ["/settings", SettingsPage],
           ] as const
         ).map(([path, Page]) => (

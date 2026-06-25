@@ -946,3 +946,36 @@ export interface InsiderTrade {
   tradeDate: string | null;
   filedAt: string | null;
 }
+
+export interface ValuationOut {
+  symbol: string;
+  name: string;
+  sector: string | null;
+  price: number | null;
+  fairValue: number | null;
+  upsidePct: number | null;
+  marginOfSafety: number | null;
+  verdict: string | null;
+  confidence: string | null;
+  pe: number | null;
+  sectorPe: number | null;
+  fairPe: number | null;
+  peFairValue: number | null;
+  pb: number | null;
+  sectorPb: number | null;
+  fairPb: number | null;
+  pbFairValue: number | null;
+  method: string | null;
+  note: string | null;
+}
+
+export interface ValuationRow {
+  symbol: string;
+  name: string;
+  sector: string | null;
+  price: number | null;
+  fairValue: number | null;
+  upsidePct: number | null;
+  verdict: string | null;
+  confidence: string | null;
+}

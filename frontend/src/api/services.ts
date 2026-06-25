@@ -29,6 +29,8 @@ import type {
   SectorPerf,
   StockEarnings,
   StockRange,
+  ValuationOut,
+  ValuationRow,
   MarketMovers,
   MarketOverview,
   MarqueeItem,
@@ -195,6 +197,17 @@ export async function getSastFeed(params: {
 
 export async function getStockInsider(symbol: string, limit = 25): Promise<InsiderTrade[]> {
   return (await apiClient.get<InsiderTrade[]>(`/stocks/${symbol}/insider`, { params: { limit } })).data;
+}
+
+export async function getValuationLeaderboard(
+  verdict?: string,
+  limit = 50,
+): Promise<ValuationRow[]> {
+  return (await apiClient.get<ValuationRow[]>("/market/valuation", { params: { verdict, limit } })).data;
+}
+
+export async function getStockValuation(symbol: string): Promise<ValuationOut> {
+  return (await apiClient.get<ValuationOut>(`/stocks/${symbol}/valuation`)).data;
 }
 
 export async function getDeals(params: {

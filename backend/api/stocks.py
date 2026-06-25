@@ -18,10 +18,11 @@ from backend.schemas.nse import (
 from backend.schemas.earnings import StockEarnings
 from backend.schemas.insider import InsiderTrade
 from backend.schemas.peers import PeerComparison
+from backend.schemas.valuation import ValuationOut
 from backend.schemas.radar import StockRange
 from backend.schemas.scorecard import ScorecardOut
 from backend.schemas.stock import CompanyOut, StockDetailOut
-from backend.services import earnings_service, insider_service
+from backend.services import earnings_service, insider_service, valuation_service
 from backend.services.nse_service import nse_service
 from backend.services.peer_service import peer_service
 from backend.services.radar_service import radar_service
@@ -97,6 +98,16 @@ def get_insider(symbol: str = SymbolPath, limit: int = Query(25, ge=1, le=100)) 
     """Named-insider trades (promoters/directors/KMP buying or selling) from
     SEBI PIT disclosures — live from NSE, per company."""
     return insider_service.stock_insider(symbol.upper(), limit=limit)
+
+
+@router.get("/stocks/{symbol}/valuation", response_model=ValuationOut,
+            summary="Relative fair-value estimate")
+def get_valuation(db: Session = Depends(get_db), symbol: str = SymbolPath) -> ValuationOut:
+    """Sector-relative, quality-adjusted fair value (P/E×growth + P/B×ROE) with
+    upside, margin of safety and a confidence flag — a screening signal, not a
+    price target."""
+    result = valuation_service.stock(db, symbol)
+    return result or ValuationOut(symbol=symbol.upper(), name="")
 
 
 # ----------------------------------------------------------------------------
