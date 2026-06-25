@@ -40,6 +40,7 @@ import { CorporatePanel } from "@/components/stock/corporate-panel";
 import { NseInsights } from "@/components/stock/nse-insights";
 import { FinancialsPanel } from "@/components/stock/financials-panel";
 import { OwnershipTrendPanel } from "@/components/stock/ownership-trend";
+import { PeerComparisonPanel } from "@/components/stock/peer-comparison";
 import { ScorecardPanel } from "@/components/stock/scorecard-panel";
 import { useCompetitors, useGenerateReport, useHistoryRange, useIntraday, useLiveQuote, useStock } from "@/hooks/queries";
 import {
@@ -445,6 +446,8 @@ export default function StockAnalysisPage() {
 
           {/* Fundamentals terminal: CAGR, statements, ratio trends, pros & cons */}
           {stock && <ScorecardPanel symbol={activeSymbol} />}
+
+          {stock && <PeerComparisonPanel symbol={activeSymbol} />}
 
           {stock && <FinancialsPanel symbol={activeSymbol} />}
 

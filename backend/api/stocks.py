@@ -15,9 +15,11 @@ from backend.schemas.nse import (
     QuarterlyResultOut,
     ShareholdingPeriod,
 )
+from backend.schemas.peers import PeerComparison
 from backend.schemas.scorecard import ScorecardOut
 from backend.schemas.stock import CompanyOut, StockDetailOut
 from backend.services.nse_service import nse_service
+from backend.services.peer_service import peer_service
 from backend.services.scorecard_service import scorecard_service
 from backend.services.stock_service import stock_service
 
@@ -55,6 +57,16 @@ def get_scorecard(db: Session = Depends(get_db), symbol: str = SymbolPath) -> Sc
     financial health, red flags, momentum) computed from the stock's financials,
     prices and sentiment — each with a good/average/bad call and a one-line why."""
     return scorecard_service.compute(db, symbol)
+
+
+@router.get("/stocks/{symbol}/peers", response_model=PeerComparison,
+            summary="Sector/industry peer comparison")
+def get_peers(db: Session = Depends(get_db), symbol: str = SymbolPath,
+              limit: int = Query(8, ge=2, le=20)) -> PeerComparison:
+    """The stock ranked against its industry (or sector, if the industry group
+    is thin) peers on valuation, returns and growth — reuses the screener's
+    computed ratios so the same data caveats apply."""
+    return peer_service.peers(db, symbol, limit=limit)
 
 
 # ----------------------------------------------------------------------------

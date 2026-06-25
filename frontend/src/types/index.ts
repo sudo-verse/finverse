@@ -729,6 +729,27 @@ export interface SignalPerformance {
   worst: SignalExample[];
 }
 
+export interface PeerRow {
+  symbol: string;
+  name: string;
+  isTarget: boolean;
+  price: number | null;
+  marketCap: number | null;
+  pe: number | null;
+  pb: number | null;
+  roe: number | null;
+  npm: number | null;
+  revenueGrowth: number | null;
+  profitGrowth: number | null;
+}
+
+export interface PeerComparison {
+  symbol: string;
+  group: string | null;
+  groupedBy: string | null;
+  peers: PeerRow[];
+}
+
 export interface ScorecardCheck {
   category: string;
   verdict: "good" | "average" | "bad" | "na";
