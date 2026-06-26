@@ -998,3 +998,51 @@ export interface ConvictionRow {
   coverage: number;
   pillars: ConvictionPillar[];
 }
+
+export interface TechnicalSignal {
+  label: string;
+  value: string | null;
+  tone: "bull" | "bear" | "neutral";
+}
+
+export interface TechnicalsOut {
+  symbol: string;
+  name: string;
+  price: number | null;
+  score: number | null;
+  trend: string | null;
+  bars: number;
+  sma20: number | null;
+  sma50: number | null;
+  sma200: number | null;
+  goldenCross: boolean | null;
+  rsi: number | null;
+  macd: number | null;
+  macdSignal: number | null;
+  macdHist: number | null;
+  pivot: number | null;
+  r1: number | null;
+  r2: number | null;
+  s1: number | null;
+  s2: number | null;
+  high52: number | null;
+  low52: number | null;
+  pctFromHigh: number | null;
+  pctInRange: number | null;
+  volLatest: number | null;
+  volAvg20: number | null;
+  signals: TechnicalSignal[];
+}
+
+export interface TechnicalRow {
+  symbol: string;
+  name: string;
+  sector: string | null;
+  price: number | null;
+  score: number;
+  trend: string;
+  rsi: number | null;
+  macdHist: number | null;
+  aboveSma50: boolean | null;
+  pctInRange: number | null;
+}

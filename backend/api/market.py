@@ -16,6 +16,7 @@ from backend.schemas.valuation import ValuationRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.radar import RadarRow
 from backend.schemas.sectors import SectorPerf
+from backend.schemas.technicals import TechnicalRow
 from backend.schemas.nse import (
     IndexQuote,
     IntradaySeries,
@@ -29,6 +30,7 @@ from backend.services import (
     conviction_service,
     earnings_service,
     insider_service,
+    technical_service,
     universe_service,
     valuation_service,
 )
@@ -200,6 +202,20 @@ def market_conviction(
     and sentiment — each pillar surfaced in the breakdown. order="bottom" lists
     the weakest (avoid) names. A screening synthesis, not advice. Cached ~10m."""
     return conviction_service.leaderboard(db, order=order, limit=limit, universe=universe)
+
+
+@router.get("/market/technicals", response_model=list[TechnicalRow],
+            summary="Technical screener")
+def market_technicals(
+    db: Session = Depends(get_db),
+    signal: str = Query("bullish", pattern="^(bullish|bearish)$"),
+    limit: int = Query(60, ge=1, le=300),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
+) -> list[TechnicalRow]:
+    """Universe ranked by a composite technical score (price vs 20/50-DMA, RSI,
+    MACD, 52-week position). signal="bearish" lists the weakest setups. Computed
+    from our own OHLCV; cached ~10m."""
+    return technical_service.screen(db, signal=signal, limit=limit, universe=universe)
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")

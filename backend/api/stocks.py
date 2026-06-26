@@ -16,6 +16,7 @@ from backend.schemas.nse import (
     ShareholdingPeriod,
 )
 from backend.schemas.conviction import ConvictionRow
+from backend.schemas.technicals import TechnicalsOut
 from backend.schemas.earnings import StockEarnings
 from backend.schemas.insider import InsiderTrade
 from backend.schemas.peers import PeerComparison
@@ -27,6 +28,7 @@ from backend.services import (
     conviction_service,
     earnings_service,
     insider_service,
+    technical_service,
     valuation_service,
 )
 from backend.services.nse_service import nse_service
@@ -123,6 +125,15 @@ def get_conviction(db: Session = Depends(get_db), symbol: str = SymbolPath) -> C
     (valuation, momentum, smart money, insider/SAST, 52-week trend, sentiment).
     Returns null when too few pillars have data to score it."""
     return conviction_service.stock(db, symbol)
+
+
+@router.get("/stocks/{symbol}/technicals", response_model=TechnicalsOut | None,
+            summary="Technical indicators")
+def get_technicals(db: Session = Depends(get_db), symbol: str = SymbolPath) -> TechnicalsOut | None:
+    """Full technical read from our daily OHLCV — moving averages (20/50/200),
+    RSI, MACD, classic pivots, 52-week position and volume — with a composite
+    0-100 score and signal flags. A trading-signal view, not advice."""
+    return technical_service.technicals(db, symbol)
 
 
 # ----------------------------------------------------------------------------

@@ -46,6 +46,7 @@ import { PeerComparisonPanel } from "@/components/stock/peer-comparison";
 import { Range52w } from "@/components/stock/range-52w";
 import { ValuationPanel } from "@/components/stock/valuation-panel";
 import { ConvictionPanel } from "@/components/stock/conviction-panel";
+import { TechnicalsPanel } from "@/components/stock/technicals-panel";
 import { ScorecardPanel } from "@/components/stock/scorecard-panel";
 import { useCompetitors, useGenerateReport, useHistoryRange, useIntraday, useLiveQuote, useStock } from "@/hooks/queries";
 import {
@@ -455,6 +456,8 @@ export default function StockAnalysisPage() {
               <Range52w symbol={activeSymbol} />
             </div>
           )}
+
+          {stock && <TechnicalsPanel symbol={activeSymbol} />}
 
           {stock && <ScorecardPanel symbol={activeSymbol} />}
 

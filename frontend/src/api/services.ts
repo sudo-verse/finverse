@@ -26,6 +26,8 @@ import type {
   MarketFlowSummary,
   SastRow,
   ConvictionRow,
+  TechnicalsOut,
+  TechnicalRow,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -225,6 +227,18 @@ export async function getConvictionLeaderboard(
 
 export async function getStockConviction(symbol: string): Promise<ConvictionRow | null> {
   return (await apiClient.get<ConvictionRow | null>(`/stocks/${symbol}/conviction`)).data;
+}
+
+export async function getStockTechnicals(symbol: string): Promise<TechnicalsOut | null> {
+  return (await apiClient.get<TechnicalsOut | null>(`/stocks/${symbol}/technicals`)).data;
+}
+
+export async function getTechnicalScreen(
+  signal: "bullish" | "bearish" = "bullish",
+  limit = 60,
+  universe?: string,
+): Promise<TechnicalRow[]> {
+  return (await apiClient.get<TechnicalRow[]>("/market/technicals", { params: { signal, limit, universe } })).data;
 }
 
 export async function getDeals(params: {

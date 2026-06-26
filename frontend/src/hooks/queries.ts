@@ -293,6 +293,25 @@ export function useStockConviction(symbol: string | undefined) {
   });
 }
 
+export function useStockTechnicals(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["stock-technicals", symbol],
+    queryFn: () => services.getStockTechnicals(symbol!),
+    enabled: !!symbol,
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
+export function useTechnicalScreen(signal: "bullish" | "bearish" = "bullish", limit = 60, universe?: string) {
+  return useQuery({
+    queryKey: ["technical-screen", signal, limit, universe],
+    queryFn: () => services.getTechnicalScreen(signal, limit, universe),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number; universe?: string } = {}) {
   return useQuery({
     queryKey: ["deals", params],

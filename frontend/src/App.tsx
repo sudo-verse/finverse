@@ -25,6 +25,7 @@ const AnnouncementsPage = lazy(() => import("@/pages/announcements"));
 const InsiderPage = lazy(() => import("@/pages/insider"));
 const ValuationPage = lazy(() => import("@/pages/valuation"));
 const ConvictionPage = lazy(() => import("@/pages/conviction"));
+const TechnicalsPage = lazy(() => import("@/pages/technicals"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
 const TermsPage = lazy(() => import("@/pages/legal/terms"));
 const PrivacyPage = lazy(() => import("@/pages/legal/privacy"));
@@ -114,6 +115,7 @@ export default function App() {
             ["/insider", InsiderPage],
             ["/valuation", ValuationPage],
             ["/conviction", ConvictionPage],
+            ["/technicals", TechnicalsPage],
             ["/settings", SettingsPage],
           ] as const
         ).map(([path, Page]) => (
