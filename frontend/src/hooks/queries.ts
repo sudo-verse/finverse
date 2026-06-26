@@ -331,6 +331,15 @@ export function useSurveillance() {
   });
 }
 
+export function useSuperstars(days = 365) {
+  return useQuery({
+    queryKey: ["superstars", days],
+    queryFn: () => services.getSuperstars(days),
+    staleTime: 15 * 60_000,
+    retry: false,
+  });
+}
+
 export function useResultsCalendar(window: "upcoming" | "recent" = "upcoming", universe?: string) {
   return useQuery({
     queryKey: ["results-calendar", window, universe],

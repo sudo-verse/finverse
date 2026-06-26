@@ -1054,6 +1054,26 @@ export interface TechnicalRow {
   pctInRange: number | null;
 }
 
+export interface SuperstarTrade {
+  symbol: string | null;
+  name: string | null;
+  side: string | null;
+  value: number | null;
+  dealDate: string;
+  dealType: string | null;
+}
+
+export interface SuperstarRow {
+  investor: string;
+  kind: string;
+  numTrades: number;
+  buyValue: number;
+  sellValue: number;
+  lastActive: string | null;
+  stocks: string[];
+  trades: SuperstarTrade[];
+}
+
 export interface ResultRow {
   symbol: string;
   name: string | null;

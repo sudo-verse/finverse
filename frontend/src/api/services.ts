@@ -34,6 +34,7 @@ import type {
   SurveillanceRow,
   IpoRow,
   ResultRow,
+  SuperstarRow,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -261,6 +262,10 @@ export async function getSurveillance(): Promise<SurveillanceRow[]> {
 
 export async function getIpos(status: "open" | "upcoming" | "listed" = "open", limit = 40): Promise<IpoRow[]> {
   return (await apiClient.get<IpoRow[]>("/market/ipos", { params: { status, limit } })).data;
+}
+
+export async function getSuperstars(days = 365): Promise<SuperstarRow[]> {
+  return (await apiClient.get<SuperstarRow[]>("/market/superstars", { params: { days } })).data;
 }
 
 export async function getResultsCalendar(

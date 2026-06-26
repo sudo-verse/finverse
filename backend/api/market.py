@@ -19,6 +19,7 @@ from backend.schemas.market_mood import MarketMoodOut
 from backend.schemas.radar import RadarRow
 from backend.schemas.red_flags import SurveillanceRow
 from backend.schemas.results_calendar import ResultRow
+from backend.schemas.superstar import SuperstarRow
 from backend.schemas.sectors import SectorPerf
 from backend.schemas.technicals import TechnicalRow
 from backend.schemas.nse import (
@@ -47,6 +48,7 @@ from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
 from backend.services.radar_service import radar_service
 from backend.services.results_service import calendar as results_calendar
+from backend.services import superstar_service
 from backend.services.sector_service import sector_service
 
 router = APIRouter(tags=["market"])
@@ -224,6 +226,19 @@ def market_technicals(
     MACD, 52-week position). signal="bearish" lists the weakest setups. Computed
     from our own OHLCV; cached ~10m."""
     return technical_service.screen(db, signal=signal, limit=limit, universe=universe)
+
+
+@router.get("/market/superstars", response_model=list[SuperstarRow],
+            summary="Marquee-investor activity")
+def market_superstars(
+    db: Session = Depends(get_db),
+    days: int = Query(365, ge=7, le=730),
+    limit: int = Query(30, ge=1, le=60),
+) -> list[SuperstarRow]:
+    """Well-known investors and notable funds, matched by name against the
+    disclosed bulk/block-deal book — their recent buys/sells and the stocks they
+    touched. Sparse until these names transact; HFT/prop desks never match."""
+    return superstar_service.leaderboard(db, days=days, limit=limit)
 
 
 @router.get("/market/results-calendar", response_model=list[ResultRow],
