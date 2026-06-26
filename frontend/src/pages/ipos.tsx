@@ -60,6 +60,7 @@ export default function IposPage() {
                 <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="p-3">Company</th>
                   <th className="p-3">Price band</th>
+                  {status !== "listed" && <th className="p-3 text-right">GMP</th>}
                   <th className="hidden p-3 sm:table-cell">{status === "listed" ? "Listed" : "Open → Close"}</th>
                   {status === "open" && <th className="p-3 text-right">Subscription</th>}
                   <th className="p-3 text-center">Type</th>
@@ -84,6 +85,20 @@ export default function IposPage() {
                       <div className="max-w-[16rem] truncate text-xs text-muted-foreground">{r.name}</div>
                     </td>
                     <td className="p-3 font-mono text-xs">{r.priceBand ?? "—"}</td>
+                    {status !== "listed" && (
+                      <td className="p-3 text-right">
+                        {r.gmp != null && r.gmp > 0 ? (
+                          <span className="whitespace-nowrap">
+                            <span className="font-mono text-xs font-medium text-bull">₹{r.gmp.toFixed(0)}</span>
+                            {r.gmpPct != null && (
+                              <span className="ml-1 text-[10px] text-muted-foreground">+{r.gmpPct.toFixed(1)}%</span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                    )}
                     <td className="hidden p-3 text-xs text-muted-foreground sm:table-cell">
                       {status === "listed" ? (r.listingDate ?? "—") : `${r.openDate ?? "—"} → ${r.closeDate ?? "—"}`}
                     </td>
@@ -107,7 +122,8 @@ export default function IposPage() {
 
       <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Rocket className="h-3.5 w-3.5" />
-        Subscription is the live demand multiple (×). SME issues carry higher risk and lower liquidity. Sourced from NSE.
+        Subscription is the live demand multiple (×) from NSE. GMP (grey-market premium) is unofficial, sourced from
+        public grey-market trackers — indicative of listing sentiment only, not a guarantee. SME issues carry higher risk.
       </p>
     </div>
   );

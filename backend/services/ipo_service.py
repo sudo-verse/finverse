@@ -147,9 +147,22 @@ def listed_issues(limit: int = 40) -> list[IpoRow]:
     return _cached("listed", build)[:limit]
 
 
+def _with_gmp(rows: list[IpoRow]) -> list[IpoRow]:
+    """Attach grey-market premium (best-effort) to open/upcoming issues."""
+    from backend.services import gmp_service
+
+    for r in rows:
+        g = gmp_service.for_company(r.name)
+        if g:
+            r.gmp = g.get("gmp")
+            r.gmp_pct = g.get("gmp_pct")
+            r.est_listing = g.get("est_listing")
+    return rows
+
+
 def feed(status: str = "open", limit: int = 40) -> list[IpoRow]:
     if status == "upcoming":
-        return upcoming_issues()[:limit]
+        return _with_gmp(upcoming_issues()[:limit])
     if status == "listed":
         return listed_issues(limit)
-    return open_issues()[:limit]
+    return _with_gmp(open_issues()[:limit])

@@ -16,3 +16,6 @@ class IpoRow(APIModel):
     close_date: str | None = None
     listing_date: str | None = None
     subscription: float | None = None  # times subscribed (x)
+    gmp: float | None = None           # grey-market premium (₹, unofficial)
+    gmp_pct: float | None = None       # estimated listing gain %
+    est_listing: float | None = None   # estimated listing price (₹)

@@ -1216,6 +1216,9 @@ export interface IpoRow {
   closeDate: string | null;
   listingDate: string | null;
   subscription: number | null;
+  gmp: number | null;
+  gmpPct: number | null;
+  estListing: number | null;
 }
 
 export interface RedFlag {
