@@ -25,6 +25,8 @@ const ALERT_KINDS: { value: AlertKind; label: string; needsThreshold: boolean; h
   { value: "sentiment_below", label: "Sentiment below", needsThreshold: true, hint: "score 0–100" },
   { value: "promoter_change", label: "Promoter holding change", needsThreshold: true, hint: "pp QoQ (e.g. 0.5)" },
   { value: "buy_signal", label: "Engine BUY signal", needsThreshold: false, hint: "" },
+  { value: "near_52w_high", label: "Near 52-week high", needsThreshold: false, hint: "within % (default 2)" },
+  { value: "near_52w_low", label: "Near 52-week low", needsThreshold: false, hint: "within % (default 2)" },
 ];
 
 function AlertDialog({ symbol, onClose }: { symbol: string | null; onClose: () => void }) {

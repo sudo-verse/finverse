@@ -14,6 +14,7 @@ from backend.schemas.events import CorporateEventRow
 from backend.schemas.insider import SastRow
 from backend.schemas.valuation import ValuationRow
 from backend.schemas.derivatives import DerivativeRow
+from backend.schemas.dividend import DividendRow
 from backend.schemas.ipo import IpoRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.market_mood import MarketMoodOut
@@ -49,7 +50,7 @@ from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
 from backend.services.radar_service import radar_service
 from backend.services.results_service import calendar as results_calendar
-from backend.services import derivatives_service, superstar_service
+from backend.services import derivatives_service, dividend_service, superstar_service
 from backend.services.sector_service import sector_service
 
 router = APIRouter(tags=["market"])
@@ -255,6 +256,20 @@ def market_results_calendar(
     annual PAT/revenue YoY and momentum (no analyst estimates available, so this
     is a fundamental-trend tag, not a vs-estimate beat/miss)."""
     return results_calendar(db, window=window, days=days, limit=limit, universe=universe)
+
+
+@router.get("/market/dividends", response_model=list[DividendRow],
+            summary="Dividend announcements + yield")
+def market_dividends(
+    db: Session = Depends(get_db),
+    window: str = Query("recent", pattern="^(recent|upcoming)$"),
+    days: int = Query(60, ge=1, le=180),
+    limit: int = Query(100, ge=1, le=300),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
+) -> list[DividendRow]:
+    """Recent and upcoming dividend announcements with the per-share amount and
+    an indicative yield (where the filing states a figure)."""
+    return dividend_service.feed(db, window=window, days=days, limit=limit, universe=universe)
 
 
 @router.get("/market/derivatives", response_model=list[DerivativeRow],

@@ -349,6 +349,15 @@ export function useResultsCalendar(window: "upcoming" | "recent" = "upcoming", u
   });
 }
 
+export function useDividends(window: "recent" | "upcoming" = "recent", universe?: string) {
+  return useQuery({
+    queryKey: ["dividends", window, universe],
+    queryFn: () => services.getDividends(window, universe),
+    staleTime: 15 * 60_000,
+    retry: false,
+  });
+}
+
 export function useDerivatives(sort: "oi" | "pcr" | "chg_oi" = "oi", kind?: "Stock" | "Index") {
   return useQuery({
     queryKey: ["derivatives", sort, kind],

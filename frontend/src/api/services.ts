@@ -38,6 +38,7 @@ import type {
   DerivativeRow,
   OptionChainOut,
   DcfOut,
+  DividendRow,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -264,6 +265,10 @@ export async function getStockRedFlags(symbol: string): Promise<RedFlagsOut> {
 
 export async function getSurveillance(): Promise<SurveillanceRow[]> {
   return (await apiClient.get<SurveillanceRow[]>("/market/surveillance")).data;
+}
+
+export async function getDividends(window: "recent" | "upcoming" = "recent", universe?: string): Promise<DividendRow[]> {
+  return (await apiClient.get<DividendRow[]>("/market/dividends", { params: { window, universe } })).data;
 }
 
 export async function getDerivatives(sort: "oi" | "pcr" | "chg_oi" = "oi", kind?: "Stock" | "Index", limit = 80): Promise<DerivativeRow[]> {

@@ -10,6 +10,7 @@ ALERT_KINDS = (
     "price_above", "price_below",
     "sentiment_above", "sentiment_below",
     "promoter_change", "buy_signal",
+    "near_52w_high", "near_52w_low",
 )
 
 

@@ -564,6 +564,16 @@ export interface ProsCons {
   cached: boolean;
 }
 
+export interface DividendRow {
+  symbol: string;
+  name: string | null;
+  amount: number | null;
+  yieldPct: number | null;
+  eventDate: string;
+  detail: string | null;
+  upcoming: boolean;
+}
+
 export interface DcfScenario {
   name: string;
   growth: number;
@@ -752,7 +762,9 @@ export type AlertKind =
   | "sentiment_above"
   | "sentiment_below"
   | "promoter_change"
-  | "buy_signal";
+  | "buy_signal"
+  | "near_52w_high"
+  | "near_52w_low";
 
 export interface AlertRule {
   id: number;

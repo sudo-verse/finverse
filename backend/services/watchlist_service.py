@@ -111,7 +111,7 @@ class WatchlistService:
         _ensure_tables()
         if payload.kind not in ALERT_KINDS:
             raise NoDataError(f"Unknown alert kind — use one of {', '.join(ALERT_KINDS)}.")
-        if payload.kind not in ("buy_signal",) and payload.threshold is None:
+        if payload.kind not in ("buy_signal", "near_52w_high", "near_52w_low") and payload.threshold is None:
             raise NoDataError(f"Alert kind '{payload.kind}' needs a threshold.")
         rule = AlertRule(user_id=user_id, symbol=payload.symbol.upper(),
                          kind=payload.kind, threshold=payload.threshold)
@@ -214,6 +214,16 @@ class WatchlistService:
             )
             if recent:
                 return f"Engine BUY signal: {(recent.news or '')[:140]}"
+
+        elif kind in ("near_52w_high", "near_52w_low"):
+            from backend.services.radar_service import radar_service
+
+            rng = radar_service.stock_range(session, rule.symbol)
+            thr = t if t is not None else 2.0   # within thr% of the extreme
+            if kind == "near_52w_high" and rng.pct_from_high is not None and rng.pct_from_high >= -thr:
+                return f"Near 52-week high — {rng.price:,.2f} ({rng.pct_from_high:+.1f}% from high {rng.high52:,.2f})"
+            if kind == "near_52w_low" and rng.pct_from_low is not None and rng.pct_from_low <= thr:
+                return f"Near 52-week low — {rng.price:,.2f} ({rng.pct_from_low:+.1f}% from low {rng.low52:,.2f})"
         return None
 
 
