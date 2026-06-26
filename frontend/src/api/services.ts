@@ -30,6 +30,8 @@ import type {
   TechnicalRow,
   SavedScreen,
   MarketMood,
+  RedFlagsOut,
+  SurveillanceRow,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -245,6 +247,14 @@ export async function getTechnicalScreen(
 
 export async function getMarketMood(): Promise<MarketMood> {
   return (await apiClient.get<MarketMood>("/market/mood")).data;
+}
+
+export async function getStockRedFlags(symbol: string): Promise<RedFlagsOut> {
+  return (await apiClient.get<RedFlagsOut>(`/stocks/${symbol}/red-flags`)).data;
+}
+
+export async function getSurveillance(): Promise<SurveillanceRow[]> {
+  return (await apiClient.get<SurveillanceRow[]>("/market/surveillance")).data;
 }
 
 export async function getSavedScreens(): Promise<SavedScreen[]> {

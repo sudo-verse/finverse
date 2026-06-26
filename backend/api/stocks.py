@@ -17,6 +17,7 @@ from backend.schemas.nse import (
 )
 from backend.schemas.conviction import ConvictionRow
 from backend.schemas.technicals import TechnicalsOut
+from backend.schemas.red_flags import RedFlagsOut
 from backend.schemas.earnings import StockEarnings
 from backend.schemas.insider import InsiderTrade
 from backend.schemas.peers import PeerComparison
@@ -28,6 +29,7 @@ from backend.services import (
     conviction_service,
     earnings_service,
     insider_service,
+    red_flags_service,
     technical_service,
     valuation_service,
 )
@@ -134,6 +136,14 @@ def get_technicals(db: Session = Depends(get_db), symbol: str = SymbolPath) -> T
     RSI, MACD, classic pivots, 52-week position and volume — with a composite
     0-100 score and signal flags. A trading-signal view, not advice."""
     return technical_service.technicals(db, symbol)
+
+
+@router.get("/stocks/{symbol}/red-flags", response_model=RedFlagsOut,
+            summary="Red flags (surveillance, pledge, leverage)")
+def get_red_flags(db: Session = Depends(get_db), symbol: str = SymbolPath) -> RedFlagsOut:
+    """NSE surveillance (ASM/GSM), promoter share pledging and a leverage-based
+    financial-stress read for the stock, with a prioritised flag list."""
+    return red_flags_service.stock_red_flags(db, symbol)
 
 
 # ----------------------------------------------------------------------------

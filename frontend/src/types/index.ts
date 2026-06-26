@@ -1054,6 +1054,33 @@ export interface TechnicalRow {
   pctInRange: number | null;
 }
 
+export interface RedFlag {
+  label: string;
+  detail: string | null;
+  severity: "high" | "medium" | "low" | "info";
+}
+
+export interface RedFlagsOut {
+  symbol: string;
+  asm: string | null;
+  gsm: string | null;
+  surveillanceDesc: string | null;
+  pledgedPct: number | null;
+  promoterHoldingPct: number | null;
+  leverage: number | null;
+  equityRatio: number | null;
+  stress: string | null;
+  flags: RedFlag[];
+}
+
+export interface SurveillanceRow {
+  symbol: string;
+  name: string | null;
+  asm: string | null;
+  gsm: string | null;
+  desc: string | null;
+}
+
 export interface MoodComponent {
   label: string;
   value: number;

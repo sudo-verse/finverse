@@ -312,6 +312,25 @@ export function useTechnicalScreen(signal: "bullish" | "bearish" = "bullish", li
   });
 }
 
+export function useStockRedFlags(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["stock-red-flags", symbol],
+    queryFn: () => services.getStockRedFlags(symbol!),
+    enabled: !!symbol,
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
+export function useSurveillance() {
+  return useQuery({
+    queryKey: ["surveillance"],
+    queryFn: services.getSurveillance,
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+}
+
 export function useMarketMood() {
   return useQuery({
     queryKey: ["market-mood"],

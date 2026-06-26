@@ -47,6 +47,7 @@ import { Range52w } from "@/components/stock/range-52w";
 import { ValuationPanel } from "@/components/stock/valuation-panel";
 import { ConvictionPanel } from "@/components/stock/conviction-panel";
 import { TechnicalsPanel } from "@/components/stock/technicals-panel";
+import { RedFlagsPanel } from "@/components/stock/red-flags-panel";
 import { ScorecardPanel } from "@/components/stock/scorecard-panel";
 import { useCompetitors, useGenerateReport, useHistoryRange, useIntraday, useLiveQuote, useStock } from "@/hooks/queries";
 import {
@@ -460,6 +461,8 @@ export default function StockAnalysisPage() {
           {stock && <TechnicalsPanel symbol={activeSymbol} />}
 
           {stock && <ScorecardPanel symbol={activeSymbol} />}
+
+          {stock && <RedFlagsPanel symbol={activeSymbol} />}
 
           {stock && <ConvictionPanel symbol={activeSymbol} />}
 

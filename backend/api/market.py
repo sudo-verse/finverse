@@ -16,6 +16,7 @@ from backend.schemas.valuation import ValuationRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.market_mood import MarketMoodOut
 from backend.schemas.radar import RadarRow
+from backend.schemas.red_flags import SurveillanceRow
 from backend.schemas.sectors import SectorPerf
 from backend.schemas.technicals import TechnicalRow
 from backend.schemas.nse import (
@@ -32,6 +33,7 @@ from backend.services import (
     earnings_service,
     insider_service,
     market_mood_service,
+    red_flags_service,
     technical_service,
     universe_service,
     valuation_service,
@@ -218,6 +220,14 @@ def market_technicals(
     MACD, 52-week position). signal="bearish" lists the weakest setups. Computed
     from our own OHLCV; cached ~10m."""
     return technical_service.screen(db, signal=signal, limit=limit, universe=universe)
+
+
+@router.get("/market/surveillance", response_model=list[SurveillanceRow],
+            summary="Stocks under NSE surveillance (ASM/GSM)")
+def market_surveillance() -> list[SurveillanceRow]:
+    """All stocks currently on NSE's ASM/GSM surveillance lists — a market-wide
+    red-flag view. Cached ~30m."""
+    return red_flags_service.surveillance_feed()
 
 
 @router.get("/market/mood", response_model=MarketMoodOut, summary="Market Mood Index")
