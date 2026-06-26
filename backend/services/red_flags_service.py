@@ -37,17 +37,28 @@ def _pledge(symbol: str) -> tuple[float | None, float | None]:
     if hit and now - hit[0] < _PLEDGE_TTL:
         return hit[1]
     result: tuple[float | None, float | None] = (None, None)
-    try:
-        from app.market import nse_shp
+    from app.market import nse_shp
 
-        d = nse_shp._sess().get(_PLEDGE_URL, params={"symbol": sym}, timeout=20).json()
-        data = d.get("data") or []
-        if data:
-            latest = data[0]
-            result = (_num(latest.get("percSharesPledged")), _num(latest.get("percPromoterShares")))
-    except Exception:
-        pass
-    _pledge_cache[sym] = (now, result)
+    for attempt in range(2):
+        try:
+            r = nse_shp._sess().get(_PLEDGE_URL, params={"symbol": sym}, timeout=25)
+            if r.status_code == 200:
+                data = (r.json() or {}).get("data") or []
+                if data:
+                    latest = data[0]
+                    result = (_num(latest.get("percSharesPledged")), _num(latest.get("percPromoterShares")))
+                break
+            nse_shp._sess().get(nse_shp._HOME, timeout=10)   # re-warm the session and retry
+        except Exception:
+            try:
+                nse_shp._sess().get(nse_shp._HOME, timeout=10)
+            except Exception:
+                pass
+    # only cache a successful (non-empty) read long; otherwise retry sooner
+    if result != (None, None):
+        _pledge_cache[sym] = (now, result)
+    else:
+        _pledge_cache[sym] = (now - _PLEDGE_TTL + 120, result)
     return result
 
 
