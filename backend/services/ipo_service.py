@@ -128,6 +128,10 @@ def listed_issues(limit: int = 40) -> list[IpoRow]:
             ld = _parse_date(r.get("listingDate"))
             if ld is None:
                 continue
+            sym = (r.get("symbol") or "").strip().upper()
+            # skip debt/bond listings (NCDs etc.) — their symbols are numeric-prefixed
+            if not sym or sym[0].isdigit():
+                continue
             pretty, lo, hi = _band(r.get("priceRange") or r.get("issuePrice"))
             rows.append((ld, IpoRow(
                 symbol=(r.get("symbol") or "").strip().upper() or None,
