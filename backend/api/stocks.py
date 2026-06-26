@@ -38,7 +38,7 @@ SymbolPath = Path(min_length=1, max_length=32, description="NSE symbol, e.g. REL
 def list_stocks(
     db: Session = Depends(get_db),
     search: str | None = Query(None, description="Filter by symbol or name"),
-    limit: int = Query(1000, ge=1, le=2000),
+    limit: int = Query(5000, ge=1, le=5000),
 ) -> list[CompanyOut]:
     """The company master (NIFTY 500 universe loaded by the ETL)."""
     return stock_service.list_companies(db, search=search, limit=limit)
