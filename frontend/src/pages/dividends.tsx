@@ -13,7 +13,7 @@ import { formatINR } from "@/lib/format";
 type Win = "recent" | "upcoming";
 
 export default function DividendsPage() {
-  const [win, setWin] = useState<Win>("recent");
+  const [win, setWin] = useState<Win>("upcoming");
   const { prefs } = usePreferences();
   const { data, isLoading } = useDividends(win, prefs.universe);
 
