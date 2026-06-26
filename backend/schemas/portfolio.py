@@ -42,6 +42,12 @@ class PortfolioSummary(APIModel):
     sharpe_ratio: float | None = None
 
 
+class MarketCapAllocation(APIModel):
+    bucket: str            # Large cap | Mid cap | Small cap | Unknown
+    weight: float          # 0–1
+    value: float | None = None
+
+
 class GrowthPoint(APIModel):
     date: date
     value: float
@@ -52,6 +58,7 @@ class PortfolioOut(APIModel):
     summary: PortfolioSummary
     holdings: list[HoldingOut]
     sector_allocation: list[SectorAllocation]
+    market_cap_allocation: list[MarketCapAllocation] = []
     growth: list[GrowthPoint]
 
 

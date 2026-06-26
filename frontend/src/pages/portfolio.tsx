@@ -323,6 +323,103 @@ export default function PortfolioPage() {
             </ChartCard>
           </div>
 
+          {/* Portfolio X-ray */}
+          {data && (
+            <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+              {/* Market-cap split */}
+              <Card className="glass-hover">
+                <CardHeader><CardTitle className="text-sm">Market-cap mix</CardTitle></CardHeader>
+                <CardContent className="space-y-2.5">
+                  {data.marketCapAllocation.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">Market-cap data unavailable.</p>
+                  ) : (
+                    data.marketCapAllocation.map((m) => (
+                      <div key={m.bucket} className="text-xs">
+                        <div className="mb-1 flex justify-between">
+                          <span className="text-muted-foreground">{m.bucket}</span>
+                          <span className="font-mono font-medium">{(m.weight * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/50">
+                          <div
+                            className={cn(
+                              "h-full rounded-full",
+                              m.bucket === "Large cap" && "bg-blue-500",
+                              m.bucket === "Mid cap" && "bg-violet-500",
+                              m.bucket === "Small cap" && "bg-amber-500",
+                              m.bucket === "Unknown" && "bg-slate-500",
+                            )}
+                            style={{ width: `${m.weight * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Diversification */}
+              <Card className="glass-hover">
+                <CardHeader><CardTitle className="text-sm">Diversification</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  {(() => {
+                    const eff = data.summary.effectiveHoldings;
+                    const grade = eff == null ? "—" : eff >= 8 ? "Excellent" : eff >= 5 ? "Good" : eff >= 3 ? "Moderate" : "Concentrated";
+                    const tone = eff == null ? "text-muted-foreground" : eff >= 5 ? "text-bull" : eff >= 3 ? "text-hold" : "text-bear";
+                    return (
+                      <>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xs text-muted-foreground">Diversification</span>
+                          <span className={cn("text-sm font-semibold", tone)}>{grade}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between text-xs">
+                          <span className="text-muted-foreground">Effective holdings</span>
+                          <span className="font-mono">{eff != null ? eff.toFixed(1) : "—"} <span className="text-muted-foreground/60">/ {data.summary.numHoldings}</span></span>
+                        </div>
+                        <div className="flex items-baseline justify-between text-xs">
+                          <span className="text-muted-foreground">Top holding weight</span>
+                          <span className="font-mono">{data.summary.topConcentration != null ? `${(data.summary.topConcentration * 100).toFixed(1)}%` : "—"}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between text-xs">
+                          <span className="text-muted-foreground">Sectors</span>
+                          <span className="font-mono">{data.summary.numSectors}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+
+              {/* Top movers (by total P&L) */}
+              <Card className="glass-hover">
+                <CardHeader><CardTitle className="text-sm">Best & worst</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  {(() => {
+                    const ranked = [...data.holdings].filter((h) => h.pnlPct != null).sort((a, b) => (b.pnlPct ?? 0) - (a.pnlPct ?? 0));
+                    if (ranked.length === 0) return <p className="text-xs text-muted-foreground">No P&L data yet.</p>;
+                    const best = ranked[0], worst = ranked[ranked.length - 1];
+                    const Row = ({ h, label }: { h: typeof best; label: string }) => (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+                          <Link to={`/stocks/${h.symbol}`} className="font-mono text-sm font-medium hover:text-primary">{h.symbol}</Link>
+                        </div>
+                        <span className={cn("font-mono text-sm font-semibold", (h.pnlPct ?? 0) >= 0 ? "text-bull" : "text-bear")}>
+                          {(h.pnlPct ?? 0) >= 0 ? "+" : ""}{((h.pnlPct ?? 0) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    );
+                    return (
+                      <>
+                        <Row h={best} label="Best performer" />
+                        <Row h={worst} label="Worst performer" />
+                      </>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Holdings table */}
           <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-6">
             <Card className="glass-hover">

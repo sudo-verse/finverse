@@ -223,10 +223,17 @@ export interface GrowthPoint {
   invested: number | null;
 }
 
+export interface MarketCapAllocation {
+  bucket: string;
+  weight: number;
+  value: number | null;
+}
+
 export interface PortfolioData {
   summary: PortfolioSummary;
   holdings: Holding[];
   sectorAllocation: SectorAllocation[];
+  marketCapAllocation: MarketCapAllocation[];
   growth: GrowthPoint[];
 }
 

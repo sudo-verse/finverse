@@ -11,12 +11,14 @@ import pandas as pd
 
 from app.analytics.analytics import load_prices
 from app.analytics.portfolio import compute_portfolio
+from app.db.database import get_session
 from app.db.repository import add_holding, clear_holdings, list_holdings
 from backend.core.exceptions import NoDataError
 from backend.schemas.portfolio import (
     GrowthPoint,
     HoldingCreate,
     HoldingOut,
+    MarketCapAllocation,
     PortfolioOut,
     PortfolioSummary,
     SectorAllocation,
@@ -25,6 +27,42 @@ from backend.schemas.portfolio import (
 logger = logging.getLogger("finverse.api")
 
 GROWTH_DAYS = 180
+
+# SEBI-style absolute thresholds in rupees (market cap = price × shares).
+_LARGE_CAP = 2.0e11   # ≥ ₹20,000 cr
+_MID_CAP = 5.0e10     # ₹5,000–20,000 cr
+
+
+def _market_cap_allocation(holdings: list[HoldingOut], total_value: float) -> list[MarketCapAllocation]:
+    """Split portfolio value across large/mid/small caps, reusing the screener's
+    already-computed market caps. Best-effort — never raises."""
+    try:
+        from backend.services import screener_service
+
+        with get_session() as s:
+            caps = {r.symbol: r.market_cap for r in screener_service.screen(s)}
+    except Exception:
+        logger.warning("portfolio: market-cap allocation unavailable", exc_info=True)
+        return []
+
+    buckets = {"Large cap": 0.0, "Mid cap": 0.0, "Small cap": 0.0, "Unknown": 0.0}
+    for h in holdings:
+        v = h.value or 0.0
+        mc = caps.get(h.symbol)
+        if mc is None:
+            buckets["Unknown"] += v
+        elif mc >= _LARGE_CAP:
+            buckets["Large cap"] += v
+        elif mc >= _MID_CAP:
+            buckets["Mid cap"] += v
+        else:
+            buckets["Small cap"] += v
+    rows = [
+        MarketCapAllocation(bucket=b, weight=(v / total_value if total_value else 0.0), value=v)
+        for b, v in buckets.items() if v > 0
+    ]
+    rows.sort(key=lambda x: -x.weight)
+    return rows
 
 
 def _growth_series(
@@ -116,6 +154,7 @@ class PortfolioService:
             summary=summary,
             holdings=holdings,
             sector_allocation=sector_allocation,
+            market_cap_allocation=_market_cap_allocation(holdings, total_value),
             growth=growth,
         )
 
