@@ -26,7 +26,6 @@ import {
   SlidersHorizontal,
   Star,
   Swords,
-  Target,
   TrendingUp,
   UserCheck,
   Wallet,
@@ -44,7 +43,7 @@ const MARKET_STATUS: Record<string, { label: string; live: boolean }> = {
 
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/conviction", label: "Conviction Score", icon: Target },
+  { to: "/sentiment", label: "Sentiment", icon: Gauge },
   { to: "/watchlist", label: "Watchlist", icon: Star },
   { to: "/screener", label: "Screener", icon: SlidersHorizontal },
   { to: "/baskets", label: "Baskets", icon: Boxes },
@@ -63,7 +62,6 @@ const NAV_ITEMS = [
   { to: "/technicals", label: "Technicals", icon: CandlestickChart },
   { to: "/fno", label: "F&O / Derivatives", icon: Layers },
   { to: "/signals", label: "Signals", icon: Activity },
-  { to: "/sentiment", label: "Sentiment", icon: Gauge },
   { to: "/stocks", label: "Stock Analysis", icon: LineChart },
   { to: "/competitors", label: "Competitors", icon: Swords },
   { to: "/portfolio", label: "Portfolio", icon: Wallet },

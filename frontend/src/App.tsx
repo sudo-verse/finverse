@@ -14,6 +14,7 @@ const PortfolioPage = lazy(() => import("@/pages/portfolio"));
 const ResearchPage = lazy(() => import("@/pages/research"));
 const DocumentsPage = lazy(() => import("@/pages/documents"));
 const SentimentPage = lazy(() => import("@/pages/sentiment"));
+const SentimentDetailPage = lazy(() => import("@/pages/sentiment-detail"));
 const WatchlistPage = lazy(() => import("@/pages/watchlist"));
 const ScreenerPage = lazy(() => import("@/pages/screener"));
 const OwnershipPage = lazy(() => import("@/pages/ownership"));
@@ -24,7 +25,6 @@ const EarningsPage = lazy(() => import("@/pages/earnings"));
 const AnnouncementsPage = lazy(() => import("@/pages/announcements"));
 const InsiderPage = lazy(() => import("@/pages/insider"));
 const ValuationPage = lazy(() => import("@/pages/valuation"));
-const ConvictionPage = lazy(() => import("@/pages/conviction"));
 const TechnicalsPage = lazy(() => import("@/pages/technicals"));
 const IposPage = lazy(() => import("@/pages/ipos"));
 const FnoPage = lazy(() => import("@/pages/fno"));
@@ -109,7 +109,7 @@ export default function App() {
             ["/documents", DocumentsPage],
             ["/documents/:symbol", DocumentsPage],
             ["/sentiment", SentimentPage],
-            ["/sentiment/:symbol", SentimentPage],
+            ["/sentiment/:symbol", SentimentDetailPage],
             ["/watchlist", WatchlistPage],
             ["/screener", ScreenerPage],
             ["/ownership", OwnershipPage],
@@ -120,7 +120,7 @@ export default function App() {
             ["/announcements", AnnouncementsPage],
             ["/insider", InsiderPage],
             ["/valuation", ValuationPage],
-            ["/conviction", ConvictionPage],
+            ["/conviction", SentimentPage],
             ["/technicals", TechnicalsPage],
             ["/ipos", IposPage],
             ["/results", ResultsCalendarPage],
