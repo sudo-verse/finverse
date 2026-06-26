@@ -29,6 +29,7 @@ const TechnicalsPage = lazy(() => import("@/pages/technicals"));
 const IposPage = lazy(() => import("@/pages/ipos"));
 const FnoPage = lazy(() => import("@/pages/fno"));
 const DividendsPage = lazy(() => import("@/pages/dividends"));
+const BasketsPage = lazy(() => import("@/pages/baskets"));
 const ResultsCalendarPage = lazy(() => import("@/pages/results-calendar"));
 const SuperstarsPage = lazy(() => import("@/pages/superstars"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
@@ -126,6 +127,7 @@ export default function App() {
             ["/superstars", SuperstarsPage],
             ["/fno", FnoPage],
             ["/dividends", DividendsPage],
+            ["/baskets", BasketsPage],
             ["/settings", SettingsPage],
           ] as const
         ).map(([path, Page]) => (

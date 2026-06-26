@@ -349,6 +349,20 @@ export function useResultsCalendar(window: "upcoming" | "recent" = "upcoming", u
   });
 }
 
+export function useBaskets() {
+  return useQuery({ queryKey: ["baskets"], queryFn: services.getBaskets, staleTime: 10 * 60_000, retry: false });
+}
+
+export function useBasket(key: string | undefined) {
+  return useQuery({
+    queryKey: ["basket", key],
+    queryFn: () => services.getBasket(key!),
+    enabled: Boolean(key),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 export function useDividends(window: "recent" | "upcoming" = "recent", universe?: string) {
   return useQuery({
     queryKey: ["dividends", window, universe],

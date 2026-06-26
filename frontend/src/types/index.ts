@@ -564,6 +564,30 @@ export interface ProsCons {
   cached: boolean;
 }
 
+export interface BasketConstituent {
+  symbol: string;
+  name: string | null;
+  price: number | null;
+  ret1m: number | null;
+  ret3m: number | null;
+  ret1y: number | null;
+}
+
+export interface BasketRow {
+  key: string;
+  name: string;
+  thesis: string;
+  count: number;
+  ret1m: number | null;
+  ret3m: number | null;
+  ret1y: number | null;
+  top: string[];
+}
+
+export interface BasketDetail extends BasketRow {
+  constituents: BasketConstituent[];
+}
+
 export interface DividendRow {
   symbol: string;
   name: string | null;

@@ -39,6 +39,8 @@ import type {
   OptionChainOut,
   DcfOut,
   DividendRow,
+  BasketRow,
+  BasketDetail,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -265,6 +267,14 @@ export async function getStockRedFlags(symbol: string): Promise<RedFlagsOut> {
 
 export async function getSurveillance(): Promise<SurveillanceRow[]> {
   return (await apiClient.get<SurveillanceRow[]>("/market/surveillance")).data;
+}
+
+export async function getBaskets(): Promise<BasketRow[]> {
+  return (await apiClient.get<BasketRow[]>("/market/baskets")).data;
+}
+
+export async function getBasket(key: string): Promise<BasketDetail | null> {
+  return (await apiClient.get<BasketDetail | null>(`/market/baskets/${key}`)).data;
 }
 
 export async function getDividends(window: "recent" | "upcoming" = "recent", universe?: string): Promise<DividendRow[]> {

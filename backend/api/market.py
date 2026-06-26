@@ -13,6 +13,7 @@ from backend.schemas.earnings import EarningsRow
 from backend.schemas.events import CorporateEventRow
 from backend.schemas.insider import SastRow
 from backend.schemas.valuation import ValuationRow
+from backend.schemas.basket import BasketDetail, BasketRow
 from backend.schemas.derivatives import DerivativeRow
 from backend.schemas.dividend import DividendRow
 from backend.schemas.ipo import IpoRow
@@ -50,7 +51,7 @@ from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
 from backend.services.radar_service import radar_service
 from backend.services.results_service import calendar as results_calendar
-from backend.services import derivatives_service, dividend_service, superstar_service
+from backend.services import basket_service, derivatives_service, dividend_service, superstar_service
 from backend.services.sector_service import sector_service
 
 router = APIRouter(tags=["market"])
@@ -256,6 +257,19 @@ def market_results_calendar(
     annual PAT/revenue YoY and momentum (no analyst estimates available, so this
     is a fundamental-trend tag, not a vs-estimate beat/miss)."""
     return results_calendar(db, window=window, days=days, limit=limit, universe=universe)
+
+
+@router.get("/market/baskets", response_model=list[BasketRow], summary="Curated thematic baskets")
+def market_baskets(db: Session = Depends(get_db)) -> list[BasketRow]:
+    """Hand-picked thematic baskets with equal-weighted 1M/3M/1Y returns from our
+    own price history. Cached ~10m."""
+    return basket_service.list_baskets(db)
+
+
+@router.get("/market/baskets/{key}", response_model=BasketDetail | None, summary="Basket constituents")
+def market_basket(key: str, db: Session = Depends(get_db)) -> BasketDetail | None:
+    """A basket's constituents with each stock's 1M/3M/1Y return."""
+    return basket_service.basket(db, key)
 
 
 @router.get("/market/dividends", response_model=list[DividendRow],
