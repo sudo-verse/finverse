@@ -1054,6 +1054,18 @@ export interface TechnicalRow {
   pctInRange: number | null;
 }
 
+export interface ResultRow {
+  symbol: string;
+  name: string | null;
+  eventDate: string;
+  detail: string | null;
+  fy: string | null;
+  patYoy: number | null;
+  revenueYoy: number | null;
+  momentum: string | null;
+  tag: string | null;
+}
+
 export interface IpoRow {
   symbol: string | null;
   name: string;

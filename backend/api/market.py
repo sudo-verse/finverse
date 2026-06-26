@@ -18,6 +18,7 @@ from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.market_mood import MarketMoodOut
 from backend.schemas.radar import RadarRow
 from backend.schemas.red_flags import SurveillanceRow
+from backend.schemas.results_calendar import ResultRow
 from backend.schemas.sectors import SectorPerf
 from backend.schemas.technicals import TechnicalRow
 from backend.schemas.nse import (
@@ -45,6 +46,7 @@ from backend.services.events_service import events_service
 from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
 from backend.services.radar_service import radar_service
+from backend.services.results_service import calendar as results_calendar
 from backend.services.sector_service import sector_service
 
 router = APIRouter(tags=["market"])
@@ -222,6 +224,21 @@ def market_technicals(
     MACD, 52-week position). signal="bearish" lists the weakest setups. Computed
     from our own OHLCV; cached ~10m."""
     return technical_service.screen(db, signal=signal, limit=limit, universe=universe)
+
+
+@router.get("/market/results-calendar", response_model=list[ResultRow],
+            summary="Earnings/results calendar")
+def market_results_calendar(
+    db: Session = Depends(get_db),
+    window: str = Query("upcoming", pattern="^(upcoming|recent)$"),
+    days: int = Query(45, ge=1, le=120),
+    limit: int = Query(200, ge=1, le=400),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
+) -> list[ResultRow]:
+    """Result-announcement dates from NSE, each tagged with the company's latest
+    annual PAT/revenue YoY and momentum (no analyst estimates available, so this
+    is a fundamental-trend tag, not a vs-estimate beat/miss)."""
+    return results_calendar(db, window=window, days=days, limit=limit, universe=universe)
 
 
 @router.get("/market/ipos", response_model=list[IpoRow], summary="IPO / SME-IPO tracker")

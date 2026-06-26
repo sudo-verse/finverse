@@ -33,6 +33,7 @@ import type {
   RedFlagsOut,
   SurveillanceRow,
   IpoRow,
+  ResultRow,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -260,6 +261,13 @@ export async function getSurveillance(): Promise<SurveillanceRow[]> {
 
 export async function getIpos(status: "open" | "upcoming" | "listed" = "open", limit = 40): Promise<IpoRow[]> {
   return (await apiClient.get<IpoRow[]>("/market/ipos", { params: { status, limit } })).data;
+}
+
+export async function getResultsCalendar(
+  window: "upcoming" | "recent" = "upcoming",
+  universe?: string,
+): Promise<ResultRow[]> {
+  return (await apiClient.get<ResultRow[]>("/market/results-calendar", { params: { window, universe } })).data;
 }
 
 export async function getSavedScreens(): Promise<SavedScreen[]> {

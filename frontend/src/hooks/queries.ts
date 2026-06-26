@@ -331,6 +331,15 @@ export function useSurveillance() {
   });
 }
 
+export function useResultsCalendar(window: "upcoming" | "recent" = "upcoming", universe?: string) {
+  return useQuery({
+    queryKey: ["results-calendar", window, universe],
+    queryFn: () => services.getResultsCalendar(window, universe),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 export function useIpos(status: "open" | "upcoming" | "listed" = "open") {
   return useQuery({
     queryKey: ["ipos", status],
