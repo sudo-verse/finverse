@@ -16,6 +16,7 @@ from backend.schemas.nse import (
     ShareholdingPeriod,
 )
 from backend.schemas.conviction import ConvictionRow
+from backend.schemas.concall import ConcallRow, ConcallSummary
 from backend.schemas.technicals import TechnicalsOut
 from backend.schemas.red_flags import RedFlagsOut
 from backend.schemas.earnings import StockEarnings
@@ -26,6 +27,7 @@ from backend.schemas.radar import StockRange
 from backend.schemas.scorecard import ScorecardOut
 from backend.schemas.stock import CompanyOut, StockDetailOut
 from backend.services import (
+    concall_service,
     conviction_service,
     earnings_service,
     insider_service,
@@ -144,6 +146,28 @@ def get_red_flags(db: Session = Depends(get_db), symbol: str = SymbolPath) -> Re
     """NSE surveillance (ASM/GSM), promoter share pledging and a leverage-based
     financial-stress read for the stock, with a prioritised flag list."""
     return red_flags_service.stock_red_flags(db, symbol)
+
+
+@router.get("/stocks/{symbol}/concalls", response_model=list[ConcallRow],
+            summary="Earnings-call (concall) transcript filings")
+def get_concalls(symbol: str = SymbolPath) -> list[ConcallRow]:
+    """Recent concall/earnings-call transcript filings for the stock (from its
+    NSE announcements), with PDF links."""
+    return concall_service.list_concalls(symbol.upper())
+
+
+@router.get("/stocks/{symbol}/concalls/summary", response_model=ConcallSummary,
+            summary="AI concall summary (cached)")
+def get_concall_summary(
+    db: Session = Depends(get_db),
+    symbol: str = SymbolPath,
+    url: str = Query(..., description="Transcript PDF URL from /concalls"),
+    refresh: bool = Query(False, description="Force (re)generation"),
+) -> ConcallSummary:
+    """AI summary of a concall transcript — highlights, guidance, outlook and
+    risks (Gemini; cached). Viewing returns cache only; refresh=true downloads
+    the PDF and spends an AI call."""
+    return concall_service.summarize(db, symbol.upper(), url, refresh=refresh)
 
 
 # ----------------------------------------------------------------------------

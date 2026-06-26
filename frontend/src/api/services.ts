@@ -52,6 +52,8 @@ import type {
   PricePoint,
   ProsCons,
   Swot,
+  ConcallRow,
+  ConcallSummary,
   RatioPoint,
   SentimentData,
   SentimentHistoryPoint,
@@ -379,6 +381,14 @@ export async function getProsCons(symbol: string, refresh = false): Promise<Pros
 
 export async function getSwot(symbol: string, refresh = false): Promise<Swot> {
   return (await apiClient.get<Swot>(`/stocks/${symbol}/swot`, { params: { refresh } })).data;
+}
+
+export async function getConcalls(symbol: string): Promise<ConcallRow[]> {
+  return (await apiClient.get<ConcallRow[]>(`/stocks/${symbol}/concalls`)).data;
+}
+
+export async function getConcallSummary(symbol: string, url: string, refresh = false): Promise<ConcallSummary> {
+  return (await apiClient.get<ConcallSummary>(`/stocks/${symbol}/concalls/summary`, { params: { url, refresh } })).data;
 }
 
 /* ------------------------ Sentiment Intelligence ------------------------ */

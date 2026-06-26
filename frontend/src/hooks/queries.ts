@@ -550,6 +550,23 @@ export function useRefreshProsCons() {
   });
 }
 
+export function useConcalls(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["concalls", symbol],
+    queryFn: () => services.getConcalls(symbol!),
+    enabled: Boolean(symbol),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+}
+
+export function useConcallSummary() {
+  return useMutation({
+    mutationFn: ({ symbol, url }: { symbol: string; url: string }) =>
+      services.getConcallSummary(symbol, url, true),
+  });
+}
+
 export function useSwot(symbol: string | undefined) {
   return useQuery({
     queryKey: ["swot", symbol],

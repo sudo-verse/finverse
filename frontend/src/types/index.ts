@@ -564,6 +564,24 @@ export interface ProsCons {
   cached: boolean;
 }
 
+export interface ConcallRow {
+  date: string | null;
+  title: string | null;
+  url: string | null;
+}
+
+export interface ConcallSummary {
+  symbol: string;
+  url: string | null;
+  highlights: string[];
+  guidance: string | null;
+  outlook: string | null;
+  risks: string[];
+  model: string | null;
+  generatedAt: string | null;
+  cached: boolean;
+}
+
 export interface Swot {
   symbol: string;
   strengths: string[];
