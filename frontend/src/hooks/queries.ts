@@ -312,6 +312,24 @@ export function useTechnicalScreen(signal: "bullish" | "bearish" = "bullish", li
   });
 }
 
+export function useSavedScreens(enabled = true) {
+  return useQuery({
+    queryKey: ["saved-screens"],
+    queryFn: services.getSavedScreens,
+    enabled,
+    staleTime: 30_000,
+    retry: false,
+  });
+}
+
+export function useSavedScreenMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["saved-screens"] });
+  const save = useMutation({ mutationFn: services.saveScreen, onSuccess: invalidate });
+  const remove = useMutation({ mutationFn: (id: number) => services.deleteSavedScreen(id), onSuccess: invalidate });
+  return { save, remove };
+}
+
 export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number; universe?: string } = {}) {
   return useQuery({
     queryKey: ["deals", params],

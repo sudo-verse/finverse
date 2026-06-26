@@ -275,12 +275,14 @@ class AlertWorker:
 
     def _loop(self) -> None:
         from backend.services.watchlist_service import watchlist_service
+        from backend.services.saved_screen_service import saved_screen_service
 
         while not self._stop.is_set():
             if self._stop.wait(self.interval):
                 return
             try:
                 fired = watchlist_service.evaluate_all()
+                fired += saved_screen_service.evaluate_notifies()
                 self.status.update(checks=self.status["checks"] + 1,
                                    fired_total=self.status["fired_total"] + fired,
                                    last_error=None)

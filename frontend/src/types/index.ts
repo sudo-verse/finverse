@@ -1046,3 +1046,14 @@ export interface TechnicalRow {
   aboveSma50: boolean | null;
   pctInRange: number | null;
 }
+
+export interface SavedScreen {
+  id: number;
+  name: string;
+  filters: Record<string, string>;
+  industry: string | null;
+  universe: string | null;
+  notify: boolean;
+  lastCount: number | null;
+  createdAt: string | null;
+}

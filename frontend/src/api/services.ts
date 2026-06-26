@@ -28,6 +28,7 @@ import type {
   ConvictionRow,
   TechnicalsOut,
   TechnicalRow,
+  SavedScreen,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -239,6 +240,24 @@ export async function getTechnicalScreen(
   universe?: string,
 ): Promise<TechnicalRow[]> {
   return (await apiClient.get<TechnicalRow[]>("/market/technicals", { params: { signal, limit, universe } })).data;
+}
+
+export async function getSavedScreens(): Promise<SavedScreen[]> {
+  return (await apiClient.get<SavedScreen[]>("/screens")).data;
+}
+
+export async function saveScreen(payload: {
+  name: string;
+  filters: Record<string, string>;
+  industry?: string | null;
+  universe?: string | null;
+  notify?: boolean;
+}): Promise<SavedScreen> {
+  return (await apiClient.post<SavedScreen>("/screens", payload)).data;
+}
+
+export async function deleteSavedScreen(id: number): Promise<void> {
+  await apiClient.delete(`/screens/${id}`);
 }
 
 export async function getDeals(params: {

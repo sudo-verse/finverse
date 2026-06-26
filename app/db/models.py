@@ -9,6 +9,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -193,6 +194,25 @@ class AlertEvent(Base):
     message = Column(String(512))
     seen = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class SavedScreen(Base):
+    """A named, persisted screener filter set per user. The worker re-evaluates
+    screens flagged `notify` and fires an AlertEvent when new stocks enter."""
+
+    __tablename__ = "saved_screens"
+    __table_args__ = (UniqueConstraint("user_id", "name", name="uq_savedscreen_user_name"),)
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    filters = Column(JSON, nullable=False)   # {field: rawValue} matching the client filter map
+    industry = Column(String(120))
+    universe = Column(String(16))
+    notify = Column(Boolean, default=False)
+    last_symbols = Column(JSON)              # baseline symbol set for alert diffing
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_run_at = Column(DateTime)
 
 
 class SentimentScore(Base):

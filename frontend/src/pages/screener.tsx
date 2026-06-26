@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowDown, ArrowUp, Download, Filter, RotateCcw } from "lucide-react";
+import { ArrowDown, ArrowUp, Bell, BellRing, Download, Filter, RotateCcw, Save, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiClient } from "@/api/client";
@@ -14,7 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatFraction, formatINRCompact, formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { usePreferences } from "@/contexts/preferences";
+import { usePreferences, type Universe } from "@/contexts/preferences";
+import { useAuth } from "@/contexts/auth";
+import { useSavedScreens, useSavedScreenMutations } from "@/hooks/queries";
 import type { ScreenerRow } from "@/types";
 
 function useScreener(universe: string) {
@@ -65,12 +67,42 @@ function fmtCell(field: SortField, v: number | null): string {
 }
 
 export default function ScreenerPage() {
-  const { prefs } = usePreferences();
+  const { prefs, setUniverse } = usePreferences();
+  const { user } = useAuth();
   const { data, isLoading } = useScreener(prefs.universe);
   const [filters, setFilters] = useState<Partial<Record<FilterField, string>>>({});
   const [industry, setIndustry] = useState("ALL");
   const [sort, setSort] = useState<SortField>("marketCap");
   const [desc, setDesc] = useState(true);
+
+  // saved screens (per-user)
+  const { data: saved } = useSavedScreens(!!user);
+  const { save, remove } = useSavedScreenMutations();
+  const [screenName, setScreenName] = useState("");
+  const [notify, setNotify] = useState(false);
+
+  const saveScreen = () => {
+    const name = screenName.trim();
+    if (!name) return toast.error("Name your screen first");
+    save.mutate(
+      { name, filters: filters as Record<string, string>, industry, universe: prefs.universe, notify },
+      {
+        onSuccess: () => {
+          toast.success(`Saved "${name}"${notify ? " · alerts on" : ""}`);
+          setScreenName("");
+          setNotify(false);
+        },
+        onError: () => toast.error("Could not save screen"),
+      },
+    );
+  };
+
+  const loadScreen = (s: NonNullable<typeof saved>[number]) => {
+    setFilters((s.filters ?? {}) as Partial<Record<FilterField, string>>);
+    setIndustry(s.industry ?? "ALL");
+    if (s.universe) setUniverse(s.universe as Universe);
+    toast.success(`Loaded "${s.name}"`);
+  };
 
   const industries = useMemo(
     () => [...new Set((data ?? []).map((r) => r.industry).filter(Boolean) as string[])].sort(),
@@ -181,6 +213,68 @@ export default function ScreenerPage() {
               className="h-9 text-xs"
             />
           ))}
+        </div>
+      </Card>
+
+      {/* Saved screens */}
+      <Card className="mb-4 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <Save className="h-3 w-3 text-primary" /> Saved screens
+          </span>
+          {user ? (
+            <>
+              {(saved ?? []).map((s) => (
+                <span
+                  key={s.id}
+                  className="group inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/40 py-1 pl-3 pr-1 text-xs hover:border-primary/40"
+                >
+                  <button onClick={() => loadScreen(s)} className="inline-flex items-center gap-1.5 hover:text-primary">
+                    {s.notify && <BellRing className="h-3 w-3 text-primary" />}
+                    {s.name}
+                    {s.lastCount != null && <span className="text-[10px] text-muted-foreground">· {s.lastCount}</span>}
+                  </button>
+                  <button
+                    onClick={() => remove.mutate(s.id, { onSuccess: () => toast.success("Deleted") })}
+                    className="rounded-full p-0.5 text-muted-foreground/60 opacity-0 transition-opacity hover:text-bear group-hover:opacity-100"
+                    aria-label="Delete screen"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+              {(saved ?? []).length === 0 && (
+                <span className="text-xs text-muted-foreground">None yet — set filters above, then save.</span>
+              )}
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  onClick={() => setNotify((n) => !n)}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-md border px-2 py-1.5 text-xs",
+                    notify ? "border-primary/40 bg-primary/10 text-primary" : "border-border/60 text-muted-foreground",
+                  )}
+                  title="Alert me when a new stock enters this screen"
+                >
+                  {notify ? <BellRing className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />} Alerts
+                </button>
+                <Input
+                  value={screenName}
+                  onChange={(e) => setScreenName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveScreen()}
+                  placeholder="Name this screen…"
+                  className="h-9 w-44 text-xs"
+                />
+                <Button size="sm" onClick={saveScreen} disabled={save.isPending}>
+                  <Save className="h-3.5 w-3.5" /> Save
+                </Button>
+              </div>
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              <Link to="/login" className="text-primary hover:underline">Sign in</Link> to save screens and get alerts when
+              new stocks match.
+            </span>
+          )}
         </div>
       </Card>
 
