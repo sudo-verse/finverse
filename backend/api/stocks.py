@@ -15,6 +15,7 @@ from backend.schemas.nse import (
     QuarterlyResultOut,
     ShareholdingPeriod,
 )
+from backend.schemas.conviction import ConvictionRow
 from backend.schemas.earnings import StockEarnings
 from backend.schemas.insider import InsiderTrade
 from backend.schemas.peers import PeerComparison
@@ -22,7 +23,12 @@ from backend.schemas.valuation import ValuationOut
 from backend.schemas.radar import StockRange
 from backend.schemas.scorecard import ScorecardOut
 from backend.schemas.stock import CompanyOut, StockDetailOut
-from backend.services import earnings_service, insider_service, valuation_service
+from backend.services import (
+    conviction_service,
+    earnings_service,
+    insider_service,
+    valuation_service,
+)
 from backend.services.nse_service import nse_service
 from backend.services.peer_service import peer_service
 from backend.services.radar_service import radar_service
@@ -108,6 +114,15 @@ def get_valuation(db: Session = Depends(get_db), symbol: str = SymbolPath) -> Va
     price target."""
     result = valuation_service.stock(db, symbol)
     return result or ValuationOut(symbol=symbol.upper(), name="")
+
+
+@router.get("/stocks/{symbol}/conviction", response_model=ConvictionRow | None,
+            summary="Composite conviction score")
+def get_conviction(db: Session = Depends(get_db), symbol: str = SymbolPath) -> ConvictionRow | None:
+    """The stock's 0-100 conviction score with the full per-pillar breakdown
+    (valuation, momentum, smart money, insider/SAST, 52-week trend, sentiment).
+    Returns null when too few pillars have data to score it."""
+    return conviction_service.stock(db, symbol)
 
 
 # ----------------------------------------------------------------------------

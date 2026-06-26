@@ -45,6 +45,7 @@ import { OwnershipTrendPanel } from "@/components/stock/ownership-trend";
 import { PeerComparisonPanel } from "@/components/stock/peer-comparison";
 import { Range52w } from "@/components/stock/range-52w";
 import { ValuationPanel } from "@/components/stock/valuation-panel";
+import { ConvictionPanel } from "@/components/stock/conviction-panel";
 import { ScorecardPanel } from "@/components/stock/scorecard-panel";
 import { useCompetitors, useGenerateReport, useHistoryRange, useIntraday, useLiveQuote, useStock } from "@/hooks/queries";
 import {
@@ -456,6 +457,8 @@ export default function StockAnalysisPage() {
           )}
 
           {stock && <ScorecardPanel symbol={activeSymbol} />}
+
+          {stock && <ConvictionPanel symbol={activeSymbol} />}
 
           {stock && <ValuationPanel symbol={activeSymbol} />}
 

@@ -274,6 +274,25 @@ export function useStockValuation(symbol: string | undefined) {
   });
 }
 
+export function useConvictionLeaderboard(order: "top" | "bottom" = "top", limit = 60, universe?: string) {
+  return useQuery({
+    queryKey: ["conviction-leaderboard", order, limit, universe],
+    queryFn: () => services.getConvictionLeaderboard(order, limit, universe),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
+export function useStockConviction(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["stock-conviction", symbol],
+    queryFn: () => services.getStockConviction(symbol!),
+    enabled: !!symbol,
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+}
+
 export function useDeals(params: { type?: string; side?: string; symbol?: string; days?: number; limit?: number; universe?: string } = {}) {
   return useQuery({
     queryKey: ["deals", params],

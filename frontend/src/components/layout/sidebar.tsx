@@ -19,6 +19,7 @@ import {
   SlidersHorizontal,
   Star,
   Swords,
+  Target,
   TrendingUp,
   UserCheck,
   Wallet,
@@ -36,6 +37,7 @@ const MARKET_STATUS: Record<string, { label: string; live: boolean }> = {
 
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/conviction", label: "Conviction Score", icon: Target },
   { to: "/watchlist", label: "Watchlist", icon: Star },
   { to: "/screener", label: "Screener", icon: SlidersHorizontal },
   { to: "/valuation", label: "Fair Value", icon: Scale },

@@ -979,3 +979,22 @@ export interface ValuationRow {
   verdict: string | null;
   confidence: string | null;
 }
+
+export interface ConvictionPillar {
+  key: string;
+  label: string;
+  score: number | null;
+  weight: number;
+  signal: "up" | "down" | "neutral" | "na";
+  detail: string | null;
+}
+
+export interface ConvictionRow {
+  symbol: string;
+  name: string;
+  sector: string | null;
+  score: number;
+  verdict: string;
+  coverage: number;
+  pillars: ConvictionPillar[];
+}

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
 from backend.schemas.announcements import AnnouncementFeedRow
+from backend.schemas.conviction import ConvictionRow
 from backend.schemas.deals import DealRow
 from backend.schemas.earnings import EarningsRow
 from backend.schemas.events import CorporateEventRow
@@ -25,6 +26,7 @@ from backend.schemas.nse import (
 )
 from backend.services import (
     announcements_service,
+    conviction_service,
     earnings_service,
     insider_service,
     universe_service,
@@ -183,6 +185,21 @@ def market_valuation(
     multiples). A screening signal, not a price target; low-confidence and
     outlier estimates are excluded. Cached ~10m."""
     return valuation_service.tracker(db, verdict=verdict, limit=limit, universe=universe)
+
+
+@router.get("/market/conviction", response_model=list[ConvictionRow],
+            summary="Composite conviction leaderboard")
+def market_conviction(
+    db: Session = Depends(get_db),
+    order: str = Query("top", pattern="^(top|bottom)$"),
+    limit: int = Query(60, ge=1, le=300),
+    universe: str | None = Query(None, description="all | nifty50 | nifty100 | nifty200 | nifty500"),
+) -> list[ConvictionRow]:
+    """Stocks ranked by a composite 0-100 conviction score that fuses valuation,
+    earnings momentum, smart-money flow, insider/SAST direction, 52-week trend
+    and sentiment — each pillar surfaced in the breakdown. order="bottom" lists
+    the weakest (avoid) names. A screening synthesis, not advice. Cached ~10m."""
+    return conviction_service.leaderboard(db, order=order, limit=limit, universe=universe)
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")

@@ -25,6 +25,7 @@ import type {
   InsiderTrade,
   MarketFlowSummary,
   SastRow,
+  ConvictionRow,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -212,6 +213,18 @@ export async function getValuationLeaderboard(
 
 export async function getStockValuation(symbol: string): Promise<ValuationOut> {
   return (await apiClient.get<ValuationOut>(`/stocks/${symbol}/valuation`)).data;
+}
+
+export async function getConvictionLeaderboard(
+  order: "top" | "bottom" = "top",
+  limit = 60,
+  universe?: string,
+): Promise<ConvictionRow[]> {
+  return (await apiClient.get<ConvictionRow[]>("/market/conviction", { params: { order, limit, universe } })).data;
+}
+
+export async function getStockConviction(symbol: string): Promise<ConvictionRow | null> {
+  return (await apiClient.get<ConvictionRow | null>(`/stocks/${symbol}/conviction`)).data;
 }
 
 export async function getDeals(params: {
