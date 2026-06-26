@@ -45,7 +45,7 @@ _LABELS = {
     "smart_money": "Smart money",
     "insider": "Insider / SAST",
     "technical": "52-week trend",
-    "sentiment": "News & mood",
+    "sentiment": "Sentiment",
 }
 _MIN_PILLARS = 3            # need at least this many to rank a stock
 _UP, _DOWN = 58.0, 42.0     # sub-score thresholds for an up / down chip
@@ -140,25 +140,17 @@ def _insider(days: int = 30) -> dict[str, float]:
 
 
 def _sentiment(session: Session) -> dict[str, float]:
-    """symbol -> latest news+market 'mood' read (0-100).
-
-    Deliberately blends only the news and market pillars of the stored sentiment
-    snapshot — the fundamental/technical/ownership pillars are already covered by
-    conviction's own value/technical/smart-money pillars, so using them here
-    would double-count. The newest snapshot with either value wins."""
+    """symbol -> latest stored Sentiment Intelligence overall (0-100)."""
     rows = (
-        session.query(SentimentScore.symbol, SentimentScore.news,
-                      SentimentScore.market, SentimentScore.date)
+        session.query(SentimentScore.symbol, SentimentScore.overall, SentimentScore.date)
+        .filter(SentimentScore.overall.isnot(None))
         .order_by(SentimentScore.symbol, SentimentScore.date.desc())
         .all()
     )
     out: dict[str, float] = {}
-    for sym, news, market, _d in rows:
-        if sym in out:
-            continue                 # already took this symbol's newest with data
-        vals = [v for v in (news, market) if v is not None]
-        if vals:
-            out[sym] = sum(vals) / len(vals)
+    for sym, overall, _d in rows:
+        if sym not in out:           # first per symbol = newest (ordered desc)
+            out[sym] = float(overall)
     return out
 
 
@@ -239,7 +231,7 @@ def _sentiment_pillar(score: float | None) -> ConvictionPillar | None:
     return ConvictionPillar(
         key="sentiment", label=_LABELS["sentiment"], score=round(s, 1),
         weight=_WEIGHTS["sentiment"], signal=_signal(s),
-        detail=f"news & mood {s:.0f}/100",
+        detail=f"sentiment {s:.0f}/100",
     )
 
 
