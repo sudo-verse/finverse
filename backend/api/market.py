@@ -13,6 +13,7 @@ from backend.schemas.earnings import EarningsRow
 from backend.schemas.events import CorporateEventRow
 from backend.schemas.insider import SastRow
 from backend.schemas.valuation import ValuationRow
+from backend.schemas.ipo import IpoRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.market_mood import MarketMoodOut
 from backend.schemas.radar import RadarRow
@@ -32,6 +33,7 @@ from backend.services import (
     conviction_service,
     earnings_service,
     insider_service,
+    ipo_service,
     market_mood_service,
     red_flags_service,
     technical_service,
@@ -220,6 +222,16 @@ def market_technicals(
     MACD, 52-week position). signal="bearish" lists the weakest setups. Computed
     from our own OHLCV; cached ~10m."""
     return technical_service.screen(db, signal=signal, limit=limit, universe=universe)
+
+
+@router.get("/market/ipos", response_model=list[IpoRow], summary="IPO / SME-IPO tracker")
+def market_ipos(
+    status: str = Query("open", pattern="^(open|upcoming|listed)$"),
+    limit: int = Query(40, ge=1, le=100),
+) -> list[IpoRow]:
+    """Primary-market issues from NSE — open (with live subscription multiple),
+    upcoming, or recently listed (mainboard + SME). Cached ~30m."""
+    return ipo_service.feed(status=status, limit=limit)
 
 
 @router.get("/market/surveillance", response_model=list[SurveillanceRow],

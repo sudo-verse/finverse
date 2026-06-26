@@ -1054,6 +1054,21 @@ export interface TechnicalRow {
   pctInRange: number | null;
 }
 
+export interface IpoRow {
+  symbol: string | null;
+  name: string;
+  category: string | null;
+  status: string | null;
+  priceBand: string | null;
+  priceMin: number | null;
+  priceMax: number | null;
+  issueSize: string | null;
+  openDate: string | null;
+  closeDate: string | null;
+  listingDate: string | null;
+  subscription: number | null;
+}
+
 export interface RedFlag {
   label: string;
   detail: string | null;

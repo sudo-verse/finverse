@@ -331,6 +331,15 @@ export function useSurveillance() {
   });
 }
 
+export function useIpos(status: "open" | "upcoming" | "listed" = "open") {
+  return useQuery({
+    queryKey: ["ipos", status],
+    queryFn: () => services.getIpos(status),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+}
+
 export function useMarketMood() {
   return useQuery({
     queryKey: ["market-mood"],

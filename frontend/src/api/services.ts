@@ -32,6 +32,7 @@ import type {
   MarketMood,
   RedFlagsOut,
   SurveillanceRow,
+  IpoRow,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -255,6 +256,10 @@ export async function getStockRedFlags(symbol: string): Promise<RedFlagsOut> {
 
 export async function getSurveillance(): Promise<SurveillanceRow[]> {
   return (await apiClient.get<SurveillanceRow[]>("/market/surveillance")).data;
+}
+
+export async function getIpos(status: "open" | "upcoming" | "listed" = "open", limit = 40): Promise<IpoRow[]> {
+  return (await apiClient.get<IpoRow[]>("/market/ipos", { params: { status, limit } })).data;
 }
 
 export async function getSavedScreens(): Promise<SavedScreen[]> {
