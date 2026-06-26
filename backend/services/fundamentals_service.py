@@ -307,5 +307,69 @@ class FundamentalsService:
             cons=[ProsConsItem(point=c["point"], confidence=float(c.get("confidence", 0.5))) for c in data["cons"]],
         )
 
+    # ------------------------------------------------------------ SWOT
+    SWOT_SYSTEM = (
+        "You are an equity research analyst. From the structured data, produce a "
+        "SWOT analysis. Return STRICT JSON only: "
+        '{"strengths": [str], "weaknesses": [str], "opportunities": [str], '
+        '"threats": [str]} with 2-4 concise, specific points per bucket. '
+        "Strengths/weaknesses are internal (financials, moat, execution); "
+        "opportunities/threats are external (industry, macro, competition, "
+        "regulation). Ground every point in the provided data — quote figures "
+        "where possible. No markdown, no commentary outside the JSON."
+    )
+
+    def swot(self, session: Session, symbol: str, refresh: bool = False) -> "SwotOut":
+        from backend.schemas.stock import SwotOut
+
+        _company(session, symbol)
+        CompanyInsight.__table__.create(engine, checkfirst=True)
+
+        def _from(data: dict, **kw) -> "SwotOut":
+            return SwotOut(
+                symbol=symbol,
+                strengths=data.get("strengths", [])[:4],
+                weaknesses=data.get("weaknesses", [])[:4],
+                opportunities=data.get("opportunities", [])[:4],
+                threats=data.get("threats", [])[:4],
+                **kw,
+            )
+
+        if not refresh:
+            row = session.query(CompanyInsight).filter_by(symbol=symbol, kind="swot").first()
+            if row and row.content:
+                return _from(json.loads(row.content), cached=True, model=row.model,
+                             generated_at=str(row.generated_at))
+            return SwotOut(symbol=symbol, cached=False)
+
+        if not gemini_client.is_configured():
+            raise ServiceUnavailableError("GEMINI_API_KEY is not configured.")
+        from app.config import GEMINI_MODEL
+        from app.genai.report_generator import build_context
+
+        context = build_context(symbol)
+        prompt = (
+            f"Company: {context['company']} ({symbol}) on the NSE.\n\n"
+            f"=== STRUCTURED DATA ===\n{json.dumps(context, default=str)[:9000]}\n\n"
+            f"JSON:"
+        )
+        raw = gemini_client.generate_text(prompt, system_instruction=self.SWOT_SYSTEM)
+        match = re.search(r"\{.*\}", raw or "", re.DOTALL)
+        if not match:
+            raise NoDataError(f"Could not generate a SWOT for {symbol}.")
+        parsed = json.loads(match.group(0))
+        data = {k: [str(x) for x in parsed.get(k, []) if x][:4]
+                for k in ("strengths", "weaknesses", "opportunities", "threats")}
+
+        with get_session() as ws:
+            row = ws.query(CompanyInsight).filter_by(symbol=symbol, kind="swot").first()
+            if row:
+                row.content, row.model, row.generated_at = json.dumps(data), GEMINI_MODEL, datetime.utcnow()
+            else:
+                ws.add(CompanyInsight(symbol=symbol, kind="swot",
+                                      content=json.dumps(data), model=GEMINI_MODEL))
+
+        return _from(data, cached=False, model=GEMINI_MODEL, generated_at=str(datetime.utcnow()))
+
 
 fundamentals_service = FundamentalsService()

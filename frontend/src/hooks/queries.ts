@@ -550,6 +550,24 @@ export function useRefreshProsCons() {
   });
 }
 
+export function useSwot(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["swot", symbol],
+    queryFn: () => services.getSwot(symbol!),
+    enabled: Boolean(symbol),
+    staleTime: 60 * 60_000,
+    retry: false,
+  });
+}
+
+export function useRefreshSwot() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (symbol: string) => services.getSwot(symbol, true),
+    onSuccess: (data, symbol) => qc.setQueryData(["swot", symbol], data),
+  });
+}
+
 /* ------------------------ Sentiment Intelligence ------------------------ */
 
 export function useSentiment(symbol: string | undefined) {

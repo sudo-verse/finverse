@@ -51,6 +51,7 @@ import type {
   PortfolioData,
   PricePoint,
   ProsCons,
+  Swot,
   RatioPoint,
   SentimentData,
   SentimentHistoryPoint,
@@ -374,6 +375,10 @@ export async function getCagr(symbol: string): Promise<CagrRow[]> {
 
 export async function getProsCons(symbol: string, refresh = false): Promise<ProsCons> {
   return (await apiClient.get<ProsCons>(`/stocks/${symbol}/pros-cons`, { params: { refresh } })).data;
+}
+
+export async function getSwot(symbol: string, refresh = false): Promise<Swot> {
+  return (await apiClient.get<Swot>(`/stocks/${symbol}/swot`, { params: { refresh } })).data;
 }
 
 /* ------------------------ Sentiment Intelligence ------------------------ */

@@ -124,3 +124,14 @@ class ProsConsOut(APIModel):
     model: str | None = None
     generated_at: str | None = None
     cached: bool
+
+
+class SwotOut(APIModel):
+    symbol: str
+    strengths: list[str] = []
+    weaknesses: list[str] = []
+    opportunities: list[str] = []
+    threats: list[str] = []
+    model: str | None = None
+    generated_at: str | None = None
+    cached: bool = False

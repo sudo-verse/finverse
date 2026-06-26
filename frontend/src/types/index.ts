@@ -564,6 +564,17 @@ export interface ProsCons {
   cached: boolean;
 }
 
+export interface Swot {
+  symbol: string;
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+  model: string | null;
+  generatedAt: string | null;
+  cached: boolean;
+}
+
 /* ------------------------ Sentiment Intelligence ------------------------ */
 
 export interface SentimentFactor {

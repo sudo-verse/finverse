@@ -48,6 +48,7 @@ import { ValuationPanel } from "@/components/stock/valuation-panel";
 import { ConvictionPanel } from "@/components/stock/conviction-panel";
 import { TechnicalsPanel } from "@/components/stock/technicals-panel";
 import { RedFlagsPanel } from "@/components/stock/red-flags-panel";
+import { SwotPanel } from "@/components/stock/swot-panel";
 import { ScorecardPanel } from "@/components/stock/scorecard-panel";
 import { useCompetitors, useGenerateReport, useHistoryRange, useIntraday, useLiveQuote, useStock } from "@/hooks/queries";
 import {
@@ -465,6 +466,8 @@ export default function StockAnalysisPage() {
           {stock && <RedFlagsPanel symbol={activeSymbol} />}
 
           {stock && <ConvictionPanel symbol={activeSymbol} />}
+
+          {stock && <SwotPanel symbol={activeSymbol} />}
 
           {stock && <ValuationPanel symbol={activeSymbol} />}
 

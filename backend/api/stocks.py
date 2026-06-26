@@ -271,7 +271,7 @@ def get_brsr(symbol: str = SymbolPath) -> list[BrsrOut]:
 
 # ------------------------------ Company terminal ------------------------------
 
-from backend.schemas.stock import CagrRow, PricePoint, ProsConsOut, RatioPoint, StatementRow  # noqa: E402
+from backend.schemas.stock import CagrRow, PricePoint, ProsConsOut, RatioPoint, StatementRow, SwotOut  # noqa: E402
 from backend.services.fundamentals_service import fundamentals_service  # noqa: E402
 
 
@@ -315,3 +315,16 @@ def stock_pros_cons(
     """Screener-style pros/cons with confidence scores, grounded in Finverse
     metrics/fundamentals/peers/signals (Gemini; cached in company_insights)."""
     return fundamentals_service.pros_cons(db, symbol.upper(), refresh=refresh)
+
+
+@router.get("/stocks/{symbol}/swot", response_model=SwotOut,
+            summary="AI-generated SWOT (cached)")
+def stock_swot(
+    db: Session = Depends(get_db),
+    symbol: str = SymbolPath,
+    refresh: bool = Query(False, description="Force regeneration"),
+) -> SwotOut:
+    """SWOT analysis grounded in Finverse metrics/fundamentals/peers/signals
+    (Gemini; cached in company_insights). Viewing returns cache only; pass
+    refresh=true to spend an AI call and (re)generate."""
+    return fundamentals_service.swot(db, symbol.upper(), refresh=refresh)
