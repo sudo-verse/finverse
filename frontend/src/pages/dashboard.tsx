@@ -17,6 +17,7 @@ import {
 import { Activity, ArrowDownRight, ArrowUpRight, Building2, Flame, Newspaper, Wallet } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { MarketsBoard } from "@/components/dashboard/markets-board";
+import { MarketMood } from "@/components/dashboard/market-mood";
 import { InstitutionalFlows } from "@/components/dashboard/institutional-flows";
 import { SectorHeatmap } from "@/components/dashboard/sector-heatmap";
 import { MetricCard, MetricCardSkeleton } from "@/components/shared/metric-card";
@@ -154,6 +155,9 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* Market Mood Index — fear ↔ greed */}
+      <MarketMood />
 
       {/* Live markets: index chart, indices board, turnover */}
       <MarketsBoard />

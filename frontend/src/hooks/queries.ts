@@ -312,6 +312,15 @@ export function useTechnicalScreen(signal: "bullish" | "bearish" = "bullish", li
   });
 }
 
+export function useMarketMood() {
+  return useQuery({
+    queryKey: ["market-mood"],
+    queryFn: services.getMarketMood,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+}
+
 export function useSavedScreens(enabled = true) {
   return useQuery({
     queryKey: ["saved-screens"],

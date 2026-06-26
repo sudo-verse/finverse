@@ -1054,6 +1054,18 @@ export interface TechnicalRow {
   pctInRange: number | null;
 }
 
+export interface MoodComponent {
+  label: string;
+  value: number;
+}
+
+export interface MarketMood {
+  value: number;
+  zone: string;
+  components: MoodComponent[];
+  sample: number;
+}
+
 export interface SavedScreen {
   id: number;
   name: string;

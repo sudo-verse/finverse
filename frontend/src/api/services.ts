@@ -29,6 +29,7 @@ import type {
   TechnicalsOut,
   TechnicalRow,
   SavedScreen,
+  MarketMood,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -240,6 +241,10 @@ export async function getTechnicalScreen(
   universe?: string,
 ): Promise<TechnicalRow[]> {
   return (await apiClient.get<TechnicalRow[]>("/market/technicals", { params: { signal, limit, universe } })).data;
+}
+
+export async function getMarketMood(): Promise<MarketMood> {
+  return (await apiClient.get<MarketMood>("/market/mood")).data;
 }
 
 export async function getSavedScreens(): Promise<SavedScreen[]> {

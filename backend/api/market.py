@@ -14,6 +14,7 @@ from backend.schemas.events import CorporateEventRow
 from backend.schemas.insider import SastRow
 from backend.schemas.valuation import ValuationRow
 from backend.schemas.market_flow import MarketFlowSummary
+from backend.schemas.market_mood import MarketMoodOut
 from backend.schemas.radar import RadarRow
 from backend.schemas.sectors import SectorPerf
 from backend.schemas.technicals import TechnicalRow
@@ -30,6 +31,7 @@ from backend.services import (
     conviction_service,
     earnings_service,
     insider_service,
+    market_mood_service,
     technical_service,
     universe_service,
     valuation_service,
@@ -216,6 +218,14 @@ def market_technicals(
     MACD, 52-week position). signal="bearish" lists the weakest setups. Computed
     from our own OHLCV; cached ~10m."""
     return technical_service.screen(db, signal=signal, limit=limit, universe=universe)
+
+
+@router.get("/market/mood", response_model=MarketMoodOut, summary="Market Mood Index")
+def market_mood(db: Session = Depends(get_db)) -> MarketMoodOut:
+    """A single 0-100 fear↔greed gauge for the market, from breadth (share above
+    50-DMA), average 52-week position and bullish-MACD share across the Nifty
+    500. Cached ~5m."""
+    return market_mood_service.compute(db)
 
 
 @router.get("/market/movers", response_model=MarketMovers, summary="Top gainers & losers")
