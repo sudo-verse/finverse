@@ -17,7 +17,12 @@ from app.db.repository import list_holdings
 def _latest_close(prices: pd.DataFrame):
     if prices is None or prices.empty:
         return None
-    return float(prices["close"].iloc[-1])
+    # The most recent bar can carry a NaN close (partial live bar / trailing
+    # backfill gap); a NaN here would cascade into total_value and every weight.
+    closes = prices["close"].dropna()
+    if closes.empty:
+        return None
+    return float(closes.iloc[-1])
 
 
 def _industries(symbols):
