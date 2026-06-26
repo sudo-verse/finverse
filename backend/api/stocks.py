@@ -18,6 +18,7 @@ from backend.schemas.nse import (
 from backend.schemas.conviction import ConvictionRow
 from backend.schemas.concall import ConcallRow, ConcallSummary
 from backend.schemas.derivatives import OptionChainOut
+from backend.schemas.dcf import DcfOut
 from backend.schemas.technicals import TechnicalsOut
 from backend.schemas.red_flags import RedFlagsOut
 from backend.schemas.earnings import StockEarnings
@@ -30,6 +31,7 @@ from backend.schemas.stock import CompanyOut, StockDetailOut
 from backend.services import (
     concall_service,
     conviction_service,
+    dcf_service,
     derivatives_service,
     earnings_service,
     insider_service,
@@ -165,6 +167,14 @@ def get_option_chain(symbol: str = SymbolPath) -> OptionChainOut | None:
     CE/PE open interest per strike, with PCR and max pain. Null if the stock has
     no listed options."""
     return derivatives_service.option_chain(symbol.upper())
+
+
+@router.get("/stocks/{symbol}/dcf", response_model=DcfOut, summary="DCF intrinsic value (scenarios)")
+def get_dcf(db: Session = Depends(get_db), symbol: str = SymbolPath) -> DcfOut:
+    """Discounted-cash-flow intrinsic value with bull/base/bear scenarios, from
+    the latest free cash flow (OCF proxy). The frontend lets you tweak growth,
+    discount and horizon to recompute live. A screening estimate, not a target."""
+    return dcf_service.compute(db, symbol.upper())
 
 
 @router.get("/stocks/{symbol}/concalls/summary", response_model=ConcallSummary,

@@ -51,6 +51,7 @@ import { RedFlagsPanel } from "@/components/stock/red-flags-panel";
 import { SwotPanel } from "@/components/stock/swot-panel";
 import { ConcallPanel } from "@/components/stock/concall-panel";
 import { OptionChainPanel } from "@/components/stock/option-chain-panel";
+import { DcfPanel } from "@/components/stock/dcf-panel";
 import { ScorecardPanel } from "@/components/stock/scorecard-panel";
 import { useCompetitors, useGenerateReport, useHistoryRange, useIntraday, useLiveQuote, useStock } from "@/hooks/queries";
 import {
@@ -476,6 +477,8 @@ export default function StockAnalysisPage() {
           {stock && <OptionChainPanel symbol={activeSymbol} />}
 
           {stock && <ValuationPanel symbol={activeSymbol} />}
+
+          {stock && <DcfPanel symbol={activeSymbol} />}
 
           {stock && <PeerComparisonPanel symbol={activeSymbol} />}
 

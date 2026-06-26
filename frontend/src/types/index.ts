@@ -564,6 +564,29 @@ export interface ProsCons {
   cached: boolean;
 }
 
+export interface DcfScenario {
+  name: string;
+  growth: number;
+  terminalGrowth: number;
+  discount: number;
+  years: number;
+  intrinsicValue: number | null;
+  upsidePct: number | null;
+}
+
+export interface DcfOut {
+  symbol: string;
+  name: string | null;
+  price: number | null;
+  baseFcf: number | null;
+  fcfSource: string | null;
+  shares: number | null;
+  historicalGrowth: number | null;
+  applicable: boolean;
+  note: string | null;
+  scenarios: DcfScenario[];
+}
+
 export interface DerivativeRow {
   symbol: string;
   kind: string;

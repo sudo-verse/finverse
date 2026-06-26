@@ -358,6 +358,16 @@ export function useDerivatives(sort: "oi" | "pcr" | "chg_oi" = "oi", kind?: "Sto
   });
 }
 
+export function useDcf(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["dcf", symbol],
+    queryFn: () => services.getDcf(symbol!),
+    enabled: Boolean(symbol),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+}
+
 export function useOptionChain(symbol: string | undefined) {
   return useQuery({
     queryKey: ["option-chain", symbol],

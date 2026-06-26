@@ -37,6 +37,7 @@ import type {
   SuperstarRow,
   DerivativeRow,
   OptionChainOut,
+  DcfOut,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -271,6 +272,10 @@ export async function getDerivatives(sort: "oi" | "pcr" | "chg_oi" = "oi", kind?
 
 export async function getOptionChain(symbol: string): Promise<OptionChainOut | null> {
   return (await apiClient.get<OptionChainOut | null>(`/stocks/${symbol}/option-chain`)).data;
+}
+
+export async function getDcf(symbol: string): Promise<DcfOut> {
+  return (await apiClient.get<DcfOut>(`/stocks/${symbol}/dcf`)).data;
 }
 
 export async function getIpos(status: "open" | "upcoming" | "listed" = "open", limit = 40): Promise<IpoRow[]> {
