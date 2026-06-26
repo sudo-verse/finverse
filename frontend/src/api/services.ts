@@ -35,6 +35,8 @@ import type {
   IpoRow,
   ResultRow,
   SuperstarRow,
+  DerivativeRow,
+  OptionChainOut,
   RadarRow,
   SectorPerf,
   StockEarnings,
@@ -261,6 +263,14 @@ export async function getStockRedFlags(symbol: string): Promise<RedFlagsOut> {
 
 export async function getSurveillance(): Promise<SurveillanceRow[]> {
   return (await apiClient.get<SurveillanceRow[]>("/market/surveillance")).data;
+}
+
+export async function getDerivatives(sort: "oi" | "pcr" | "chg_oi" = "oi", kind?: "Stock" | "Index", limit = 80): Promise<DerivativeRow[]> {
+  return (await apiClient.get<DerivativeRow[]>("/market/derivatives", { params: { sort, kind, limit } })).data;
+}
+
+export async function getOptionChain(symbol: string): Promise<OptionChainOut | null> {
+  return (await apiClient.get<OptionChainOut | null>(`/stocks/${symbol}/option-chain`)).data;
 }
 
 export async function getIpos(status: "open" | "upcoming" | "listed" = "open", limit = 40): Promise<IpoRow[]> {

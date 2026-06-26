@@ -564,6 +564,35 @@ export interface ProsCons {
   cached: boolean;
 }
 
+export interface DerivativeRow {
+  symbol: string;
+  kind: string;
+  expiry: string | null;
+  futPrice: number | null;
+  underlying: number | null;
+  oi: number | null;
+  chgOiPct: number | null;
+  pcr: number | null;
+  maxPain: number | null;
+  buildup: string | null;
+}
+
+export interface OptionStrike {
+  strike: number;
+  ceOi: number;
+  peOi: number;
+}
+
+export interface OptionChainOut {
+  symbol: string;
+  expiry: string | null;
+  underlying: number | null;
+  pcr: number | null;
+  maxPain: number | null;
+  asOf: string | null;
+  strikes: OptionStrike[];
+}
+
 export interface ConcallRow {
   date: string | null;
   title: string | null;

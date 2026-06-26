@@ -13,6 +13,7 @@ from backend.schemas.earnings import EarningsRow
 from backend.schemas.events import CorporateEventRow
 from backend.schemas.insider import SastRow
 from backend.schemas.valuation import ValuationRow
+from backend.schemas.derivatives import DerivativeRow
 from backend.schemas.ipo import IpoRow
 from backend.schemas.market_flow import MarketFlowSummary
 from backend.schemas.market_mood import MarketMoodOut
@@ -48,7 +49,7 @@ from backend.services.market_flow_service import market_flow_service
 from backend.services.nse_service import nse_service
 from backend.services.radar_service import radar_service
 from backend.services.results_service import calendar as results_calendar
-from backend.services import superstar_service
+from backend.services import derivatives_service, superstar_service
 from backend.services.sector_service import sector_service
 
 router = APIRouter(tags=["market"])
@@ -254,6 +255,18 @@ def market_results_calendar(
     annual PAT/revenue YoY and momentum (no analyst estimates available, so this
     is a fundamental-trend tag, not a vs-estimate beat/miss)."""
     return results_calendar(db, window=window, days=days, limit=limit, universe=universe)
+
+
+@router.get("/market/derivatives", response_model=list[DerivativeRow],
+            summary="F&O futures + OI/PCR snapshot")
+def market_derivatives(
+    sort: str = Query("oi", pattern="^(oi|pcr|chg_oi)$"),
+    kind: str | None = Query(None, pattern="^(Stock|Index)$"),
+    limit: int = Query(80, ge=1, le=250),
+) -> list[DerivativeRow]:
+    """Per-underlying derivatives snapshot from NSE's EOD FO bhavcopy — futures
+    price/OI, OI-change buildup, put/call ratio and max pain. EOD data."""
+    return derivatives_service.summary(sort=sort, kind=kind, limit=limit)
 
 
 @router.get("/market/ipos", response_model=list[IpoRow], summary="IPO / SME-IPO tracker")

@@ -17,6 +17,7 @@ from backend.schemas.nse import (
 )
 from backend.schemas.conviction import ConvictionRow
 from backend.schemas.concall import ConcallRow, ConcallSummary
+from backend.schemas.derivatives import OptionChainOut
 from backend.schemas.technicals import TechnicalsOut
 from backend.schemas.red_flags import RedFlagsOut
 from backend.schemas.earnings import StockEarnings
@@ -29,6 +30,7 @@ from backend.schemas.stock import CompanyOut, StockDetailOut
 from backend.services import (
     concall_service,
     conviction_service,
+    derivatives_service,
     earnings_service,
     insider_service,
     red_flags_service,
@@ -154,6 +156,15 @@ def get_concalls(symbol: str = SymbolPath) -> list[ConcallRow]:
     """Recent concall/earnings-call transcript filings for the stock (from its
     NSE announcements), with PDF links."""
     return concall_service.list_concalls(symbol.upper())
+
+
+@router.get("/stocks/{symbol}/option-chain", response_model=OptionChainOut | None,
+            summary="Option chain (EOD)")
+def get_option_chain(symbol: str = SymbolPath) -> OptionChainOut | None:
+    """Nearest-expiry option chain for the stock from NSE's EOD FO bhavcopy —
+    CE/PE open interest per strike, with PCR and max pain. Null if the stock has
+    no listed options."""
+    return derivatives_service.option_chain(symbol.upper())
 
 
 @router.get("/stocks/{symbol}/concalls/summary", response_model=ConcallSummary,

@@ -349,6 +349,25 @@ export function useResultsCalendar(window: "upcoming" | "recent" = "upcoming", u
   });
 }
 
+export function useDerivatives(sort: "oi" | "pcr" | "chg_oi" = "oi", kind?: "Stock" | "Index") {
+  return useQuery({
+    queryKey: ["derivatives", sort, kind],
+    queryFn: () => services.getDerivatives(sort, kind),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+}
+
+export function useOptionChain(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["option-chain", symbol],
+    queryFn: () => services.getOptionChain(symbol!),
+    enabled: Boolean(symbol),
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+}
+
 export function useIpos(status: "open" | "upcoming" | "listed" = "open") {
   return useQuery({
     queryKey: ["ipos", status],
