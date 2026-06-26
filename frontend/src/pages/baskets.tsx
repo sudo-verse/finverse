@@ -34,9 +34,9 @@ function BasketDetailRows({ basketKey }: { basketKey: string }) {
               <td className="p-2">
                 <Link to={`/stocks/${c.symbol}`} className="font-mono font-medium hover:text-primary">{c.symbol}</Link>
               </td>
-              <td className="p-2 text-right"><Ret v={c.ret1m} /></td>
-              <td className="p-2 text-right"><Ret v={c.ret3m} /></td>
-              <td className="p-2 text-right"><Ret v={c.ret1y} /></td>
+              <td className="p-2 text-right"><Ret v={c.ret1M} /></td>
+              <td className="p-2 text-right"><Ret v={c.ret3M} /></td>
+              <td className="p-2 text-right"><Ret v={c.ret1Y} /></td>
             </tr>
           ))}
         </tbody>
@@ -79,9 +79,9 @@ export default function BasketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-6 text-sm">
-                    <div><div className="text-[10px] uppercase text-muted-foreground">1M</div><Ret v={b.ret1m} /></div>
-                    <div><div className="text-[10px] uppercase text-muted-foreground">3M</div><Ret v={b.ret3m} /></div>
-                    <div><div className="text-[10px] uppercase text-muted-foreground">1Y</div><Ret v={b.ret1y} /></div>
+                    <div><div className="text-[10px] uppercase text-muted-foreground">1M</div><Ret v={b.ret1M} /></div>
+                    <div><div className="text-[10px] uppercase text-muted-foreground">3M</div><Ret v={b.ret3M} /></div>
+                    <div><div className="text-[10px] uppercase text-muted-foreground">1Y</div><Ret v={b.ret1Y} /></div>
                     <div className="ml-auto text-right">
                       <div className="text-[10px] uppercase text-muted-foreground">Top 1M</div>
                       <div className="font-mono text-xs">{b.top.join(" · ") || "—"}</div>

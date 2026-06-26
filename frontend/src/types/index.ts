@@ -568,9 +568,9 @@ export interface BasketConstituent {
   symbol: string;
   name: string | null;
   price: number | null;
-  ret1m: number | null;
-  ret3m: number | null;
-  ret1y: number | null;
+  ret1M: number | null;
+  ret3M: number | null;
+  ret1Y: number | null;
 }
 
 export interface BasketRow {
@@ -578,9 +578,9 @@ export interface BasketRow {
   name: string;
   thesis: string;
   count: number;
-  ret1m: number | null;
-  ret3m: number | null;
-  ret1y: number | null;
+  ret1M: number | null;
+  ret3M: number | null;
+  ret1Y: number | null;
   top: string[];
 }
 
