@@ -33,6 +33,7 @@ const BasketsPage = lazy(() => import("@/pages/baskets"));
 const ResultsCalendarPage = lazy(() => import("@/pages/results-calendar"));
 const SuperstarsPage = lazy(() => import("@/pages/superstars"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
+const DevelopersPage = lazy(() => import("@/pages/developers"));
 const TermsPage = lazy(() => import("@/pages/legal/terms"));
 const PrivacyPage = lazy(() => import("@/pages/legal/privacy"));
 const DisclaimerPage = lazy(() => import("@/pages/legal/disclaimer"));
@@ -66,6 +67,9 @@ export default function App() {
       {/* Public legal pages — reachable without auth and crawlable. */}
       {(
         [
+          ["/developers", DevelopersPage],
+          ["/api", DevelopersPage],
+          ["/pricing", DevelopersPage],
           ["/terms", TermsPage],
           ["/privacy", PrivacyPage],
           ["/disclaimer", DisclaimerPage],

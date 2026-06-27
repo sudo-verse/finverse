@@ -15,6 +15,12 @@ export function Footer() {
             © {year} {LEGAL.company} · NSE market intelligence
           </span>
           <nav className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Link to="/developers" className="hover:text-foreground hover:underline">
+              API
+            </Link>
+            <Link to="/pricing" className="hover:text-foreground hover:underline">
+              Pricing
+            </Link>
             {LEGAL_LINKS.map((l) => (
               <Link key={l.to} to={l.to} className="hover:text-foreground hover:underline">
                 {l.label}
