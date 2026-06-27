@@ -1,6 +1,10 @@
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Bell, Check, LogOut, Palette, UserCircle } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
+import { PlanCard } from "@/components/settings/plan-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -43,6 +47,26 @@ const NOTIFICATIONS: { key: keyof NotificationPrefs; label: string; description:
 export default function SettingsPage() {
   const { user, logout } = useAuth();
   const { prefs, setAccent, setNotification } = usePreferences();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [justPaid, setJustPaid] = useState(false);
+
+  // Handle the Stripe Checkout return. On success we flag the API-keys card to
+  // provision a first key; either way we clear the query params.
+  useEffect(() => {
+    const billing = searchParams.get("billing");
+    if (billing === "success") {
+      setJustPaid(true);
+      toast.success("Payment received — your plan is being activated.");
+    } else if (billing === "cancel") {
+      toast.info("Checkout canceled.");
+    }
+    if (billing) {
+      searchParams.delete("billing");
+      searchParams.delete("plan");
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -115,13 +139,18 @@ export default function SettingsPage() {
           </Card>
         </motion.div>
 
-        {/* Developer API keys */}
+        {/* Plan & billing */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <ApiKeysCard />
+          <PlanCard />
+        </motion.div>
+
+        {/* Developer API keys */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <ApiKeysCard autoProvision={justPaid} />
         </motion.div>
 
         {/* Account */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

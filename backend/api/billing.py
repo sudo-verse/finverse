@@ -1,11 +1,13 @@
 """Billing endpoints (/api/billing) — Stripe subscription checkout + webhook."""
 
 import logging
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Request
 
 from app.db.models import User
 from backend.core.deps import get_current_user
+from backend.schemas.common import APIModel
 from backend.services.billing_service import billing_service
 
 logger = logging.getLogger("finverse.api")
@@ -13,11 +15,18 @@ logger = logging.getLogger("finverse.api")
 router = APIRouter(prefix="/billing", tags=["billing"])
 
 
-@router.post("/checkout", summary="Start a Pro subscription checkout")
-def checkout(user: User = Depends(get_current_user)) -> dict:
+class CheckoutRequest(APIModel):
+    # Which purchasable plan to subscribe to. Bad values are rejected (422).
+    plan: Literal["pro", "scale"] = "pro"
+
+
+@router.post("/checkout", summary="Start a subscription checkout")
+def checkout(payload: CheckoutRequest | None = None,
+             user: User = Depends(get_current_user)) -> dict:
     """Create a Stripe Checkout Session and return its URL for the frontend to
     redirect to. Requires billing to be configured (BACKEND_STRIPE_SECRET_KEY)."""
-    return {"url": billing_service.create_checkout_session(user)}
+    plan = payload.plan if payload else "pro"
+    return {"url": billing_service.create_checkout_session(user, plan)}
 
 
 @router.post("/webhook", include_in_schema=False)

@@ -31,6 +31,7 @@ _LAST_USED_THROTTLE = 300      # only touch last_used_at every N seconds
 API_RATE_LIMITS: dict[str, int | None] = {
     "free": 1_000,
     "pro": 50_000,
+    "scale": 250_000,
 }
 _FALLBACK_LIMIT = API_RATE_LIMITS["free"]
 

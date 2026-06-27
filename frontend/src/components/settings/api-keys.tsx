@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Copy, KeyRound, Loader2, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,21 +36,34 @@ function fmtDate(s: string | null): string {
  * public Finverse API. The raw secret is shown exactly once, right after
  * creation, in a one-time banner.
  */
-export function ApiKeysCard() {
+export function ApiKeysCard({ autoProvision = false }: { autoProvision?: boolean }) {
   const { data: keys, isLoading } = useApiKeys();
   const create = useCreateApiKey();
   const remove = useDeleteApiKey();
   const [name, setName] = useState("");
   const [justCreated, setJustCreated] = useState<ApiKeyCreated | null>(null);
+  const provisioned = useRef(false);
 
-  const handleCreate = () => {
-    create.mutate(name.trim() || "API key", {
+  const handleCreate = (keyName?: string) => {
+    create.mutate((keyName ?? name).trim() || "API key", {
       onSuccess: (key) => {
         setJustCreated(key);
         setName("");
       },
     });
   };
+
+  // After a successful checkout, provision a first key automatically and reveal
+  // its secret once — so paying immediately yields a usable key. Skipped if the
+  // user already has keys (avoids surprise extra keys).
+  useEffect(() => {
+    if (!autoProvision || provisioned.current || isLoading) return;
+    if (keys && keys.length === 0 && !create.isPending) {
+      provisioned.current = true;
+      handleCreate("default");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoProvision, isLoading, keys]);
 
   return (
     <Card>
@@ -91,7 +104,7 @@ export function ApiKeysCard() {
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
           />
-          <Button onClick={handleCreate} disabled={create.isPending}>
+          <Button onClick={() => handleCreate()} disabled={create.isPending}>
             {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Create key
           </Button>

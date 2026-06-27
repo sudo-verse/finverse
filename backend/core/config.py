@@ -47,8 +47,9 @@ class Settings(BaseSettings):
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
     stripe_publishable_key: str = ""
-    # Pro plan price for inline Checkout (smallest currency unit; 2900 = $29.00).
+    # Plan prices for inline Checkout (smallest currency unit; 2900 = $29.00).
     pro_price_amount: int = 2900
+    scale_price_amount: int = 9900   # higher API-volume tier ($99.00)
     pro_price_currency: str = "usd"
     pro_price_interval: str = "month"
     # Where Stripe redirects back to after checkout (the frontend origin).

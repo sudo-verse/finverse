@@ -18,6 +18,7 @@ logger = logging.getLogger("finverse.api")
 PLAN_LIMITS: dict[str, dict[str, int | None]] = {
     "free": {"chat": 25, "report": 5},
     "pro": {"chat": 2000, "report": 500},
+    "scale": {"chat": 10000, "report": 2500},
 }
 _FALLBACK = PLAN_LIMITS["free"]
 

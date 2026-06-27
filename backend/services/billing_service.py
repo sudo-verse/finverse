@@ -26,25 +26,40 @@ def _stripe():
     return stripe
 
 
+# Purchasable plans → display name + price (smallest currency unit). Both grant
+# API access; they differ in the daily request limits enforced by
+# api_key_service.API_RATE_LIMITS / usage_service.PLAN_LIMITS.
+def _plan_catalog() -> dict[str, dict]:
+    return {
+        "pro": {"name": "Finverse Pro", "amount": settings.pro_price_amount},
+        "scale": {"name": "Finverse Scale", "amount": settings.scale_price_amount},
+    }
+
+
 class BillingService:
-    def create_checkout_session(self, user: User) -> str:
-        """Create a Stripe Checkout Session for the Pro subscription; returns
-        the hosted-checkout URL the frontend redirects to."""
+    def create_checkout_session(self, user: User, plan: str = "pro") -> str:
+        """Create a Stripe Checkout Session for a purchasable plan; returns the
+        hosted-checkout URL the frontend redirects to. The chosen plan is
+        carried in metadata so the webhook can entitle the user correctly."""
+        catalog = _plan_catalog()
+        spec = catalog.get(plan)
+        if spec is None:
+            raise ServiceUnavailableError(f"Unknown plan '{plan}'.")
         stripe = _stripe()
         kwargs: dict = {
             "mode": "subscription",
             "client_reference_id": str(user.id),
-            "metadata": {"user_id": str(user.id)},
+            "metadata": {"user_id": str(user.id), "plan": plan},
             "line_items": [{
                 "quantity": 1,
                 "price_data": {
                     "currency": settings.pro_price_currency,
-                    "unit_amount": settings.pro_price_amount,
+                    "unit_amount": spec["amount"],
                     "recurring": {"interval": settings.pro_price_interval},
-                    "product_data": {"name": "Finverse Pro"},
+                    "product_data": {"name": spec["name"]},
                 },
             }],
-            "success_url": f"{settings.app_base_url}/settings?billing=success",
+            "success_url": f"{settings.app_base_url}/settings?billing=success&plan={plan}",
             "cancel_url": f"{settings.app_base_url}/settings?billing=cancel",
         }
         # Reuse the Stripe customer if we have one, else let Checkout create it.
@@ -64,9 +79,12 @@ class BillingService:
         obj = event["data"]["object"]
 
         if etype == "checkout.session.completed":
-            user_id = int(obj.get("client_reference_id")
-                          or (obj.get("metadata") or {}).get("user_id") or 0)
-            self._set_plan(user_id, "pro",
+            meta = obj.get("metadata") or {}
+            user_id = int(obj.get("client_reference_id") or meta.get("user_id") or 0)
+            plan = meta.get("plan") or "pro"
+            if plan not in _plan_catalog():
+                plan = "pro"
+            self._set_plan(user_id, plan,
                            customer=obj.get("customer"),
                            subscription=obj.get("subscription"))
         elif etype == "customer.subscription.deleted":
