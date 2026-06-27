@@ -402,7 +402,11 @@ export default function DevelopersPage() {
             {[
               {
                 q: "How do I authenticate?",
-                a: "Pass your token as a bearer header: Authorization: Bearer YOUR_API_KEY. Generate and rotate keys from your account settings.",
+                a: "Pass your token as a bearer header: Authorization: Bearer YOUR_API_KEY. Generate, scope (read / ai / write) and rotate keys from your account settings.",
+              },
+              {
+                q: "What are the rate limits?",
+                a: "Two layers: a daily request quota (Developer 1k, Pro 50k, Scale 250k) and a per-second burst cap (5 / 20 / 50). Exceeding either returns 429 with a Retry-After header.",
               },
               {
                 q: "What data do you cover?",

@@ -742,7 +742,8 @@ export function useApiKeys() {
 export function useCreateApiKey() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) => services.createApiKey(name),
+    mutationFn: ({ name, scopes }: { name: string; scopes: string[] }) =>
+      services.createApiKey(name, scopes),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
   });
 }

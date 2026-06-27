@@ -477,8 +477,8 @@ export async function getApiKeys(): Promise<ApiKey[]> {
   return (await apiClient.get<ApiKey[]>("/keys")).data;
 }
 
-export async function createApiKey(name: string): Promise<ApiKeyCreated> {
-  return (await apiClient.post<ApiKeyCreated>("/keys", { name })).data;
+export async function createApiKey(name: string, scopes: string[]): Promise<ApiKeyCreated> {
+  return (await apiClient.post<ApiKeyCreated>("/keys", { name, scopes })).data;
 }
 
 export async function deleteApiKey(id: number): Promise<void> {

@@ -5,7 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useApiKeys, useCreateApiKey, useDeleteApiKey } from "@/hooks/queries";
-import type { ApiKeyCreated } from "@/types";
+import type { ApiKeyCreated, ApiScope } from "@/types";
+import { cn } from "@/lib/utils";
+
+const SCOPES: { value: ApiScope; label: string; hint: string }[] = [
+  { value: "read", label: "Read", hint: "GET market & stock data" },
+  { value: "ai", label: "AI", hint: "AI research & reports" },
+  { value: "write", label: "Write", hint: "Mutate account data" },
+];
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -41,16 +48,25 @@ export function ApiKeysCard({ autoProvision = false }: { autoProvision?: boolean
   const create = useCreateApiKey();
   const remove = useDeleteApiKey();
   const [name, setName] = useState("");
+  const [scopes, setScopes] = useState<ApiScope[]>(["read", "ai", "write"]);
   const [justCreated, setJustCreated] = useState<ApiKeyCreated | null>(null);
   const provisioned = useRef(false);
 
-  const handleCreate = (keyName?: string) => {
-    create.mutate((keyName ?? name).trim() || "API key", {
-      onSuccess: (key) => {
-        setJustCreated(key);
-        setName("");
+  const toggleScope = (s: ApiScope) =>
+    setScopes((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+
+  const handleCreate = (opts?: { name?: string; scopes?: ApiScope[] }) => {
+    const useScopes = opts?.scopes ?? scopes;
+    if (useScopes.length === 0) return;
+    create.mutate(
+      { name: (opts?.name ?? name).trim() || "API key", scopes: useScopes },
+      {
+        onSuccess: (key) => {
+          setJustCreated(key);
+          setName("");
+        },
       },
-    });
+    );
   };
 
   // After a successful checkout, provision a first key automatically and reveal
@@ -60,7 +76,7 @@ export function ApiKeysCard({ autoProvision = false }: { autoProvision?: boolean
     if (!autoProvision || provisioned.current || isLoading) return;
     if (keys && keys.length === 0 && !create.isPending) {
       provisioned.current = true;
-      handleCreate("default");
+      handleCreate({ name: "default", scopes: ["read", "ai", "write"] });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoProvision, isLoading, keys]);
@@ -96,18 +112,44 @@ export function ApiKeysCard({ autoProvision = false }: { autoProvision?: boolean
         )}
 
         {/* Create */}
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Input
-            placeholder="Key name (e.g. production)"
-            value={name}
-            maxLength={64}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-          />
-          <Button onClick={() => handleCreate()} disabled={create.isPending}>
-            {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Create key
-          </Button>
+        <div className="space-y-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              placeholder="Key name (e.g. production)"
+              value={name}
+              maxLength={64}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+            />
+            <Button onClick={() => handleCreate()} disabled={create.isPending || scopes.length === 0}>
+              {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              Create key
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">Scopes:</span>
+            {SCOPES.map((s) => {
+              const on = scopes.includes(s.value);
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  title={s.hint}
+                  onClick={() => toggleScope(s.value)}
+                  aria-pressed={on}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                    on
+                      ? "border-primary/40 bg-primary/15 text-primary"
+                      : "border-border/60 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+            {scopes.length === 0 && <span className="text-xs text-bear">Pick at least one scope.</span>}
+          </div>
         </div>
         {create.isError && (
           <p className="text-xs text-bear">
@@ -126,7 +168,17 @@ export function ApiKeysCard({ autoProvision = false }: { autoProvision?: boolean
             keys.map((k) => (
               <div key={k.id} className="flex items-center justify-between gap-4 py-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{k.name}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate text-sm font-medium">{k.name}</p>
+                    {k.scopes.map((s) => (
+                      <span
+                        key={s}
+                        className="rounded-full border border-border/60 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
                   <p className="font-mono text-xs text-muted-foreground">
                     {k.prefix}…{k.last4}
                   </p>

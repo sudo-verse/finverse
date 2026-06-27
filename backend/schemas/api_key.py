@@ -9,6 +9,8 @@ from backend.schemas.common import APIModel
 
 class ApiKeyCreate(APIModel):
     name: str = Field(default="API key", max_length=64)
+    # Capabilities to grant: any of read / ai / write. Empty → default grant set.
+    scopes: list[str] = Field(default_factory=lambda: ["read", "ai", "write"])
 
 
 class ApiKeyOut(APIModel):
@@ -18,6 +20,7 @@ class ApiKeyOut(APIModel):
     name: str
     prefix: str
     last4: str
+    scopes: list[str] = Field(default_factory=list)
     created_at: datetime | None = None
     last_used_at: datetime | None = None
 

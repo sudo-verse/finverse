@@ -1271,11 +1271,14 @@ export interface SavedScreen {
   createdAt: string | null;
 }
 
+export type ApiScope = "read" | "ai" | "write";
+
 export interface ApiKey {
   id: number;
   name: string;
   prefix: string;
   last4: string;
+  scopes: ApiScope[];
   createdAt: string | null;
   lastUsedAt: string | null;
 }

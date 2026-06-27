@@ -64,6 +64,9 @@ class ApiKey(Base):
     prefix = Column(String(24), nullable=False, index=True)
     last4 = Column(String(4), nullable=False)
     hashed_key = Column(String(64), nullable=False, unique=True, index=True)
+    # Comma-separated grant set (read,ai,write). NULL/empty = unrestricted
+    # (legacy keys minted before scopes existed keep full access).
+    scopes = Column(String(128))
     created_at = Column(DateTime, default=datetime.utcnow)
     last_used_at = Column(DateTime)
     revoked_at = Column(DateTime)
