@@ -19,12 +19,12 @@ interface LegalPageProps {
  */
 export function LegalPage({ title, current, children }: LegalPageProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-zinc-900">
+    <div className="flex min-h-screen flex-col bg-[#060a13] text-white">
       <Seo title={title} description={`${title} for Finverse — AI-powered NSE stock intelligence.`} />
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-14">
-        <h1 className="text-4xl font-bold tracking-tight text-zinc-900">{title}</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-white">{title}</h1>
         <p className="mt-2 text-sm text-zinc-500">Last updated: {LEGAL.lastUpdated}</p>
 
         <nav className="mt-6 flex flex-wrap gap-2">
@@ -35,8 +35,8 @@ export function LegalPage({ title, current, children }: LegalPageProps) {
               className={cn(
                 "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                 l.to === current
-                  ? "border-zinc-900 bg-zinc-900 text-white"
-                  : "border-zinc-300 text-zinc-600 hover:text-zinc-900",
+                  ? "border-blue-500/50 bg-blue-500/15 text-blue-300"
+                  : "border-white/15 text-zinc-400 hover:text-white",
               )}
             >
               {l.label}
@@ -44,7 +44,7 @@ export function LegalPage({ title, current, children }: LegalPageProps) {
           ))}
         </nav>
 
-        <article className="mt-10 space-y-8 text-sm leading-relaxed text-zinc-600">
+        <article className="mt-10 space-y-8 text-sm leading-relaxed text-zinc-400">
           {children}
         </article>
       </main>
@@ -58,8 +58,8 @@ export function LegalPage({ title, current, children }: LegalPageProps) {
 export function Section({ heading, children }: { heading: string; children: ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-lg font-semibold text-zinc-900">{heading}</h2>
-      <div className="space-y-2 text-zinc-600">{children}</div>
+      <h2 className="text-lg font-semibold text-white">{heading}</h2>
+      <div className="space-y-2 text-zinc-400">{children}</div>
     </section>
   );
 }

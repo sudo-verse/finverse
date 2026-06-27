@@ -158,6 +158,59 @@
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Marketing / landing animations (dark, finance-themed). All GPU-friendly
+   (transform / opacity / stroke). Disabled under reduced-motion.
+--------------------------------------------------------------------------- */
+@keyframes fv-grid-drift {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 48px 48px, 48px 48px; }
+}
+@keyframes fv-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+@keyframes fv-pulse {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+@keyframes fv-dash-flow {
+  to { stroke-dashoffset: -800; }
+}
+@keyframes fv-draw {
+  from { stroke-dashoffset: var(--draw-len, 1200); }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes fv-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fv-glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.12); }
+}
+
+@utility fv-grid {
+  background-image:
+    linear-gradient(to right, rgba(120, 160, 220, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 160, 220, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: fv-grid-drift 6s linear infinite;
+}
+@utility fv-float { animation: fv-float 6s ease-in-out infinite; }
+@utility fv-pulse { animation: fv-pulse 3s ease-in-out infinite; }
+@utility fv-dash-flow { animation: fv-dash-flow 8s linear infinite; }
+@utility fv-glow-pulse { animation: fv-glow-pulse 3.5s ease-in-out infinite; }
+
+/* Soft blue glow for hero headings (the langchain look). */
+@utility text-glow {
+  text-shadow: 0 0 40px rgba(96, 165, 250, 0.45), 0 0 12px rgba(96, 165, 250, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fv-grid, .fv-float, .fv-pulse, .fv-dash-flow, .fv-glow-pulse { animation: none !important; }
+}
+
 /* Markdown typography for AI reports & chat (react-markdown output) */
 @utility prose-finverse {
   & h1,
