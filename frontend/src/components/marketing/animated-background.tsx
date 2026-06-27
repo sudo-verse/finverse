@@ -40,11 +40,11 @@ export function AnimatedBackground({ className, grid = true, priceLine = true, c
   return (
     <div className={cn("pointer-events-none absolute inset-0 -z-10 overflow-hidden", className)}>
       {/* Drifting grid */}
-      {grid && <div className="fv-grid absolute inset-0 opacity-60" />}
+      {grid && <div className="fv-grid absolute inset-0 opacity-[0.35]" />}
 
       {/* Glow blobs */}
-      <div className="absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
-      <div className="absolute top-10 right-1/4 h-80 w-80 rounded-full bg-violet-500/[0.07] blur-3xl" />
+      <div className="absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-blue-500/[0.06] blur-3xl" />
+      <div className="absolute top-10 right-1/4 h-80 w-80 rounded-full bg-violet-500/[0.04] blur-3xl" />
 
       {/* Flowing price line */}
       {priceLine && (
@@ -78,27 +78,27 @@ export function AnimatedBackground({ className, grid = true, priceLine = true, c
           strokeWidth="2.5"
           strokeLinejoin="round"
           strokeLinecap="round"
-          style={{ ["--draw-len" as string]: "1600", strokeDasharray: 1600, animation: "fv-draw 2.4s ease-out forwards" }}
+          style={{ ["--draw-len" as string]: "1600", strokeDasharray: 1600, animation: "fv-draw 3.2s cubic-bezier(0.22,1,0.36,1) forwards" }}
         />
         {/* Live flowing dashes over the same path */}
         <path
           d="M0,320 L100,300 L200,330 L300,260 L400,290 L500,220 L600,250 L700,180 L800,210 L900,140 L1000,170 L1100,90 L1200,120"
           fill="none"
           stroke="#bfdbfe"
-          strokeWidth="2"
+          strokeWidth="1.5"
           strokeLinecap="round"
-          strokeDasharray="6 22"
+          strokeDasharray="4 26"
           className="fv-dash-flow"
-          opacity="0.5"
+          opacity="0.28"
         />
-        <circle cx="1100" cy="90" r="5" fill="#bfdbfe" className="fv-glow-pulse" />
+        <circle cx="1100" cy="90" r="4.5" fill="#bfdbfe" className="fv-glow-pulse" />
       </svg>
       )}
 
       {/* Candlesticks */}
       {candles && (
         <svg
-          className="absolute inset-x-0 bottom-0 h-40 w-full opacity-[0.13]"
+          className="absolute inset-x-0 bottom-0 h-40 w-full opacity-[0.07]"
           viewBox="0 0 100 80"
           preserveAspectRatio="none"
           aria-hidden
@@ -108,7 +108,7 @@ export function AnimatedBackground({ className, grid = true, priceLine = true, c
             const top = Math.min(k.o, k.c);
             const h = Math.max(2, Math.abs(k.o - k.c));
             return (
-              <g key={k.x} className="fv-float" style={{ animationDelay: `${i * 0.35}s`, transformBox: "fill-box" }}>
+              <g key={k.x} className="fv-float" style={{ animationDelay: `${i * 0.6}s`, transformBox: "fill-box" }}>
                 <line x1={k.x} y1={k.hi} x2={k.x} y2={k.lo} stroke={color} strokeWidth="0.5" />
                 <rect x={k.x - 2} y={top} width="4" height={h} fill={color} />
               </g>

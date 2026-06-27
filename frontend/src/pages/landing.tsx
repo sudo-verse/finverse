@@ -36,10 +36,10 @@ const PILLARS = ["Valuation", "Earnings momentum", "Smart money", "Insider / SAS
 function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 22 }}
+      initial={{ opacity: 0, y: 14 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.75, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -69,7 +69,7 @@ export default function LandingPage() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 fv-pulse" /> Built for the Indian markets
           </motion.span>
           <motion.h1
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.05 }}
             className="mx-auto mt-6 max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl"
@@ -78,7 +78,7 @@ export default function LandingPage() {
             <span className="text-glow text-blue-300">One conviction score.</span>
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.15 }}
             className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-400"
@@ -87,7 +87,7 @@ export default function LandingPage() {
             NSE universe — into a single score you can defend. Use the app, or build on the API.
           </motion.p>
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.25 }}
             className="mt-8 flex flex-wrap items-center justify-center gap-3"
@@ -121,7 +121,7 @@ export default function LandingPage() {
             ["40+", "data & analytics views"],
             ["1 API", "for all of it"],
           ].map(([stat, label], i) => (
-            <Reveal key={label} delay={i * 0.08} className="text-center">
+            <Reveal key={label} delay={i * 0.05} className="text-center">
               <div className="text-3xl font-bold tracking-tight text-white">{stat}</div>
               <div className="mt-1 text-sm text-zinc-500">{label}</div>
             </Reveal>
@@ -141,7 +141,7 @@ export default function LandingPage() {
         </Reveal>
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f, i) => (
-            <Reveal key={f.name} delay={(i % 4) * 0.06}>
+            <Reveal key={f.name} delay={(i % 4) * 0.04}>
               <div className="group h-full rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-colors hover:border-blue-500/40 hover:bg-white/[0.05]">
                 <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600/15 text-blue-400 ring-1 ring-blue-500/20">
                   <f.icon className="h-5 w-5" />

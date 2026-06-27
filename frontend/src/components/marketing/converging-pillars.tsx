@@ -42,17 +42,17 @@ export function ConvergingPillars() {
               style={{
                 ["--draw-len" as string]: "560",
                 strokeDasharray: 560,
-                animation: `fv-draw 1.4s ease-out ${0.15 * i}s forwards`,
+                animation: `fv-draw 1.8s cubic-bezier(0.22,1,0.36,1) ${0.18 * i}s forwards`,
               }}
             />
             <path
               d={d}
               fill="none"
               stroke="#bfdbfe"
-              strokeWidth="1.5"
-              strokeDasharray="3 16"
+              strokeWidth="1.25"
+              strokeDasharray="2 20"
               className="fv-dash-flow"
-              opacity="0.45"
+              opacity="0.24"
             />
           </g>
         );
