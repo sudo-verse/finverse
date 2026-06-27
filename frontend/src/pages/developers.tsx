@@ -73,7 +73,7 @@ interface Plan {
 const PLANS: Plan[] = [
   {
     name: "Developer",
-    price: "$0",
+    price: "₹0",
     cadence: "/mo",
     tagline: "Build and prototype against the full catalog.",
     features: ["All read endpoints", "1,000 requests / day", "5 req/sec burst", "25 AI chat · 5 AI reports / day"],
@@ -81,7 +81,7 @@ const PLANS: Plan[] = [
   },
   {
     name: "Pro",
-    price: "$29",
+    price: "₹2,400",
     cadence: "/mo",
     tagline: "Production access with headroom for real apps.",
     features: ["Everything in Developer", "50,000 requests / day", "20 req/sec burst", "2,000 AI chat · 500 reports / day"],
@@ -90,7 +90,7 @@ const PLANS: Plan[] = [
   },
   {
     name: "Scale",
-    price: "$99",
+    price: "₹8,000",
     cadence: "/mo",
     tagline: "High-volume API access for teams.",
     features: ["Everything in Pro", "250,000 requests / day", "50 req/sec burst", "Priority support"],
@@ -287,7 +287,7 @@ export default function DevelopersPage() {
             ))}
           </div>
           <p className="text-center text-sm text-zinc-500">
-            Prices in USD, billed monthly. Need higher volume or an SLA?{" "}
+            Prices in INR, billed monthly via Cashfree (UPI, cards, netbanking). Need higher volume or an SLA?{" "}
             <a href={`mailto:${SALES_EMAIL}`} className="font-medium text-blue-400 hover:underline">Contact sales</a>.
           </p>
         </section>
