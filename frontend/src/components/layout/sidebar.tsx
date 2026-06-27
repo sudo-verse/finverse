@@ -85,7 +85,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     <motion.aside
       animate={{ width: collapsed ? 68 : 232 }}
       transition={{ duration: 0.22, ease: "easeInOut" }}
-      className="relative z-30 hidden h-screen shrink-0 flex-col border-r border-border/60 bg-card/40 md:flex"
+      className="sticky top-0 z-30 hidden h-screen shrink-0 flex-col self-start border-r border-border/60 bg-card/40 md:flex"
     >
       {/* Brand */}
       <div className="flex h-16 items-center gap-3 px-4">
@@ -103,7 +103,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}

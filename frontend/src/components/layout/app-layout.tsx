@@ -44,7 +44,7 @@ export function AppLayout() {
   return (
     <div className="flex min-h-screen">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((v) => !v)} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <Topbar onOpenPalette={() => setPaletteOpen(true)} />
         <TickerTape />
         <main className="flex-1 p-4 md:p-6 lg:p-8">
