@@ -52,12 +52,28 @@ class Settings(BaseSettings):
     scale_price_amount: int = 9900   # higher API-volume tier ($99.00)
     pro_price_currency: str = "usd"
     pro_price_interval: str = "month"
-    # Where Stripe redirects back to after checkout (the frontend origin).
+    # Where the gateway redirects back to after checkout (the frontend origin).
     app_base_url: str = "http://localhost:5173"
+
+    # Billing (Cashfree — India-first, INR via UPI/cards). Set BACKEND_CASHFREE_*
+    # to enable. Webhooks are verified with the secret key (HMAC), so no separate
+    # webhook secret is needed.
+    cashfree_app_id: str = ""
+    cashfree_secret_key: str = ""
+    cashfree_env: str = "sandbox"          # sandbox | production
+    cashfree_default_phone: str = "9999999999"  # Cashfree requires a phone; collected at checkout
+    pro_price_inr: int = 2400              # ₹ charged for Pro (≈ $29)
+    scale_price_inr: int = 8000            # ₹ charged for Scale (≈ $99)
+    # Public API origin (for the webhook notify_url). Falls back to app_base_url.
+    api_base_url: str = ""
 
     @property
     def stripe_enabled(self) -> bool:
         return bool(self.stripe_secret_key)
+
+    @property
+    def cashfree_enabled(self) -> bool:
+        return bool(self.cashfree_app_id and self.cashfree_secret_key)
 
     # Embedded news-ingestion engine (set BACKEND_ENGINE_ENABLED=false when
     # running `python -m app.main_nse` as a separate process instead).

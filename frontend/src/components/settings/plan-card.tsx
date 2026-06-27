@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, CreditCard, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { startCheckout } from "@/api/auth";
+import { cashfreeUpgrade } from "@/lib/cashfree";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 const PLAN_RANK: Record<string, number> = { free: 0, pro: 1, scale: 2 };
 
 const TIERS: { plan: "pro" | "scale"; name: string; price: string; api: string; blurb: string }[] = [
-  { plan: "pro", name: "Pro", price: "$29/mo", api: "50,000 API req/day", blurb: "Production access for real apps." },
-  { plan: "scale", name: "Scale", price: "$99/mo", api: "250,000 API req/day", blurb: "High-volume API for teams." },
+  { plan: "pro", name: "Pro", price: "₹2,400/mo", api: "50,000 API req/day", blurb: "Production access for real apps." },
+  { plan: "scale", name: "Scale", price: "₹8,000/mo", api: "250,000 API req/day", blurb: "High-volume API for teams." },
 ];
 
 /**
@@ -29,10 +29,10 @@ export function PlanCard() {
   const upgrade = async (plan: "pro" | "scale") => {
     setPending(plan);
     try {
-      window.location.href = await startCheckout(plan);
+      await cashfreeUpgrade(plan);
     } catch (e) {
       const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(detail ?? "Could not start checkout. Please try again.");
+      toast.error(detail ?? (e as Error)?.message ?? "Could not start checkout. Please try again.");
       setPending(null);
     }
   };
@@ -44,7 +44,7 @@ export function PlanCard() {
           <CreditCard className="h-4 w-4 text-primary" /> Plan &amp; billing
         </CardTitle>
         <CardDescription>
-          Your plan sets API rate limits and AI quotas. Cancel anytime.
+          Your plan sets API rate limits and AI quotas. Billed in INR via Cashfree (UPI, cards, netbanking).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -9,6 +9,7 @@ from app.db.models import User
 from backend.core.deps import get_current_user
 from backend.schemas.common import APIModel
 from backend.services.billing_service import billing_service
+from backend.services.cashfree_service import cashfree_service
 
 logger = logging.getLogger("finverse.api")
 
@@ -41,4 +42,28 @@ async def webhook(request: Request) -> dict:
         logger.exception("billing: webhook handling failed")
         # 200 anyway so Stripe doesn't hammer retries on a parse bug; the
         # exception is logged for us to investigate.
+    return {"received": True}
+
+
+# ----------------------------------------------------------------- Cashfree
+@router.post("/cashfree/checkout", summary="Start a Cashfree (INR) checkout")
+def cashfree_checkout(payload: CheckoutRequest | None = None,
+                      user: User = Depends(get_current_user)) -> dict:
+    """Create a Cashfree order and return the data the frontend SDK needs to open
+    hosted checkout. Requires BACKEND_CASHFREE_APP_ID / _SECRET_KEY."""
+    plan = payload.plan if payload else "pro"
+    return cashfree_service.create_order(user, plan)
+
+
+@router.post("/cashfree/webhook", include_in_schema=False)
+async def cashfree_webhook(request: Request) -> dict:
+    """Cashfree webhook (unauthenticated; verified by HMAC). Activates the plan
+    on a successful payment."""
+    payload = await request.body()
+    sig = request.headers.get("x-webhook-signature")
+    ts = request.headers.get("x-webhook-timestamp")
+    try:
+        cashfree_service.handle_webhook(payload, sig, ts)
+    except Exception:
+        logger.exception("cashfree: webhook handling failed")
     return {"received": True}

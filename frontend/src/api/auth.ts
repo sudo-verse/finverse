@@ -59,3 +59,15 @@ export async function startCheckout(plan: "pro" | "scale" = "pro"): Promise<stri
   const { data } = await apiClient.post<{ url: string }>("/billing/checkout", { plan });
   return data.url;
 }
+
+export interface CashfreeOrder {
+  payment_session_id: string;
+  order_id: string;
+  mode: "sandbox" | "production";
+}
+
+/** Create a Cashfree order (INR) and return its hosted-checkout session. */
+export async function startCashfreeCheckout(plan: "pro" | "scale" = "pro"): Promise<CashfreeOrder> {
+  const { data } = await apiClient.post<CashfreeOrder>("/billing/cashfree/checkout", { plan });
+  return data;
+}

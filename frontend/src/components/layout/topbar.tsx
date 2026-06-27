@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Bell, BellOff, LogOut, Menu, Search, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
-import { startCheckout } from "@/api/auth";
+import { cashfreeUpgrade } from "@/lib/cashfree";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
 import { useAlertEvents, useMarkAlertsSeen, useMarketOverview, useUsage } from "@/hooks/queries";
@@ -159,9 +159,10 @@ function UserMenu() {
               type="button"
               onClick={async () => {
                 try {
-                  window.location.href = await startCheckout();
-                } catch {
-                  toast.error("Could not start checkout. Please try again.");
+                  await cashfreeUpgrade("pro");
+                } catch (e) {
+                  const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+                  toast.error(detail ?? "Could not start checkout. Please try again.");
                 }
               }}
               className="flex w-full cursor-pointer items-center gap-2 border-b border-border/60 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
