@@ -28,6 +28,8 @@ import type {
   ConvictionRow,
   TechnicalsOut,
   TechnicalRow,
+  ApiKey,
+  ApiKeyCreated,
   SavedScreen,
   MarketMood,
   RedFlagsOut,
@@ -467,4 +469,18 @@ export async function getAlertEvents(): Promise<AlertEvent[]> {
 
 export async function markAlertEventsSeen(): Promise<void> {
   await apiClient.post("/alerts/events/seen");
+}
+
+/* ------------------------------ Developer API keys ------------------------------ */
+
+export async function getApiKeys(): Promise<ApiKey[]> {
+  return (await apiClient.get<ApiKey[]>("/keys")).data;
+}
+
+export async function createApiKey(name: string): Promise<ApiKeyCreated> {
+  return (await apiClient.post<ApiKeyCreated>("/keys", { name })).data;
+}
+
+export async function deleteApiKey(id: number): Promise<void> {
+  await apiClient.delete(`/keys/${id}`);
 }

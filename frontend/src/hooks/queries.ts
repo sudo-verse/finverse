@@ -732,3 +732,25 @@ export function useMarkAlertsSeen() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["alert-events"] }),
   });
 }
+
+/* ------------------------------ Developer API keys ------------------------------ */
+
+export function useApiKeys() {
+  return useQuery({ queryKey: ["api-keys"], queryFn: services.getApiKeys, staleTime: 30_000 });
+}
+
+export function useCreateApiKey() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => services.createApiKey(name),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
+  });
+}
+
+export function useDeleteApiKey() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => services.deleteApiKey(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["api-keys"] }),
+  });
+}

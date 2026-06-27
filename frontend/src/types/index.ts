@@ -1270,3 +1270,17 @@ export interface SavedScreen {
   lastCount: number | null;
   createdAt: string | null;
 }
+
+export interface ApiKey {
+  id: number;
+  name: string;
+  prefix: string;
+  last4: string;
+  createdAt: string | null;
+  lastUsedAt: string | null;
+}
+
+/** Returned once, on creation — carries the full secret in `key`. */
+export interface ApiKeyCreated extends ApiKey {
+  key: string;
+}

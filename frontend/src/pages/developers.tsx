@@ -108,7 +108,7 @@ const PLANS: Plan[] = [
       "25 AI chat · 5 AI reports / day",
       "Community support",
     ],
-    cta: { label: "Get an API key", to: "/login" },
+    cta: { label: "Get an API key", to: "/settings" },
   },
   {
     name: "Pro",
@@ -122,7 +122,7 @@ const PLANS: Plan[] = [
       "Priority email support",
       "Higher rate limits",
     ],
-    cta: { label: "Start Pro", to: "/login?plan=pro" },
+    cta: { label: "Start Pro", to: "/settings?billing=upgrade" },
     highlight: true,
   },
   {
@@ -246,7 +246,7 @@ export default function DevelopersPage() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              to="/login"
+              to="/settings"
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90"
             >
               Get an API key <ArrowRight className="h-4 w-4" />

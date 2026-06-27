@@ -50,6 +50,38 @@ class UsageRecord(Base):
     count = Column(Integer, nullable=False, default=0)
 
 
+class ApiKey(Base):
+    """A developer API key — lets external callers authenticate to the public
+    API as the owning user, with that user's plan limits. We store only a
+    SHA-256 hash of the secret; the raw key is shown exactly once at creation."""
+
+    __tablename__ = "api_keys"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name = Column(String(64), nullable=False, default="API key")
+    # Public, non-secret prefix shown in the UI, e.g. "fv_live_a1b2c3".
+    prefix = Column(String(24), nullable=False, index=True)
+    last4 = Column(String(4), nullable=False)
+    hashed_key = Column(String(64), nullable=False, unique=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_used_at = Column(DateTime)
+    revoked_at = Column(DateTime)
+
+
+class ApiKeyUsage(Base):
+    """Per-key, per-day request counter backing API rate limits.
+    One row per (api_key, day)."""
+
+    __tablename__ = "api_key_usage"
+    __table_args__ = (UniqueConstraint("api_key_id", "day", name="uq_apikey_usage_key_day"),)
+
+    id = Column(Integer, primary_key=True)
+    api_key_id = Column(Integer, ForeignKey("api_keys.id"), nullable=False, index=True)
+    day = Column(Date, nullable=False, index=True)
+    count = Column(Integer, nullable=False, default=0)
+
+
 class Company(Base):
     """Company master — one row per listed NSE stock."""
 

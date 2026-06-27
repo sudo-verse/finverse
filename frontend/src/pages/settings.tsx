@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Seo } from "@/components/seo";
+import { ApiKeysCard } from "@/components/settings/api-keys";
 import { useAuth } from "@/contexts/auth";
 import { ACCENTS, usePreferences, type Accent, type NotificationPrefs } from "@/contexts/preferences";
 import { cn } from "@/lib/utils";
@@ -114,8 +115,13 @@ export default function SettingsPage() {
           </Card>
         </motion.div>
 
-        {/* Account */}
+        {/* Developer API keys */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <ApiKeysCard />
+        </motion.div>
+
+        {/* Account */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
