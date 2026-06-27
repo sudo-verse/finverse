@@ -1,10 +1,12 @@
 import { Suspense, lazy } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-layout";
 import { RequireAuth } from "@/components/auth/require-auth";
+import { useAuth } from "@/contexts/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Route-level code splitting keeps the initial bundle lean.
+const LandingPage = lazy(() => import("@/pages/landing"));
 const LoginPage = lazy(() => import("@/pages/login"));
 const DashboardPage = lazy(() => import("@/pages/dashboard"));
 const SignalsPage = lazy(() => import("@/pages/signals"));
@@ -53,9 +55,26 @@ function PageFallback() {
   );
 }
 
+/** Root path: the public marketing landing for visitors, the app for users. */
+function RootGate() {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return <div className="min-h-screen bg-white" />;
+  }
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <LandingPage />
+    </Suspense>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<RootGate />} />
       <Route
         path="/login"
         element={
@@ -93,7 +112,7 @@ export default function App() {
         }
       >
         <Route
-          index
+          path="dashboard"
           element={
             <Suspense fallback={<PageFallback />}>
               <DashboardPage />

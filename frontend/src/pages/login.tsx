@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { TrendingUp } from "lucide-react";
+import { ArrowLeft, Check, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { LEGAL_LINKS } from "@/lib/legal";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/auth";
 import { Seo } from "@/components/seo";
+
+const INPUT =
+  "w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none transition-colors focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10";
+
+const POINTS = [
+  "One explainable conviction score per stock",
+  "Smart-money, insider, valuation & technicals",
+  "Free tier — and a developer API",
+];
 
 export default function LoginPage() {
   const { login, register } = useAuth();
@@ -45,29 +49,67 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+    <div className="grid min-h-screen bg-white lg:grid-cols-2">
       <Seo title="Sign in" description="Sign in to Finverse — AI-powered NSE stock intelligence." />
-      <Card className="w-full max-w-sm">
-        <CardHeader className="space-y-2 text-center">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md">
-            <TrendingUp className="h-5 w-5" />
+
+      {/* Brand panel */}
+      <div className="relative hidden flex-col justify-between bg-zinc-900 p-12 lg:flex">
+        <Link to="/" className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-zinc-900">
+            <TrendingUp className="h-[18px] w-[18px]" />
+          </span>
+          <span className="text-[15px] font-semibold tracking-tight text-white">Finverse</span>
+        </Link>
+
+        <div className="max-w-md">
+          <h2 className="text-3xl font-bold leading-tight tracking-tight text-white">
+            Equity research, distilled to one explainable score.
+          </h2>
+          <ul className="mt-8 space-y-4">
+            {POINTS.map((p) => (
+              <li key={p} className="flex items-start gap-3 text-zinc-300">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10">
+                  <Check className="h-3 w-3 text-emerald-400" />
+                </span>
+                <span className="text-sm leading-relaxed">{p}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="text-xs leading-relaxed text-zinc-500">
+          Informational & educational only — not investment advice. Source: NSE.
+        </p>
+      </div>
+
+      {/* Form */}
+      <div className="flex flex-col px-6 py-8 sm:px-12">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900">
+          <ArrowLeft className="h-4 w-4" /> Back to home
+        </Link>
+
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
+          <div className="lg:hidden">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 text-white">
+              <TrendingUp className="h-5 w-5" />
+            </span>
           </div>
-          <CardTitle className="text-xl">
-            {mode === "login" ? "Sign in to Finverse" : "Create your account"}
-          </CardTitle>
-          <CardDescription>
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 lg:mt-0">
+            {mode === "login" ? "Welcome back" : "Create your account"}
+          </h1>
+          <p className="mt-1.5 text-sm text-zinc-500">
             {mode === "login"
-              ? "AI equity research & market intelligence"
-              : "Start tracking watchlists, alerts and portfolios"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={submit} className="space-y-4">
+              ? "Sign in to your Finverse account."
+              : "Start with the free tier — no card required."}
+          </p>
+
+          <form onSubmit={submit} className="mt-8 space-y-4">
             {mode === "register" && (
               <div className="space-y-1.5">
-                <Label htmlFor="fullName">Name</Label>
-                <Input
+                <label htmlFor="fullName" className="text-sm font-medium text-zinc-700">Name</label>
+                <input
                   id="fullName"
+                  className={INPUT}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Jane Investor"
@@ -76,11 +118,12 @@ export default function LoginPage() {
               </div>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
+              <label htmlFor="email" className="text-sm font-medium text-zinc-700">Email</label>
+              <input
                 id="email"
                 type="email"
                 required
+                className={INPUT}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -88,44 +131,50 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
-              <Input
+              <label htmlFor="password" className="text-sm font-medium text-zinc-700">Password</label>
+              <input
                 id="password"
                 type="password"
                 required
                 minLength={8}
+                className={INPUT}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={mode === "register" ? "At least 8 characters" : "••••••••"}
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={busy}>
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-60"
+            >
               {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
-            </Button>
+            </button>
           </form>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
+
+          <p className="mt-6 text-center text-sm text-zinc-500">
             {mode === "login" ? "New to Finverse?" : "Already have an account?"}{" "}
             <button
               type="button"
-              className="cursor-pointer font-medium text-primary hover:underline"
+              className="cursor-pointer font-semibold text-zinc-900 hover:underline"
               onClick={() => setMode(mode === "login" ? "register" : "login")}
             >
               {mode === "login" ? "Create an account" : "Sign in"}
             </button>
           </p>
-        </CardContent>
-      </Card>
-      <p className="mt-5 max-w-sm text-center text-[11px] leading-relaxed text-muted-foreground">
-        By continuing you agree to our{" "}
-        {LEGAL_LINKS.map((l, i) => (
-          <span key={l.to}>
-            <Link to={l.to} className="underline hover:text-foreground">{l.label}</Link>
-            {i < LEGAL_LINKS.length - 1 ? ", " : "."}
-          </span>
-        ))}{" "}
-        Not investment advice.
-      </p>
+
+          <p className="mt-8 text-center text-[11px] leading-relaxed text-zinc-400">
+            By continuing you agree to our{" "}
+            {LEGAL_LINKS.map((l, i) => (
+              <span key={l.to}>
+                <Link to={l.to} className="underline hover:text-zinc-700">{l.label}</Link>
+                {i < LEGAL_LINKS.length - 1 ? ", " : "."}
+              </span>
+            ))}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

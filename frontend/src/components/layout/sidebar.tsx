@@ -43,7 +43,7 @@ const MARKET_STATUS: Record<string, { label: string; live: boolean }> = {
 };
 
 const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/conviction", label: "Conviction Score", icon: Target },
   { to: "/watchlist", label: "Watchlist", icon: Star },
   { to: "/screener", label: "Screener", icon: SlidersHorizontal },

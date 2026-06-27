@@ -4,7 +4,7 @@ import { LEGAL } from "@/lib/legal";
 export default function DisclaimerPage() {
   return (
     <LegalPage title="Disclaimer & Risk Disclosure" current="/disclaimer">
-      <p className="rounded-lg border border-hold/30 bg-hold/10 p-4 text-foreground">
+      <p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-zinc-800">
         <strong>{LEGAL.company} is not a SEBI-registered investment adviser or research analyst.</strong>{" "}
         Everything on this platform is provided for informational and educational purposes only and must
         not be construed as investment advice, a recommendation, or a solicitation to buy or sell any
