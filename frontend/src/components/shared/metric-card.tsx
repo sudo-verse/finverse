@@ -39,8 +39,8 @@ export function MetricCard({ label, value, icon: Icon, delta, deltaTone = "neutr
               </p>
             )}
           </div>
-          <div className={cn("rounded-lg bg-secondary/70 p-2.5", accent ?? "text-primary")}>
-            <Icon className="h-5 w-5" />
+          <div className={cn("rounded-md bg-white/[0.04] p-2 ring-1 ring-white/[0.06]", accent ?? "text-primary")}>
+            <Icon className="h-[18px] w-[18px]" />
           </div>
         </div>
       </Card>

@@ -125,7 +125,7 @@ function UserMenu() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Account menu"
-        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-xs font-bold text-white shadow-md"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
       >
         {initials}
       </button>
@@ -187,7 +187,7 @@ export function Topbar({ onOpenPalette }: TopbarProps) {
   const { data: market } = useMarketOverview();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-md">
       <div className="flex h-16 items-center gap-3 px-4 md:px-6">
         {/* Mobile menu */}
         <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen((v) => !v)}>
@@ -246,8 +246,8 @@ export function Topbar({ onOpenPalette }: TopbarProps) {
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium",
-                  isActive ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-accent/60",
+                  "flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium",
+                  isActive ? "bg-white/[0.06] text-foreground" : "text-muted-foreground hover:bg-white/[0.03]",
                 )
               }
             >

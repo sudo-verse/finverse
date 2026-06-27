@@ -85,11 +85,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     <motion.aside
       animate={{ width: collapsed ? 68 : 232 }}
       transition={{ duration: 0.22, ease: "easeInOut" }}
-      className="relative z-30 hidden h-screen shrink-0 flex-col border-r border-border/60 bg-card/60 backdrop-blur-xl md:flex"
+      className="relative z-30 hidden h-screen shrink-0 flex-col border-r border-border/60 bg-card/40 md:flex"
     >
       {/* Brand */}
       <div className="flex h-16 items-center gap-3 px-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-blue-500/20">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600">
           <TrendingUp className="h-5 w-5 text-white" />
         </div>
         {!collapsed && (
@@ -112,10 +112,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             title={collapsed ? label : undefined}
             className={({ isActive }) =>
               cn(
-                "group flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm font-medium transition-colors",
+                "group flex items-center gap-3 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors",
                 isActive
-                  ? "bg-primary/12 text-primary shadow-[inset_2px_0_0_var(--primary)]"
-                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                  ? "bg-white/[0.06] text-foreground"
+                  : "text-muted-foreground hover:bg-white/[0.03] hover:text-foreground",
               )
             }
           >
